@@ -1,0 +1,21 @@
+[gd_scene load_steps=3 format=3 uid="uid://bdfmvb6h0jo6b"]
+
+[ext_resource type="Script" path="res://Scenes/Board/Board.cs" id="1_knysj"]
+[ext_resource type="Texture2D" uid="uid://bwrbcgub2yjhc" path="res://Resources/Textures/Tokens/TokenBlank.png" id="2_upchf"]
+
+[node name="Board" type="Node2D"]
+script = ExtResource("1_knysj")
+HoleMaskTexture = ExtResource("2_upchf")
+metadata/_edit_horizontal_guides_ = []
+metadata/_edit_vertical_guides_ = []
+
+[node name="CanvasGroup" type="CanvasGroup" parent="."]
+
+[node name="ColorRect" type="ColorRect" parent="CanvasGroup"]
+offset_left = -250.0
+offset_top = -200.0
+offset_right = 250.0
+offset_bottom = 200.0
+color = Color(1, 0, 0, 1)
+
+[node name="Camera2D" type="Camera2D" parent="."]

@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://3m1vfrt1mlek"]
+
+[ext_resource type="Script" path="res://Scenes/Token/TokenBase.cs" id="1_gujdk"]
+
+[node name="Token" type="Node2D"]
+script = ExtResource("1_gujdk")
+
+[node name="TokenSprite" type="Sprite2D" parent="."]
