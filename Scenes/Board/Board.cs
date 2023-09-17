@@ -323,15 +323,17 @@ public partial class Board : Node2D
         CreateHoleMasks();
     }
 
-    private void DisableTween(TokenBase? t)
+    private static void DisableTween(TokenBase? t)
     {
         if(t is not null && t.HasMeta(TOKEN_TWEEN_META_NAME))
         {
             Tween oldTween = (Tween)t.GetMeta(TOKEN_TWEEN_META_NAME);
-            if(oldTween.IsValid())
+            if(IsInstanceValid(oldTween) && oldTween.IsValid())
             {
                 oldTween.CustomStep(double.PositiveInfinity);
                 oldTween.Kill();
+                //early dispose this tween to avoid relying on the GC
+                oldTween.Dispose();
             }
         }
     }
@@ -354,8 +356,8 @@ public partial class Board : Node2D
                 //over the desired time
                 distanceLeft/TokenDropSpeed
             )
-            .SetTrans(Tween.TransitionType.Cubic)
-            .SetEase(Tween.EaseType.In)
+            .SetTrans(Tween.TransitionType.Bounce)
+            .SetEase(Tween.EaseType.Out)
             //from the current position
             .From(from);
         t.SetMeta(TOKEN_TWEEN_META_NAME, tween);

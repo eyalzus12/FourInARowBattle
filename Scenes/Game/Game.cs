@@ -117,16 +117,22 @@ public partial class Game : Node2D
                     GD.Print(res);
             }
         }
+
         if(
             @event.IsPressed() && !@event.IsEcho() &&
             @event is InputEventKey ek
         )
         {
             bool needGravity = true;
+            bool needNewDetectors = true;
+            bool needResultCheck = true;
             switch(ek.Keycode)
             {
                 case Key.W or Key.S:
                     _board.FlipVertical();
+                    //show ghost token in correct position
+                    _board.QueueRedraw();
+                    needNewDetectors = false;
                     break;
                 case Key.A:
                     _board.RotateLeft();
@@ -136,12 +142,24 @@ public partial class Game : Node2D
                     break;
                 default:
                     needGravity = false;
+                    needResultCheck = false;
                     break;
             }
+
             if(needGravity)
             {
-                DropDetectorIdx = null;
                 _board.ApplyGravity();
+            }
+
+            if(needNewDetectors)
+            {
+                DropDetectorIdx = null;
+                SetupDropDetectors();
+                SetDetectorsDisabled(false);
+            }
+
+            if(needResultCheck)
+            {
                 var res = _board.DecideResult();
                 if(res != GameResultEnum.None)
                     GD.Print(res);
