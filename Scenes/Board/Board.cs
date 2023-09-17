@@ -25,11 +25,11 @@ public partial class Board : Node2D
     [Export]
     public float TokenRadius{get; set;} = 21;
     [Export]
-    public float DropStartOffset{get; set;} = 1000;
+    public float DropStartOffset{get; set;} = 500;
     [Export]
     public float GhostTokenAlpha{get; set;} = 0.5f;
     [Export]
-    public float TokenDropTime{get; set;} = 1f;
+    public float TokenDropSpeed{get; set;} = 500;
     [Export]
     public Texture2D HoleMaskTexture{get; set;} = null!;
 
@@ -49,7 +49,8 @@ public partial class Board : Node2D
     private Vector2 CenterOffset => SlotRadius * Vector2.One;
     public Vector2 HolePosition(int row, int col) => BoardPosition + HoleJump*new Vector2(col,row) - CenterOffset;
 
-    private bool _hasGhostToken = false;
+    private readonly record struct GhostTokenRenderData(Texture2D TokenTexture, Color TokenColor, int Column){}
+    private GhostTokenRenderData? _ghostToken;
 
     public override void _Ready()
     {
@@ -59,6 +60,30 @@ public partial class Board : Node2D
         TokenGrid = new TokenBase?[Rows,Columns];
 
         CreateHoleMasks();
+    }
+
+    public override void _Draw()
+    {
+        if(_ghostToken is not null)
+        {
+            var ghostToken = (GhostTokenRenderData)_ghostToken;
+            var _row = FindLastToken(ghostToken.Column);
+            if(_row is not null)
+            {
+                var row = (int)_row;
+                var start = HolePosition(row+1,ghostToken.Column+1) - CenterOffset;
+                var size = 2 * SlotRadius * Vector2.One;
+                var center = start + size/2;
+                var newsize = size * TokenScale / HoleScale;
+                var newstart = center - newsize/2;
+                DrawTextureRect(
+                    ghostToken.TokenTexture,
+                    new Rect2(newstart, newsize),
+                    false,
+                    ghostToken.TokenColor with {A = GhostTokenAlpha}
+                );
+            }
+        }
     }
 
     private void CreateHoleMasks()
@@ -83,30 +108,30 @@ public partial class Board : Node2D
     public bool AddToken(int col, TokenBase t)
     {
         int? _row = FindLastToken(col);
-        if(_row is null) return false;
+        if(_row is null)
+        {
+            t.QueueFree();
+            return false;
+        }
         int row = (int)_row;
         t.Scale = TokenScale;
         AddChild(t);
-        var desiredPosition = t.ToLocal(HolePosition(row,col));
-        t.Position = desiredPosition + Vector2.Up * DropStartOffset;
-        var tween = t.CreateTween();
-        tween
-            //tween
-            .TweenProperty(
-                //token
-                t,
-                //position
-                Node2D.PropertyName.Position.ToString(),
-                //to desired position
-                desiredPosition,
-                //over the desired time
-                TokenDropTime
-            )
-            //from the current position
-            .FromCurrent();
-        t.SetMeta(TOKEN_TWEEN_META_NAME, tween);
+        var desiredPosition = ToLocal(HolePosition(row+1,col+1));
+        TweenToken(t, desiredPosition + Vector2.Up * DropStartOffset, desiredPosition);
         TokenGrid[row,col] = t;
         return true;
+    }
+
+    public void RenderGhostToken(Texture2D texture, Color color, int col)
+    {
+        _ghostToken = new(texture,color,col);
+        QueueRedraw();
+    }
+
+    public void HideGhostToken()
+    {
+        _ghostToken = null;
+        QueueRedraw();
     }
 
     public GameResultEnum DecideResult()
@@ -208,7 +233,7 @@ public partial class Board : Node2D
     public int? FindLastToken(int col)
     {
         int row = Rows-1;
-        for(; row >= 0 && TokenGrid[row,col] is not null; row++);
+        for(; row >= 0 && TokenGrid[row,col] is not null; row--);
         if(row < 0) return null;
         return row;
     }
@@ -224,29 +249,11 @@ public partial class Board : Node2D
         for(int row = Rows-1; row >= 0; row--)
         {
             TokenBase? t = TokenGrid[row,col];
-            if(t is not null && row != tokenIdx)
+            if(t is not null)
             {
                 TokenGrid[row,col] = null;
                 TokenGrid[tokenIdx,col] = t;
-                DisableTween(t);
-
-                var tween = t.CreateTween();
-                tween
-                    //tween
-                    .TweenProperty(
-                        //token
-                        t,
-                        //position
-                        Node2D.PropertyName.Position.ToString(),
-                        //to desired position
-                        t.ToLocal(HolePosition(tokenIdx+1,col+1)),
-                        //over the desired time
-                        TokenDropTime
-                    )
-                    //from the current position
-                    .FromCurrent();
-                t.SetMeta(TOKEN_TWEEN_META_NAME, tween);
-
+                TweenToken(t, t.Position, HolePosition(tokenIdx+1,col+1));
                 tokenIdx--;
             }
         }
@@ -323,9 +330,34 @@ public partial class Board : Node2D
             Tween oldTween = (Tween)t.GetMeta(TOKEN_TWEEN_META_NAME);
             if(oldTween.IsValid())
             {
-                oldTween.CustomStep(TokenDropTime);
+                oldTween.CustomStep(double.PositiveInfinity);
                 oldTween.Kill();
             }
         }
+    }
+
+    private void TweenToken(TokenBase t, Vector2 from, Vector2 to)
+    {
+        DisableTween(t);
+
+        var distanceLeft = from.DistanceTo(to);
+        var tween = t.CreateTween();
+        tween
+            //tween
+            .TweenProperty(
+                //token
+                t,
+                //position
+                Node2D.PropertyName.Position.ToString(),
+                //to desired position
+                to,
+                //over the desired time
+                distanceLeft/TokenDropSpeed
+            )
+            .SetTrans(Tween.TransitionType.Cubic)
+            .SetEase(Tween.EaseType.In)
+            //from the current position
+            .From(from);
+        t.SetMeta(TOKEN_TWEEN_META_NAME, tween);
     }
 }

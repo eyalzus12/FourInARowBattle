@@ -3,7 +3,16 @@ using System;
 
 public partial class TokenBase : Node2D
 {
-    public Color TokenColor{get; set;} = Colors.White;
+    private Color _tokenColor = Colors.White;
+    public Color TokenColor
+    {
+        get => _tokenColor;
+        set
+        {
+            _tokenColor = value;
+            Modulate = value;
+        }
+    }
 
     public virtual GameResultEnum Result
     {

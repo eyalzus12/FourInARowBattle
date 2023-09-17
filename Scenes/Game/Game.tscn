@@ -1,9 +1,11 @@
-[gd_scene load_steps=3 format=3 uid="uid://dyhkvrlph6p16"]
+[gd_scene load_steps=4 format=3 uid="uid://dyhkvrlph6p16"]
 
 [ext_resource type="PackedScene" uid="uid://bdfmvb6h0jo6b" path="res://Scenes/Board/Board.tscn" id="1_j8y8n"]
 [ext_resource type="Script" path="res://Scenes/Game/Game.cs" id="1_uwj10"]
+[ext_resource type="Texture2D" uid="uid://bwrbcgub2yjhc" path="res://Resources/Textures/Tokens/TokenBlank.png" id="2_xo528"]
 
 [node name="Game" type="Node2D"]
 script = ExtResource("1_uwj10")
+GhostTokenTexture = ExtResource("2_xo528")
 
 [node name="Board" parent="." instance=ExtResource("1_j8y8n")]

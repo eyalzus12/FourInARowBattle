@@ -18,14 +18,41 @@ public partial class Game : Node2D
         _ => Colors.White
     };
 
+    public GameTurnEnum NextTurn => Turn switch
+    {
+        GameTurnEnum.Player1 => GameTurnEnum.Player2,
+        GameTurnEnum.Player2 => GameTurnEnum.Player1,
+        _ => throw new ArgumentException($"Invalid turn {Turn}")
+    };
+
     private Board _board = null!;
 
     public List<Area2D> DropDetectors{get; set;} = new();
     public List<CollisionShape2D> DropDetectorShapes{get; set;} = new();
-    public int? DropDetectorIdx{get; private set;}
 
-    public void OnDropDetectorMouseEnter(int col) => DropDetectorIdx = col;
-    public void OnDropDetectorMouseExit(int col) => DropDetectorIdx = (DropDetectorIdx == col)?null:DropDetectorIdx;
+    private int? _dropDetectorIdx;
+    public int? DropDetectorIdx
+    {
+        get => _dropDetectorIdx;
+        private set
+        {
+            _dropDetectorIdx = value;
+            if(value is null)
+                _board.HideGhostToken();
+            else
+                _board.RenderGhostToken(GhostTokenTexture, TurnColor, (int)value);
+        }
+    }
+
+    public void OnDropDetectorMouseEnter(int col)
+    {
+        DropDetectorIdx = col;
+    }
+    public void OnDropDetectorMouseExit(int col)
+    {
+        if(DropDetectorIdx == col)
+            DropDetectorIdx = null;
+    }
 
     public override void _Ready()
     {
@@ -33,12 +60,6 @@ public partial class Game : Node2D
 
         SetupDropDetectors();
         SetDetectorsDisabled(false);
-        GetTree().CreateTimer(5).Timeout += () =>
-        {
-            _board.RotateLeft();
-            SetupDropDetectors();
-            SetDetectorsDisabled(false);
-        };
     }
 
     public void SetupDropDetectors()
@@ -74,5 +95,57 @@ public partial class Game : Node2D
         DropDetectorIdx = null;
         foreach(var col in DropDetectorShapes)
             col.SetDeferred(CollisionShape2D.PropertyName.Disabled, disabled);
+    }
+
+    public override void _Input(InputEvent @event)
+    {
+        if(
+            @event.IsPressed() && !@event.IsEcho() && 
+            @event is InputEventMouseButton mb && mb.ButtonIndex == MouseButton.Left &&
+            DropDetectorIdx is not null
+        )
+        {
+            var tokenPlainScene = ResourceLoader.Load<PackedScene>("res://Scenes/Token/TokenPlain/TokenPlain.tscn");
+            var tokenPlain = tokenPlainScene.Instantiate<TokenPlain>();
+            tokenPlain.TokenColor = TurnColor;
+            if(_board.AddToken((int)DropDetectorIdx, tokenPlain))
+            {
+                Turn = NextTurn;
+                _board.RenderGhostToken(GhostTokenTexture, TurnColor, (int)DropDetectorIdx);
+                var res = _board.DecideResult();
+                if(res != GameResultEnum.None)
+                    GD.Print(res);
+            }
+        }
+        if(
+            @event.IsPressed() && !@event.IsEcho() &&
+            @event is InputEventKey ek
+        )
+        {
+            bool needGravity = true;
+            switch(ek.Keycode)
+            {
+                case Key.W or Key.S:
+                    _board.FlipVertical();
+                    break;
+                case Key.A:
+                    _board.RotateLeft();
+                    break;
+                case Key.D:
+                    _board.RotateRight();
+                    break;
+                default:
+                    needGravity = false;
+                    break;
+            }
+            if(needGravity)
+            {
+                DropDetectorIdx = null;
+                _board.ApplyGravity();
+                var res = _board.DecideResult();
+                if(res != GameResultEnum.None)
+                    GD.Print(res);
+            }
+        }
     }
 }
