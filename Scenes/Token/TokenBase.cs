@@ -30,4 +30,9 @@ public partial class TokenBase : Node2D
     {
         Modulate = TokenColor;
     }
+
+    public virtual void OnPlace(Board board, int row, int col)
+    {
+        
+    }
 }

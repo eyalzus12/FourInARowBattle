@@ -119,6 +119,7 @@ public partial class Board : Node2D
         var desiredPosition = ToLocal(HolePosition(row+1,col+1));
         TweenToken(t, desiredPosition + Vector2.Up * DropStartOffset, desiredPosition);
         TokenGrid[row,col] = t;
+        t.OnPlace(this, row, col);
         return true;
     }
 
@@ -243,7 +244,7 @@ public partial class Board : Node2D
         for(int col = 0; col < Columns; ++col) ApplyColGravity(col);
     }
 
-    private void ApplyColGravity(int col)
+    public void ApplyColGravity(int col)
     {
         int tokenIdx = Rows-1;
         for(int row = Rows-1; row >= 0; row--)
@@ -327,7 +328,7 @@ public partial class Board : Node2D
     {
         if(t is not null && t.HasMeta(TOKEN_TWEEN_META_NAME))
         {
-            Tween oldTween = (Tween)t.GetMeta(TOKEN_TWEEN_META_NAME);
+            var oldTween = (Tween)t.GetMeta(TOKEN_TWEEN_META_NAME);
             if(IsInstanceValid(oldTween) && oldTween.IsValid())
             {
                 oldTween.CustomStep(double.PositiveInfinity);

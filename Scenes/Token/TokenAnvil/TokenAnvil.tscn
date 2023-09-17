@@ -1,0 +1,11 @@
+[gd_scene load_steps=4 format=3 uid="uid://cmhb6ts0bns3u"]
+
+[ext_resource type="PackedScene" uid="uid://3m1vfrt1mlek" path="res://Scenes/Token/Token.tscn" id="1_gdpov"]
+[ext_resource type="Texture2D" uid="uid://beyoxvg2irtma" path="res://Resources/Textures/Tokens/TokenAnvil.png" id="2_lw4k5"]
+[ext_resource type="Script" path="res://Scenes/Token/TokenAnvil/TokenAnvil.cs" id="2_tkjg4"]
+
+[node name="TokenAnvil" instance=ExtResource("1_gdpov")]
+script = ExtResource("2_tkjg4")
+
+[node name="TokenSprite" parent="." index="0"]
+texture = ExtResource("2_lw4k5")

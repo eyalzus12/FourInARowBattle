@@ -101,20 +101,34 @@ public partial class Game : Node2D
     {
         if(
             @event.IsPressed() && !@event.IsEcho() && 
-            @event is InputEventMouseButton mb && mb.ButtonIndex == MouseButton.Left &&
+            @event is InputEventMouseButton mb &&
             DropDetectorIdx is not null
         )
         {
-            var tokenPlainScene = ResourceLoader.Load<PackedScene>("res://Scenes/Token/TokenPlain/TokenPlain.tscn");
-            var tokenPlain = tokenPlainScene.Instantiate<TokenPlain>();
-            tokenPlain.TokenColor = TurnColor;
-            if(_board.AddToken((int)DropDetectorIdx, tokenPlain))
+            TokenBase? t = null;
+            if(mb.ButtonIndex == MouseButton.Left)
             {
-                Turn = NextTurn;
-                _board.RenderGhostToken(GhostTokenTexture, TurnColor, (int)DropDetectorIdx);
-                var res = _board.DecideResult();
-                if(res != GameResultEnum.None)
-                    GD.Print(res);
+                t = ResourceLoader
+                    .Load<PackedScene>("res://Scenes/Token/TokenPlain/TokenPlain.tscn")
+                    .Instantiate<TokenPlain>();
+            }
+            else if(mb.ButtonIndex == MouseButton.Right)
+            {
+                t = ResourceLoader
+                    .Load<PackedScene>("res://Scenes/Token/TokenAnvil/TokenAnvil.tscn")
+                    .Instantiate<TokenAnvil>();
+            }
+            if(t is not null)
+            {
+                t.TokenColor = TurnColor;
+                if(_board.AddToken((int)DropDetectorIdx, t))
+                {
+                    Turn = NextTurn;
+                    _board.QueueRedraw();
+                    var res = _board.DecideResult();
+                    if(res != GameResultEnum.None)
+                        GD.Print(res);
+                }
             }
         }
 
