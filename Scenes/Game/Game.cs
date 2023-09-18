@@ -124,7 +124,8 @@ public partial class Game : Node2D
                 if(_board.AddToken((int)DropDetectorIdx, t))
                 {
                     Turn = NextTurn;
-                    _board.QueueRedraw();
+                    //rerender with new color
+                    _board.RenderGhostToken(GhostTokenTexture, TurnColor, (int)DropDetectorIdx);
                     var res = _board.DecideResult();
                     if(res != GameResultEnum.None)
                         GD.Print(res);
