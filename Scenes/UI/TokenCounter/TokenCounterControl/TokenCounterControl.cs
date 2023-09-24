@@ -9,31 +9,16 @@ public partial class TokenCounterControl : Control
     private Texture2D _texture = null!;
     private int _count = 0;
 
-
     [Export]
-    public TextureRect TokenTextureRect{get; set;} = null!;
+    public Godot.Collections.Array<TokenCounterButton> TokenButtons{get; set;} = null!;
 
     [Export]
     public Label TokenCountLabel{get; set;} = null!;
 
     [Export]
-    public Button TokenSelectButton{get; set;} = null!;
-
-    [Export]
-    public Texture2D TokenTexture
-    {
-        get => _texture;
-        set
-        {
-            _texture = value;
-            if(IsInsideTree()) TokenTextureRect.Texture = _texture;
-        }
-    }
-
-    [Export]
     public bool Infinite{get; set;} = false;
     [Export]
-    public int TokenMaxCount{get; set;} = 10;
+    public int TokenMaxCount{get; set;} = 5;
 
     [Export]
     public int TokenCount
@@ -46,13 +31,23 @@ public partial class TokenCounterControl : Control
             {
                 EmitSignal(SignalName.CountChanged);
                 TokenCountLabel.Text = Infinite?"∞/∞":$"{value}/{TokenMaxCount}";
-                if(!CanTake()) TokenSelectButton.Disabled = true;
+                if(!CanTake())
+                    Disabled = true;
             }
         }
     }
 
-    [Export]
-    public PackedScene AssociatedScene{get; set;} = null!;
+    private bool _disabled = false;
+    public bool Disabled
+    {
+        get => _disabled;
+        set
+        {
+            _disabled = value;
+            foreach(var button in TokenButtons)
+                button.Disabled = _disabled;
+        }
+    }
 
     private GameTurnEnum _activeOnTurn;
 
@@ -64,12 +59,12 @@ public partial class TokenCounterControl : Control
         {
             _activeOnTurn = value;
             if(IsInsideTree())
-                TokenTextureRect.Modulate = _activeOnTurn switch
+            {
+                foreach(var button in TokenButtons)
                 {
-                    GameTurnEnum.Player1 => Colors.Red,
-                    GameTurnEnum.Player2 => Colors.Blue,
-                    _ => Colors.White
-                };
+                    button.Modulate = _activeOnTurn.GameTurnToColor();
+                }
+            }
         }
     }
 
@@ -79,22 +74,39 @@ public partial class TokenCounterControl : Control
     {
         _eventBus = GetTree().Root.GetNode<EventBus>(nameof(EventBus));
         
-        TokenTexture = _texture;
         TokenCount = _count;
         ActiveOnTurn = _activeOnTurn;
 
-        TokenSelectButton.Pressed += OnSelectButtonPressed;
+        foreach(var button in TokenButtons)
+        {
+            var buttonBind = button;
+            button.Pressed += () =>
+                OnSelectButtonPressed(buttonBind);
+            button.MouseEntered += () =>
+                _eventBus.EmitSignal(
+                    EventBus.SignalName.TokenButtonHovered,
+                    (int)ActiveOnTurn,
+                    buttonBind.AssociatedScene
+                );
+            button.MouseExited += () =>
+                _eventBus.EmitSignal(
+                    EventBus.SignalName.TokenButtonStoppedHover,
+                    (int)ActiveOnTurn,
+                    buttonBind.AssociatedScene
+                );
+        }
+            
         _eventBus.TurnChanged += OnTurnChange;
     }
 
-    public void OnSelectButtonPressed()
+    public void OnSelectButtonPressed(TokenCounterButton who)
     {
-        _eventBus.EmitSignal(EventBus.SignalName.TokenSelected, this);
+        _eventBus.EmitSignal(EventBus.SignalName.TokenSelected, this, who);
     }
 
     public void OnTurnChange(GameTurnEnum to)
     {
-        TokenSelectButton.Disabled = to != ActiveOnTurn && CanTake();
+        Disabled = to != ActiveOnTurn || !CanTake();
     }
 
     public bool CanTake() => Infinite || (TokenCount > 0);

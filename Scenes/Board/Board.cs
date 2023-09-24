@@ -1,8 +1,5 @@
 using Godot;
 using System.Collections.Generic;
-using System;
-using System.Diagnostics.Metrics;
-using System.ComponentModel;
 
 public partial class Board : Node2D
 {
@@ -57,7 +54,7 @@ public partial class Board : Node2D
 
     private EventBus _eventBus = null!;
 
-    private HashSet<TokenBase> _tweenedTokens = new();
+    private readonly HashSet<TokenBase> _tweenedTokens = new();
 
     public override void _Ready()
     {
@@ -112,6 +109,7 @@ public partial class Board : Node2D
 
     public bool AddToken(int col, TokenBase t)
     {
+        if(!IsInstanceValid(t)) return false;
         int? _row = FindTopSpot(col);
         if(_row is null)
         {
@@ -125,6 +123,7 @@ public partial class Board : Node2D
         TweenToken(t, desiredPosition + Vector2.Up * DropStartOffset, desiredPosition);
         TokenGrid[row,col] = t;
         t.OnPlace(this, row, col);
+        QueueRedraw();
         return true;
     }
 
@@ -164,12 +163,7 @@ public partial class Board : Node2D
                 //the counters work by player turn
                 //so we need to convert the result to the turn
                 //for non-player results we just give a nonexistent turn value
-                var resultTurn = result switch
-                {
-                    GameResultEnum.Player1Win => GameTurnEnum.Player1,
-                    GameResultEnum.Player2Win => GameTurnEnum.Player2,
-                    _ => (GameTurnEnum)9999
-                };
+                var resultTurn = result.GameResultToGameTurn();
                 _eventBus.EmitSignal(EventBus.SignalName.ScoreIncreased, (int)resultTurn, count);
             }
         }
@@ -185,6 +179,7 @@ public partial class Board : Node2D
             //after applying gravity we might have new wins
             //so call recursively
             DecideResult();
+            QueueRedraw();
         }
 
         return GameResultEnum.None;
@@ -353,6 +348,7 @@ public partial class Board : Node2D
             TokenGrid[tokenIdx,col] = null;
         }
         _colGravityLock.Remove(col);
+        QueueRedraw();
     }
 
     public void FlipCol(int col)
@@ -543,17 +539,18 @@ public partial class Board : Node2D
             .SetEase(Tween.EaseType.In)
             //from the current position
             .From(from);
-        t.TokenTween.Finished += () =>
-        {
-            _tweenedTokens.Remove(t);
-            if(_tweenedTokens.Count <= 0) DecideResult();
-        };
-        t.TreeExited += () =>
+        t.TokenTween.Finished += RemoveFromTweenedTokensSet;
+        t.TreeExited += RemoveFromTweenedTokensSet;
+        _tweenedTokens.Add(t);
+        
+        void RemoveFromTweenedTokensSet()
         {
             if(!IsInsideTree()) return;
             _tweenedTokens.Remove(t);
-            if(_tweenedTokens.Count <= 0) DecideResult();
-        };
-        _tweenedTokens.Add(t);
+            if(_tweenedTokens.Count <= 0)
+            {
+                DecideResult();
+            }
+        }
     }
 }

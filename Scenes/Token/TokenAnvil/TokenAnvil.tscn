@@ -6,6 +6,7 @@
 
 [node name="TokenAnvil" instance=ExtResource("1_gdpov")]
 script = ExtResource("2_tkjg4")
+TokenDescription = "When dropped, this token removes the bottom token in its column."
 
 [node name="TokenSprite" parent="." index="0"]
 texture = ExtResource("2_lw4k5")

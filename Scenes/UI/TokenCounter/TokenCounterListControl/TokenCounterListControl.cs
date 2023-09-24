@@ -45,6 +45,7 @@ public partial class TokenCounterListControl : Control
     }
 
     private TokenCounterControl? _lastSelection = null;
+    private TokenCounterButton? _lastSelectionButton = null;
     private EventBus _eventBus = null!;
 
     public override void _Ready()
@@ -56,7 +57,15 @@ public partial class TokenCounterListControl : Control
         foreach(var c in Counters)
         {
             var cBind = c;
-            c.TokenSelectButton.Pressed += () => _lastSelection = cBind;
+            foreach(var button in c.TokenButtons)
+            {
+                var bBind = button;
+                button.Pressed += () =>
+                {
+                    _lastSelection = cBind;
+                    _lastSelectionButton = bBind;
+                };
+            }
         }
         RefillButton.Pressed += () =>
         {
@@ -75,7 +84,11 @@ public partial class TokenCounterListControl : Control
         if(to == ActiveOnTurn)
         {
             //force-select previous selection
-            _lastSelection?.OnSelectButtonPressed();
+            if(_lastSelectionButton is not null && 
+                _lastSelection is not null &&
+                _lastSelection.CanTake()
+            )
+                _lastSelection.OnSelectButtonPressed(_lastSelectionButton);
             //lock refill button if needed
             if(_refillLocked)
             {

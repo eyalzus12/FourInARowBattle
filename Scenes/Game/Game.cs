@@ -9,14 +9,10 @@ public partial class Game : Node2D
     public float PressDetectorOffset{get; set;} = 200;
     
     private TokenCounterControl? _selectedControl = null;
+    private TokenCounterButton? _selectedButton = null;
 
     public GameTurnEnum Turn{get; set;} = GameTurnEnum.Player1;
-    public Color TurnColor => Turn switch
-    {
-        GameTurnEnum.Player1 => Colors.Red,
-        GameTurnEnum.Player2 => Colors.Blue,
-        _ => Colors.White
-    };
+    public Color TurnColor => Turn.GameTurnToColor();
 
     public GameTurnEnum NextTurn => Turn switch
     {
@@ -40,10 +36,15 @@ public partial class Game : Node2D
         private set
         {
             _dropDetectorIdx = value;
-            if(value is null)
+            if(
+                value is not null &&
+                _selectedControl is not null &&
+                _selectedControl.CanTake() &&
+                _selectedButton is not null
+            )
+                GameBoard.RenderGhostToken(_selectedButton.Icon, TurnColor, (int)value);
+            else
                 GameBoard.HideGhostToken();
-            else if(_selectedControl is not null && _selectedControl.CanTake())
-                GameBoard.RenderGhostToken(_selectedControl.TokenTexture, TurnColor, (int)value);
         }
     }
 
@@ -114,32 +115,18 @@ public partial class Game : Node2D
             @event is InputEventMouseButton mb &&
             DropDetectorIdx is not null &&
             _selectedControl is not null &&
-            _selectedControl.CanTake()
+            _selectedControl.CanTake() &&
+            _selectedButton is not null
         )
         {
             if(mb.ButtonIndex == MouseButton.Left)
             {
-                TokenBase t = _selectedControl.AssociatedScene.Instantiate<TokenBase>();
+                TokenBase t = _selectedButton.AssociatedScene.Instantiate<TokenBase>();
                 t.TokenColor = TurnColor;
                 if(GameBoard.AddToken((int)DropDetectorIdx, t))
                 {
                     _selectedControl.Take(1);
                     PassTurn();
-
-                    /*Tween? tween = t.GetMetaOrNull(Board.TOKEN_TWEEN_META_NAME)?.As<Tween>();
-                    if(!IsInstanceValid(tween)) tween = null;
-                    
-                    if(tween is not null)
-                        tween.Finished += DecideResult;
-                    else
-                        DecideResult();
-                    
-                    void DecideResult()
-                    {
-                        var res = GameBoard.DecideResult();
-                        if(res != GameResultEnum.None)
-                            GD.Print(res);
-                    }*/
                 }
             }
         }
@@ -151,7 +138,6 @@ public partial class Game : Node2D
         {
             bool needGravity = true;
             bool needNewDetectors = true;
-            bool needResultCheck = true;
             switch(ek.Keycode)
             {
                 case Key.W or Key.S:
@@ -168,7 +154,6 @@ public partial class Game : Node2D
                     break;
                 default:
                     needGravity = false;
-                    needResultCheck = false;
                     break;
             }
 
@@ -183,13 +168,6 @@ public partial class Game : Node2D
                 SetupDropDetectors();
                 SetDetectorsDisabled(false);
             }
-
-            /*if(needResultCheck)
-            {
-                var res = GameBoard.DecideResult();
-                if(res != GameResultEnum.None)
-                    GD.Print(res);
-            }*/
         }
     }
 
@@ -197,14 +175,18 @@ public partial class Game : Node2D
     {
         Turn = NextTurn;
         _selectedControl = null;
+        //force redraw of ghost token
+        DropDetectorIdx = _dropDetectorIdx;
         _eventBus.EmitSignal(EventBus.SignalName.TurnChanged, (int)Turn);
     }
 
-    public void OnTokenSelected(TokenCounterControl what)
+    public void OnTokenSelected(TokenCounterControl what, TokenCounterButton who)
     {
         if(what.ActiveOnTurn != Turn || !what.CanTake()) return;
         _selectedControl = what;
-        if(DropDetectorIdx is not null)
-            GameBoard.RenderGhostToken(_selectedControl.TokenTexture, TurnColor, (int)DropDetectorIdx);
+        _selectedButton = who;
+
+        //force redraw of ghost token
+        DropDetectorIdx = _dropDetectorIdx;
     }
 }

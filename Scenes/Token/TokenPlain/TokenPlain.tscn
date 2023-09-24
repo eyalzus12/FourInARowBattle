@@ -6,6 +6,7 @@
 
 [node name="TokenPlain" instance=ExtResource("1_ejacr")]
 script = ExtResource("2_oyjx3")
+TokenDescription = "This token has no special properties."
 
 [node name="TokenSprite" parent="." index="0"]
 texture = ExtResource("3_54c08")

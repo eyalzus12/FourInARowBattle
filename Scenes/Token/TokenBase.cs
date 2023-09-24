@@ -3,6 +3,9 @@ using System;
 
 public partial class TokenBase : Node2D
 {
+    [Export(PropertyHint.MultilineText)]
+    public string TokenDescription{get; set;} = "NO DESCRIPTION SET FOR THIS TOKEN";
+
     public Tween? TokenTween{get; set;}
 
     private Color _tokenColor = Colors.White;

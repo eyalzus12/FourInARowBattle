@@ -1,21 +1,19 @@
 using Godot;
 using System;
 
-public partial class TokenAnvil : TokenBase
+public partial class TokenAnvil : TokenOnDropFinish
 {
-    public override void OnPlace(Board board, int row, int col)
+    public override void OnDropFinish(Board board, int row, int col)
     {
         //bottom of column
         if(row == board.Rows-1) return;
-
-        TweenFinishedAction = RemoveBottom;
-        ConnectTweenFinished();
-        void RemoveBottom()
-        {
-            int row = (board.FindBottomSpot(col) ?? board.Rows)-1;
-            board.RemoveToken(row,col);
-            board.ApplyColGravity(col);
-            board.QueueRedraw();
-        }
+        //get location to remove
+        int removeRow = (board.FindBottomSpot(col) ?? board.Rows)-1;
+        //there are no tokens in the column
+        //this can happen if we get a four-in-a-row while dropping this token
+        if(removeRow == -1) return;
+        //remove
+        board.RemoveToken(removeRow,col);
+        board.ApplyColGravity(col);
     }
 }

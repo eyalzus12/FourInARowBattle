@@ -6,6 +6,7 @@
 
 [node name="TokenVerticalFlip" instance=ExtResource("1_6ias3")]
 script = ExtResource("2_q7gm0")
+TokenDescription = "When dropped, this token flips its column."
 
 [node name="TokenSprite" parent="." index="0"]
 texture = ExtResource("2_jma0t")

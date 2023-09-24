@@ -1,13 +1,16 @@
-[gd_scene load_steps=10 format=3 uid="uid://dk1ui8fmw6giq"]
+[gd_scene load_steps=13 format=3 uid="uid://dk1ui8fmw6giq"]
 
 [ext_resource type="Script" path="res://Scenes/UI/TokenCounter/TokenCounterListControl/TokenCounterListControl.cs" id="1_0obit"]
 [ext_resource type="PackedScene" uid="uid://br5gv43qf43mh" path="res://Scenes/UI/TokenCounter/TokenCounterControl/TokenCounterControl.tscn" id="1_aopfm"]
 [ext_resource type="Texture2D" uid="uid://bwrbcgub2yjhc" path="res://Resources/Textures/Tokens/TokenBlank.png" id="2_vrb2j"]
 [ext_resource type="PackedScene" uid="uid://dpiu85fb7yv3c" path="res://Scenes/Token/TokenPlain/TokenPlain.tscn" id="3_2pshy"]
 [ext_resource type="Texture2D" uid="uid://beyoxvg2irtma" path="res://Resources/Textures/Tokens/TokenAnvil.png" id="4_araq4"]
+[ext_resource type="Script" path="res://Scenes/UI/TokenCounter/TokenCounterButton/TokenCounterButton.cs" id="4_ardkc"]
 [ext_resource type="PackedScene" uid="uid://cmhb6ts0bns3u" path="res://Scenes/Token/TokenAnvil/TokenAnvil.tscn" id="5_oh2y7"]
 [ext_resource type="Texture2D" uid="uid://cbm85wyk5yjws" path="res://Resources/Textures/Tokens/TokenVerticalFlip.png" id="7_nx2yw"]
 [ext_resource type="PackedScene" uid="uid://dkpekqc4jobth" path="res://Scenes/Token/TokenVerticalFlip/TokenVerticalFlip.tscn" id="8_u52fu"]
+[ext_resource type="Texture2D" uid="uid://bohwjaaeph0pe" path="res://Resources/Textures/Tokens/TokenHorizontalFlip.png" id="9_lo7ph"]
+[ext_resource type="PackedScene" uid="uid://deotsndx6atst" path="res://Scenes/Token/TokenHorizontalFlip/TokenHorizontalFlip.tscn" id="10_4l87s"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_67ypp"]
 font_size = 32
@@ -38,23 +41,60 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Refill"
 
-[node name="TokenCounterControl" parent="." instance=ExtResource("1_aopfm")]
+[node name="TokenCounterControl" parent="." node_paths=PackedStringArray("TokenButtons") instance=ExtResource("1_aopfm")]
 layout_mode = 2
 size_flags_vertical = 3
-TokenTexture = ExtResource("2_vrb2j")
+TokenButtons = [NodePath("HBoxContainer/HBoxContainer_Buttons/Button")]
 Infinite = true
+
+[node name="Button" type="Button" parent="TokenCounterControl/HBoxContainer/HBoxContainer_Buttons" index="0"]
+layout_mode = 2
+size_flags_horizontal = 3
+icon = ExtResource("2_vrb2j")
+icon_alignment = 1
+expand_icon = true
+script = ExtResource("4_ardkc")
 AssociatedScene = ExtResource("3_2pshy")
 
-[node name="TokenCounterControl2" parent="." instance=ExtResource("1_aopfm")]
+[node name="TokenCounterControl2" parent="." node_paths=PackedStringArray("TokenButtons") instance=ExtResource("1_aopfm")]
 layout_mode = 2
 size_flags_vertical = 3
-TokenTexture = ExtResource("4_araq4")
-TokenCount = 10
+TokenButtons = [NodePath("HBoxContainer/HBoxContainer_Buttons/Button")]
+TokenCount = 5
+
+[node name="Button" type="Button" parent="TokenCounterControl2/HBoxContainer/HBoxContainer_Buttons" index="0"]
+layout_mode = 2
+size_flags_horizontal = 3
+icon = ExtResource("4_araq4")
+icon_alignment = 1
+expand_icon = true
+script = ExtResource("4_ardkc")
 AssociatedScene = ExtResource("5_oh2y7")
 
-[node name="TokenCounterControl3" parent="." instance=ExtResource("1_aopfm")]
+[node name="TokenCounterControl3" parent="." node_paths=PackedStringArray("TokenButtons") instance=ExtResource("1_aopfm")]
 layout_mode = 2
 size_flags_vertical = 3
-TokenTexture = ExtResource("7_nx2yw")
-TokenCount = 10
+TokenButtons = [NodePath("HBoxContainer/HBoxContainer_Buttons/Button"), NodePath("HBoxContainer/HBoxContainer_Buttons/Button2")]
+TokenCount = 5
+
+[node name="Button" type="Button" parent="TokenCounterControl3/HBoxContainer/HBoxContainer_Buttons" index="0"]
+layout_mode = 2
+size_flags_horizontal = 3
+icon = ExtResource("9_lo7ph")
+icon_alignment = 1
+expand_icon = true
+script = ExtResource("4_ardkc")
+AssociatedScene = ExtResource("10_4l87s")
+
+[node name="Button2" type="Button" parent="TokenCounterControl3/HBoxContainer/HBoxContainer_Buttons" index="1"]
+layout_mode = 2
+size_flags_horizontal = 3
+icon = ExtResource("7_nx2yw")
+icon_alignment = 1
+expand_icon = true
+script = ExtResource("4_ardkc")
 AssociatedScene = ExtResource("8_u52fu")
+
+[editable path="TokenCounterControl"]
+[editable path="TokenCounterControl2"]
+[editable path="TokenCounterControl3"]
