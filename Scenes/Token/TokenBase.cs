@@ -3,6 +3,8 @@ using System;
 
 public partial class TokenBase : Node2D
 {
+    public Tween? TokenTween{get; set;}
+
     private Color _tokenColor = Colors.White;
     public Color TokenColor
     {
@@ -34,5 +36,21 @@ public partial class TokenBase : Node2D
     public virtual void OnPlace(Board board, int row, int col)
     {
         
+    }
+
+    public Action? TweenFinishedAction{get; protected set;}
+    public void ConnectTweenFinished()
+    {
+        if(TweenFinishedAction is null) return;
+        if(!IsInstanceValid(TokenTween)) TokenTween = null;
+        if(TokenTween is not null)
+            TokenTween.Finished += () =>
+            {
+                if(TweenFinishedAction is not null)
+                    TweenFinishedAction();
+                TweenFinishedAction = null;
+            };
+        else
+            TweenFinishedAction();
     }
 }

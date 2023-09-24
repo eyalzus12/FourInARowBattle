@@ -2,10 +2,39 @@
 
 [ext_resource type="PackedScene" uid="uid://bdfmvb6h0jo6b" path="res://Scenes/Board/Board.tscn" id="1_j8y8n"]
 [ext_resource type="Script" path="res://Scenes/Game/Game.cs" id="1_uwj10"]
-[ext_resource type="Texture2D" uid="uid://bwrbcgub2yjhc" path="res://Resources/Textures/Tokens/TokenBlank.png" id="2_xo528"]
+[ext_resource type="PackedScene" uid="uid://dk1ui8fmw6giq" path="res://Scenes/UI/TokenCounter/TokenCounterListControl/TokenCounterListControl.tscn" id="4_3pt17"]
 
-[node name="Game" type="Node2D"]
+[node name="Game" type="Node2D" node_paths=PackedStringArray("GameBoard")]
 script = ExtResource("1_uwj10")
-GhostTokenTexture = ExtResource("2_xo528")
+GameBoard = NodePath("Board")
 
 [node name="Board" parent="." instance=ExtResource("1_j8y8n")]
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_left = -576.0
+offset_top = -320.0
+offset_right = 576.0
+offset_bottom = 320.0
+
+[node name="TokenCounterListControl" parent="Control" instance=ExtResource("4_3pt17")]
+layout_mode = 1
+anchors_preset = 0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_right = 248.0
+offset_bottom = 208.0
+grow_horizontal = 1
+grow_vertical = 1
+
+[node name="TokenCounterListControl2" parent="Control" instance=ExtResource("4_3pt17")]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_bottom = 0.0
+offset_left = -248.0
+offset_bottom = 208.0
+grow_horizontal = 0
+grow_vertical = 1
+ActiveOnTurn = 1

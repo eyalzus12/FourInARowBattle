@@ -3,9 +3,10 @@
 [ext_resource type="Script" path="res://Scenes/Board/Board.cs" id="1_knysj"]
 [ext_resource type="Texture2D" uid="uid://bwrbcgub2yjhc" path="res://Resources/Textures/Tokens/TokenBlank.png" id="2_upchf"]
 
-[node name="Board" type="Node2D"]
+[node name="Board" type="Node2D" node_paths=PackedStringArray("BoardBase")]
 script = ExtResource("1_knysj")
 HoleMaskTexture = ExtResource("2_upchf")
+BoardBase = NodePath("CanvasGroup/ColorRect")
 metadata/_edit_horizontal_guides_ = []
 metadata/_edit_vertical_guides_ = []
 

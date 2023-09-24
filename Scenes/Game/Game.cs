@@ -7,8 +7,8 @@ public partial class Game : Node2D
     
     [Export]
     public float PressDetectorOffset{get; set;} = 200;
-    [Export]
-    public Texture2D GhostTokenTexture{get; set;} = null!;
+    
+    private TokenCounterControl? _selectedControl = null;
 
     public GameTurnEnum Turn{get; set;} = GameTurnEnum.Player1;
     public Color TurnColor => Turn switch
@@ -25,10 +25,13 @@ public partial class Game : Node2D
         _ => throw new ArgumentException($"Invalid turn {Turn}")
     };
 
-    private Board _board = null!;
+    [Export]
+    public Board GameBoard{get; set;} = null!;
 
     public List<Area2D> DropDetectors{get; set;} = new();
     public List<CollisionShape2D> DropDetectorShapes{get; set;} = new();
+
+    private EventBus _eventBus = null!;
 
     private int? _dropDetectorIdx;
     public int? DropDetectorIdx
@@ -38,9 +41,9 @@ public partial class Game : Node2D
         {
             _dropDetectorIdx = value;
             if(value is null)
-                _board.HideGhostToken();
-            else
-                _board.RenderGhostToken(GhostTokenTexture, TurnColor, (int)value);
+                GameBoard.HideGhostToken();
+            else if(_selectedControl is not null && _selectedControl.CanTake())
+                GameBoard.RenderGhostToken(_selectedControl.TokenTexture, TurnColor, (int)value);
         }
     }
 
@@ -56,10 +59,17 @@ public partial class Game : Node2D
 
     public override void _Ready()
     {
-        _board = GetNode<Board>("Board");
+        _eventBus = GetTree().Root.GetNode<EventBus>(nameof(EventBus));
 
         SetupDropDetectors();
         SetDetectorsDisabled(false);
+        _eventBus.TokenSelected += OnTokenSelected;
+        _eventBus.ExternalPassTurn += PassTurn;
+
+        //_Ready is called on children before the parent
+        //so we can do this to signal the token counters
+        //and update their disabled/enabled state
+        _eventBus.EmitSignal(EventBus.SignalName.TurnChanged, (int)Turn);
     }
 
     public void SetupDropDetectors()
@@ -68,15 +78,15 @@ public partial class Game : Node2D
         foreach(var area in DropDetectors) area.QueueFree();
         DropDetectors.Clear();
         DropDetectorShapes.Clear();
-        for(int col = 1; col <= _board.Columns; ++col)
+        for(int col = 1; col <= GameBoard.Columns; ++col)
         {
-            Vector2 topMost = _board.HolePosition(0,col);
-            Vector2 botMost = _board.HolePosition(_board.Rows+1,col);
+            Vector2 topMost = GameBoard.HolePosition(0,col);
+            Vector2 botMost = GameBoard.HolePosition(GameBoard.Rows+1,col);
             Vector2 center = (topMost + botMost)/2;
             Area2D area = new(){Monitorable = false};
             CollisionShape2D shape = new()
             {
-                Shape = new RectangleShape2D(){Size = new(2*_board.SlotRadius, (botMost-topMost).Y + PressDetectorOffset)},
+                Shape = new RectangleShape2D(){Size = new(2*GameBoard.SlotRadius, (botMost-topMost).Y + PressDetectorOffset)},
                 Disabled = true
             };
             area.AddChild(shape);
@@ -102,33 +112,34 @@ public partial class Game : Node2D
         if(
             @event.IsPressed() && !@event.IsEcho() && 
             @event is InputEventMouseButton mb &&
-            DropDetectorIdx is not null
+            DropDetectorIdx is not null &&
+            _selectedControl is not null &&
+            _selectedControl.CanTake()
         )
         {
-            TokenBase? t = null;
             if(mb.ButtonIndex == MouseButton.Left)
             {
-                t = ResourceLoader
-                    .Load<PackedScene>("res://Scenes/Token/TokenPlain/TokenPlain.tscn")
-                    .Instantiate<TokenPlain>();
-            }
-            else if(mb.ButtonIndex == MouseButton.Right)
-            {
-                t = ResourceLoader
-                    .Load<PackedScene>("res://Scenes/Token/TokenAnvil/TokenAnvil.tscn")
-                    .Instantiate<TokenAnvil>();
-            }
-            if(t is not null)
-            {
+                TokenBase t = _selectedControl.AssociatedScene.Instantiate<TokenBase>();
                 t.TokenColor = TurnColor;
-                if(_board.AddToken((int)DropDetectorIdx, t))
+                if(GameBoard.AddToken((int)DropDetectorIdx, t))
                 {
-                    Turn = NextTurn;
-                    //rerender with new color
-                    _board.RenderGhostToken(GhostTokenTexture, TurnColor, (int)DropDetectorIdx);
-                    var res = _board.DecideResult();
-                    if(res != GameResultEnum.None)
-                        GD.Print(res);
+                    _selectedControl.Take(1);
+                    PassTurn();
+
+                    /*Tween? tween = t.GetMetaOrNull(Board.TOKEN_TWEEN_META_NAME)?.As<Tween>();
+                    if(!IsInstanceValid(tween)) tween = null;
+                    
+                    if(tween is not null)
+                        tween.Finished += DecideResult;
+                    else
+                        DecideResult();
+                    
+                    void DecideResult()
+                    {
+                        var res = GameBoard.DecideResult();
+                        if(res != GameResultEnum.None)
+                            GD.Print(res);
+                    }*/
                 }
             }
         }
@@ -144,16 +155,16 @@ public partial class Game : Node2D
             switch(ek.Keycode)
             {
                 case Key.W or Key.S:
-                    _board.FlipVertical();
+                    GameBoard.FlipVertical();
                     //show ghost token in correct position
-                    _board.QueueRedraw();
+                    GameBoard.QueueRedraw();
                     needNewDetectors = false;
                     break;
                 case Key.A:
-                    _board.RotateLeft();
+                    GameBoard.RotateLeft();
                     break;
                 case Key.D:
-                    _board.RotateRight();
+                    GameBoard.RotateRight();
                     break;
                 default:
                     needGravity = false;
@@ -163,7 +174,7 @@ public partial class Game : Node2D
 
             if(needGravity)
             {
-                _board.ApplyGravity();
+                GameBoard.ApplyGravity();
             }
 
             if(needNewDetectors)
@@ -173,12 +184,27 @@ public partial class Game : Node2D
                 SetDetectorsDisabled(false);
             }
 
-            if(needResultCheck)
+            /*if(needResultCheck)
             {
-                var res = _board.DecideResult();
+                var res = GameBoard.DecideResult();
                 if(res != GameResultEnum.None)
                     GD.Print(res);
-            }
+            }*/
         }
+    }
+
+    public void PassTurn()
+    {
+        Turn = NextTurn;
+        _selectedControl = null;
+        _eventBus.EmitSignal(EventBus.SignalName.TurnChanged, (int)Turn);
+    }
+
+    public void OnTokenSelected(TokenCounterControl what)
+    {
+        if(what.ActiveOnTurn != Turn || !what.CanTake()) return;
+        _selectedControl = what;
+        if(DropDetectorIdx is not null)
+            GameBoard.RenderGhostToken(_selectedControl.TokenTexture, TurnColor, (int)DropDetectorIdx);
     }
 }

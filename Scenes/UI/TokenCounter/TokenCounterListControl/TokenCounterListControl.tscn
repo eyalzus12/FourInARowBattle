@@ -1,0 +1,60 @@
+[gd_scene load_steps=10 format=3 uid="uid://dk1ui8fmw6giq"]
+
+[ext_resource type="Script" path="res://Scenes/UI/TokenCounter/TokenCounterListControl/TokenCounterListControl.cs" id="1_0obit"]
+[ext_resource type="PackedScene" uid="uid://br5gv43qf43mh" path="res://Scenes/UI/TokenCounter/TokenCounterControl/TokenCounterControl.tscn" id="1_aopfm"]
+[ext_resource type="Texture2D" uid="uid://bwrbcgub2yjhc" path="res://Resources/Textures/Tokens/TokenBlank.png" id="2_vrb2j"]
+[ext_resource type="PackedScene" uid="uid://dpiu85fb7yv3c" path="res://Scenes/Token/TokenPlain/TokenPlain.tscn" id="3_2pshy"]
+[ext_resource type="Texture2D" uid="uid://beyoxvg2irtma" path="res://Resources/Textures/Tokens/TokenAnvil.png" id="4_araq4"]
+[ext_resource type="PackedScene" uid="uid://cmhb6ts0bns3u" path="res://Scenes/Token/TokenAnvil/TokenAnvil.tscn" id="5_oh2y7"]
+[ext_resource type="Texture2D" uid="uid://cbm85wyk5yjws" path="res://Resources/Textures/Tokens/TokenVerticalFlip.png" id="7_nx2yw"]
+[ext_resource type="PackedScene" uid="uid://dkpekqc4jobth" path="res://Scenes/Token/TokenVerticalFlip/TokenVerticalFlip.tscn" id="8_u52fu"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_67ypp"]
+font_size = 32
+
+[node name="TokenCounterListControl" type="VBoxContainer" node_paths=PackedStringArray("Counters", "ScoreLabel", "RefillButton")]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_0obit")
+Counters = [NodePath("TokenCounterControl"), NodePath("TokenCounterControl2"), NodePath("TokenCounterControl3")]
+ScoreLabel = NodePath("HBoxContainer/ScoreLabel")
+RefillButton = NodePath("HBoxContainer/RefillButton")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="ScoreLabel" type="Label" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+text = "Score: 0"
+label_settings = SubResource("LabelSettings_67ypp")
+
+[node name="RefillButton" type="Button" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Refill"
+
+[node name="TokenCounterControl" parent="." instance=ExtResource("1_aopfm")]
+layout_mode = 2
+size_flags_vertical = 3
+TokenTexture = ExtResource("2_vrb2j")
+Infinite = true
+AssociatedScene = ExtResource("3_2pshy")
+
+[node name="TokenCounterControl2" parent="." instance=ExtResource("1_aopfm")]
+layout_mode = 2
+size_flags_vertical = 3
+TokenTexture = ExtResource("4_araq4")
+TokenCount = 10
+AssociatedScene = ExtResource("5_oh2y7")
+
+[node name="TokenCounterControl3" parent="." instance=ExtResource("1_aopfm")]
+layout_mode = 2
+size_flags_vertical = 3
+TokenTexture = ExtResource("7_nx2yw")
+TokenCount = 10
+AssociatedScene = ExtResource("8_u52fu")

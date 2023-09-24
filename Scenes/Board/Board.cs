@@ -2,6 +2,7 @@ using Godot;
 using System.Collections.Generic;
 using System;
 using System.Diagnostics.Metrics;
+using System.ComponentModel;
 
 public partial class Board : Node2D
 {
@@ -39,12 +40,13 @@ public partial class Board : Node2D
 
     public TokenBase?[,] TokenGrid{get; set;} = null!;
 
-    private CanvasGroup _canvasGroup = null!;
-    private ColorRect _colorRect = null!;
+    [Export]
+    public Control BoardBase{get; set;} = null!;
+
     private Node2D? _maskGroup = null;
 
-    public Vector2 BoardPosition => _colorRect.GlobalPosition + new Vector2(LeftMargin,TopMargin);
-    public Vector2 BoardSize => _colorRect.Size - new Vector2(RightMargin,BottomMargin);
+    public Vector2 BoardPosition => BoardBase.GlobalPosition + new Vector2(LeftMargin,TopMargin);
+    public Vector2 BoardSize => BoardBase.Size - new Vector2(RightMargin,BottomMargin);
 
     private Vector2 HoleJump => BoardSize / new Vector2(Columns+1, Rows+1);
     private Vector2 CenterOffset => SlotRadius * Vector2.One;
@@ -53,11 +55,13 @@ public partial class Board : Node2D
     private readonly record struct GhostTokenRenderData(Texture2D TokenTexture, Color TokenColor, int Column){}
     private GhostTokenRenderData? _ghostToken;
 
+    private EventBus _eventBus = null!;
+
+    private HashSet<TokenBase> _tweenedTokens = new();
+
     public override void _Ready()
     {
-        _canvasGroup = GetNode<CanvasGroup>("CanvasGroup");
-        _colorRect = _canvasGroup.GetNode<ColorRect>("ColorRect");
-
+        _eventBus = GetTree().Root.GetNode<EventBus>(nameof(EventBus));
         TokenGrid = new TokenBase?[Rows,Columns];
 
         CreateHoleMasks();
@@ -93,7 +97,7 @@ public partial class Board : Node2D
         //add holes
         _maskGroup = new(){Material = new CanvasItemMaterial(){BlendMode = CanvasItemMaterial.BlendModeEnum.Sub}};
         //use AddSibling to ensure correct node order
-        _colorRect.AddSibling(_maskGroup);
+        BoardBase.AddSibling(_maskGroup);
         //add masks
         for(int row = 1; row <= Rows; ++row)
         {
@@ -138,6 +142,7 @@ public partial class Board : Node2D
 
     public GameResultEnum DecideResult()
     {
+        List<(int,int)> toRemove = new();
         Dictionary<GameResultEnum, int> resultCounts = new();
         bool haveFree = false;
         for(int row = 0; row < Rows; ++row)
@@ -145,44 +150,56 @@ public partial class Board : Node2D
             for(int col = 0; col < Columns; ++col)
             {
                 if(TokenGrid[row,col] is not null)
-                    CheckSpotWin(row, col, resultCounts);
+                    CheckSpotWin(row, col, resultCounts, toRemove);
                 else
                     haveFree = true;
             }
         }
         if(!haveFree) return GameResultEnum.Draw;
 
-        List<GameResultEnum> mostCommonResults = new();
-        int maxCount = 1;
-        foreach(var (result, count) in resultCounts)
+        foreach(var (result,count) in resultCounts)
         {
-            if(count == maxCount) mostCommonResults.Add(result);
-            else if(count > maxCount)
+            if(count != 0)
             {
-                mostCommonResults = new(){result};
-                maxCount = count;
+                //the counters work by player turn
+                //so we need to convert the result to the turn
+                //for non-player results we just give a nonexistent turn value
+                var resultTurn = result switch
+                {
+                    GameResultEnum.Player1Win => GameTurnEnum.Player1,
+                    GameResultEnum.Player2Win => GameTurnEnum.Player2,
+                    _ => (GameTurnEnum)9999
+                };
+                _eventBus.EmitSignal(EventBus.SignalName.ScoreIncreased, (int)resultTurn, count);
             }
         }
 
-        return mostCommonResults.Count switch
+        foreach(var (row,col) in toRemove)
         {
-            //no wins
-            0 => GameResultEnum.None,
-            //exactly one win
-            1 => mostCommonResults[0],
-            //multiple wins at the same time
-            >= 2 => GameResultEnum.Draw,
-            //invalid/negative value
-            _ => GameResultEnum.None
-        };
+            RemoveToken(row,col);
+        }
+        
+        if(toRemove.Count > 0)
+        {
+            ApplyGravity();
+            //after applying gravity we might have new wins
+            //so call recursively
+            DecideResult();
+        }
+
+        return GameResultEnum.None;
     }
 
-    private void CheckSpotWin(int row, int col, Dictionary<GameResultEnum, int> resultCounts)
+    private void CheckSpotWin(int row, int col, Dictionary<GameResultEnum, int> resultCounts, List<(int,int)> toRemove)
     {
         TokenBase? token = TokenGrid[row,col];
         if(!IsInstanceValid(token)) TokenGrid[row,col] = token = null;
         if(token is null || token.Result == GameResultEnum.None) return;
-        resultCounts.TryAdd(token.Result, 0);
+
+        bool foundWin = false;
+        List<(int,int)> currentTokenStreak = new(WinRequirement-1);
+        if(!resultCounts.ContainsKey(token.Result)) resultCounts[token.Result] = 0;
+
         //check up
         if(row >= WinRequirement-1)
         {
@@ -191,9 +208,20 @@ public partial class Board : Node2D
                 if(!token.SameAs(TokenGrid[row-rowOffset,col]))
                 {
                     upFail = true;
+                    currentTokenStreak.Clear();
                     break;
                 }
-            if(!upFail) resultCounts[token.Result]++;
+                else
+                {
+                    currentTokenStreak.Add((row-rowOffset,col));
+                }
+            if(!upFail)
+            {
+                resultCounts[token.Result]++;
+                toRemove.AddRange(currentTokenStreak);
+                currentTokenStreak.Clear();
+                foundWin = true;
+            }
         }
         //check left
         if(col >= WinRequirement-1)
@@ -203,9 +231,20 @@ public partial class Board : Node2D
                 if(!token.SameAs(TokenGrid[row,col-colOffset]))
                 {
                     leftFail = true;
+                    currentTokenStreak.Clear();
                     break;
                 }
-            if(!leftFail) resultCounts[token.Result]++;
+                else
+                {
+                    currentTokenStreak.Add((row,col-colOffset));
+                }
+            if(!leftFail)
+            {
+                resultCounts[token.Result]++;
+                toRemove.AddRange(currentTokenStreak);
+                currentTokenStreak.Clear();
+                foundWin = true;
+            }
         }
         //check up left
         if(row >= WinRequirement-1 && col >= WinRequirement-1)
@@ -215,9 +254,20 @@ public partial class Board : Node2D
                 if(!token.SameAs(TokenGrid[row-offset,col-offset]))
                 {
                     upLeftFail = true;
+                    currentTokenStreak.Clear();
                     break;
                 }
-            if(!upLeftFail) resultCounts[token.Result]++;
+                else
+                {
+                    currentTokenStreak.Add((row-offset,col-offset));
+                }
+            if(!upLeftFail)
+            {
+                resultCounts[token.Result]++;
+                toRemove.AddRange(currentTokenStreak);
+                currentTokenStreak.Clear();
+                foundWin = true;
+            }
         }
         //check up right
         if(row >= WinRequirement-1 && col <= Columns-WinRequirement)
@@ -227,10 +277,23 @@ public partial class Board : Node2D
                 if(!token.SameAs(TokenGrid[row-offset,col+offset]))
                 {
                     upRightFail = true;
+                    currentTokenStreak.Clear();
                     break;
                 }
-            if(!upRightFail) resultCounts[token.Result]++;
+                else
+                {
+                    currentTokenStreak.Add((row-offset,col+offset));
+                }
+            if(!upRightFail)
+            {
+                resultCounts[token.Result]++;
+                toRemove.AddRange(currentTokenStreak);
+                currentTokenStreak.Clear();
+                foundWin = true;
+            }
         }
+
+        if(foundWin) toRemove.Add((row,col));
     }
 
     public int? FindTopSpot(int col)
@@ -267,35 +330,73 @@ public partial class Board : Node2D
     {
         if(_colGravityLock.Contains(col)) return;
         _colGravityLock.Add(col);
-        List<TokenBase?> tokens = new();
+        List<TokenBase> tokens = new();
         for(int row = Rows-1; row >= 0; row--)
         {
             TokenBase? t = TokenGrid[row,col];
-            if(!IsInstanceValid(t)) TokenGrid[row,col] = t = null;
-            if(t is not null)
-            {
-                //disable tween early so that t.Position is accurate
-                DisableTween(t);
+            if(t is null)
+                continue;
+            else if(!IsInstanceValid(t) || t.IsQueuedForDeletion())
+                TokenGrid[row,col] = null;
+            else
                 tokens.Add(t);
-            }
         }
         int tokenIdx = Rows-1;
         foreach(var t in tokens)
         {
-            //because IsInstanceValid does not account for same-frame QueueFree,
-            //we also check that no QueueFree was called
-            if(t is not null && IsInstanceValid(t) && !t.IsQueuedForDeletion())
-            {
-                TokenGrid[tokenIdx,col] = t;
-                TweenToken(t, t.Position, HolePosition(tokenIdx+1,col+1));
-                tokenIdx--;
-            }
+            TokenGrid[tokenIdx,col] = t;
+            TweenToken(t, t.Position, HolePosition(tokenIdx+1,col+1));
+            tokenIdx--;
         }
         for(; tokenIdx >= 0; tokenIdx--)
         {
             TokenGrid[tokenIdx,col] = null;
         }
         _colGravityLock.Remove(col);
+    }
+
+    public void FlipCol(int col)
+    {
+        var newCol = new TokenBase?[Rows];
+        for(int row = 0; row < Rows; ++row)
+        {
+            TokenBase? t = TokenGrid[row,col];
+            DisableTween(t);
+            if(!IsInstanceValid(t)) TokenGrid[row,col] = null;
+        }
+        for(int row = 0; row < Rows; ++row)
+        {
+            TokenBase? t = TokenGrid[row,col];
+            newCol[Rows-1-row] = t;
+            if(t is not null)
+                t.GlobalPosition = HolePosition(Rows-row,col+1);
+        }
+        for(int row = 0; row < Rows; ++row)
+        {
+            TokenGrid[row,col] = newCol[row];
+        }
+    }
+
+    public void FlipRow(int row)
+    {
+        var newRow = new TokenBase?[Columns];
+        for(int col = 0; col < Columns; ++col)
+        {
+            TokenBase? t = TokenGrid[row,col];
+            DisableTween(t);
+            if(!IsInstanceValid(t)) TokenGrid[row,col] = null;
+        }
+        for(int col = 0; col < Columns; ++col)
+        {
+            TokenBase? t = TokenGrid[row,col];
+            newRow[Columns-1-col] = t;
+            if(t is not null)
+                t.GlobalPosition = HolePosition(row+1,Columns-col);
+        }
+        for(int col = 0; col < Columns; ++col)
+        {
+            TokenGrid[row,col] = newRow[col];
+        }
     }
 
     public void FlipVertical()
@@ -325,8 +426,8 @@ public partial class Board : Node2D
         //i,j -> Columns-1-j,i
         int oldRows = Rows, oldColumns = Columns; 
         //rotate
-        _colorRect.Position = new Vector2(_colorRect.Position.Y, _colorRect.Position.X);
-        _colorRect.Size = new Vector2(_colorRect.Size.Y, _colorRect.Size.X);
+        BoardBase.Position = new Vector2(BoardBase.Position.Y, BoardBase.Position.X);
+        BoardBase.Size = new Vector2(BoardBase.Size.Y, BoardBase.Size.X);
         for(int row = 0; row < oldRows; ++row)
             for(int col = 0; col < oldColumns; ++col)
             {
@@ -355,8 +456,8 @@ public partial class Board : Node2D
         //i,j -> j,Rows-1-i
         int oldRows = Rows, oldColumns = Columns; 
         //rotate
-        _colorRect.Position = new Vector2(_colorRect.Position.Y, _colorRect.Position.X);
-        _colorRect.Size = new Vector2(_colorRect.Size.Y, _colorRect.Size.X);
+        BoardBase.Position = new Vector2(BoardBase.Position.Y, BoardBase.Position.X);
+        BoardBase.Size = new Vector2(BoardBase.Size.Y, BoardBase.Size.X);
         for(int row = 0; row < oldRows; ++row)
             for(int col = 0; col < oldColumns; ++col)
             {
@@ -382,29 +483,30 @@ public partial class Board : Node2D
 
     private static void DisableTween(TokenBase? t)
     {
-        if(t is not null && IsInstanceValid(t) && t.HasMeta(TOKEN_TWEEN_META_NAME))
-        {
-            var oldTween = (Tween)t.GetMeta(TOKEN_TWEEN_META_NAME);
-            if(IsInstanceValid(oldTween) && oldTween.IsValid())
-            {
-                oldTween.CustomStep(double.PositiveInfinity);
-                //we do another check incase that the tween finishing
-                //has some additionally behavior that could
-                //make it invalid
-                if(IsInstanceValid(oldTween) && oldTween.IsValid())
-                {
-                    oldTween.Kill();
-                    //early dispose this tween to avoid relying on the GC
-                    oldTween.Dispose();
-                }
-            }
-        }
+        if(
+            t is null ||
+            !IsInstanceValid(t) ||
+            t.TokenTween is null ||
+            !IsInstanceValid(t.TokenTween) ||
+            !t.TokenTween.IsValid()
+        ) return;
+
+        t.TokenTween.StepToEnd();
+        //we do another check incase that the tween finishing
+        //has some additionally behavior that could
+        //make it invalid
+        if(
+            !IsInstanceValid(t.TokenTween) ||
+            !t.TokenTween.IsValid()
+        ) return;
+
+        t.TokenTween.Kill();
+        //early dispose this tween to avoid relying on the GC
+        t.TokenTween.Dispose();
     }
 
     public void RemoveToken(int row, int col)
     {
-        if(row >= Rows) GD.Print(row);
-        if(row < 0) GD.Print(row);
         var t = TokenGrid[row,col];
         TokenGrid[row,col] = null;
         DisableTween(t);
@@ -413,12 +515,19 @@ public partial class Board : Node2D
 
     private void TweenToken(TokenBase t, Vector2 from, Vector2 to)
     {
-        DisableTween(t);
         if(!IsInstanceValid(t)) return;
-
         var distanceLeft = from.DistanceTo(to);
-        var tween = t.CreateTween();
-        tween
+
+        if(!IsInstanceValid(t.TokenTween)) t.TokenTween = null;
+        t.TokenTween?.Kill();
+        t.TokenTween = t.CreateTween();
+        //need reconnect
+        if(t.TweenFinishedAction is not null)
+        {
+            t.ConnectTweenFinished();
+        }
+
+        t.TokenTween
             //tween
             .TweenProperty(
                 //token
@@ -434,6 +543,17 @@ public partial class Board : Node2D
             .SetEase(Tween.EaseType.In)
             //from the current position
             .From(from);
-        t.SetMeta(TOKEN_TWEEN_META_NAME, tween);
+        t.TokenTween.Finished += () =>
+        {
+            _tweenedTokens.Remove(t);
+            if(_tweenedTokens.Count <= 0) DecideResult();
+        };
+        t.TreeExited += () =>
+        {
+            if(!IsInsideTree()) return;
+            _tweenedTokens.Remove(t);
+            if(_tweenedTokens.Count <= 0) DecideResult();
+        };
+        _tweenedTokens.Add(t);
     }
 }

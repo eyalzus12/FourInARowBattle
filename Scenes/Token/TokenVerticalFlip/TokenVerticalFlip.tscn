@@ -1,0 +1,11 @@
+[gd_scene load_steps=4 format=3 uid="uid://dkpekqc4jobth"]
+
+[ext_resource type="PackedScene" uid="uid://3m1vfrt1mlek" path="res://Scenes/Token/Token.tscn" id="1_6ias3"]
+[ext_resource type="Texture2D" uid="uid://cbm85wyk5yjws" path="res://Resources/Textures/Tokens/TokenVerticalFlip.png" id="2_jma0t"]
+[ext_resource type="Script" path="res://Scenes/Token/TokenVerticalFlip/TokenVerticalFlip.cs" id="2_q7gm0"]
+
+[node name="TokenVerticalFlip" instance=ExtResource("1_6ias3")]
+script = ExtResource("2_q7gm0")
+
+[node name="TokenSprite" parent="." index="0"]
+texture = ExtResource("2_jma0t")
