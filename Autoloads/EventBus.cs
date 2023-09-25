@@ -17,7 +17,7 @@ public partial class EventBus : Node
     public delegate void ScoreIncreasedEventHandler(GameTurnEnum who, int amount);
 
     [Signal]
-    public delegate void TokenButtonHoveredEventHandler(GameTurnEnum turn, PackedScene scene);
+    public delegate void TokenButtonHoveredEventHandler(GameTurnEnum turn, string description);
     [Signal]
-    public delegate void TokenButtonStoppedHoverEventHandler(GameTurnEnum turn, PackedScene scene);
+    public delegate void TokenButtonStoppedHoverEventHandler(GameTurnEnum turn, string description);
 }

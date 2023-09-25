@@ -67,6 +67,7 @@ public partial class TokenCounterListControl : Control
                 };
             }
         }
+
         RefillButton.Pressed += () =>
         {
             if(!AnyCanAdd()) return;
@@ -74,6 +75,19 @@ public partial class TokenCounterListControl : Control
             _eventBus.EmitSignal(EventBus.SignalName.ExternalPassTurn);
             if(!_refillLocked) _refillLocked = true;
         };
+        RefillButton.MouseEntered += () =>
+            _eventBus.EmitSignal(
+                EventBus.SignalName.TokenButtonHovered,
+                (int)ActiveOnTurn,
+                DescriptionLabel.REFILL_DESCRIPTION
+            );
+        RefillButton.MouseExited += () =>
+            _eventBus.EmitSignal(
+                EventBus.SignalName.TokenButtonStoppedHover,
+                (int)ActiveOnTurn,
+                DescriptionLabel.REFILL_DESCRIPTION
+            );
+
         _eventBus.TurnChanged += OnTurnChange;
         _eventBus.ScoreIncreased += OnAddScore;
     }

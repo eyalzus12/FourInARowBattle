@@ -1,10 +1,12 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 public partial class DescriptionLabel : Label
 {
     public const string DEFAULT_TEXT = "Hover over a token to learn more about it";
+    public const string REFILL_DESCRIPTION = "Press this button to get 1 more of each non-full token. You cannot use this button for two turns in a row.";
 
     private readonly static Dictionary<PackedScene, string> DescriptionCache = new();
 
@@ -13,7 +15,7 @@ public partial class DescriptionLabel : Label
 
     private EventBus _eventBus = null!;
 
-    private PackedScene? _scene = null;
+    private string? _description = null;
 
     public override void _Ready()
     {
@@ -28,26 +30,28 @@ public partial class DescriptionLabel : Label
         _eventBus.TokenButtonStoppedHover += OnTokenStopHover;
     }
 
-    private void OnTokenHover(GameTurnEnum turn, PackedScene scene)
+    private void OnTokenHover(GameTurnEnum turn, string description)
     {
         if(turn != ActiveOnTurn) return;
 
-        _scene = scene;
-        UpdateDescription(DescriptionFromScene(scene));
+        _description = description;
+        UpdateDescription(description);
     }
 
-    private void OnTokenStopHover(GameTurnEnum turn, PackedScene scene)
+    private void OnTokenStopHover(GameTurnEnum turn, string description)
     {
         if(
             turn != ActiveOnTurn ||
-            scene != _scene
+            description != _description
         ) return;
 
-        _scene = null;
+        _description = null;
         UpdateDescription(null);
     }
 
-    private static string? DescriptionFromScene(PackedScene? from)
+    //this method returns null iff it is given null
+    [return: NotNullIfNotNull(nameof(from))]
+    public static string? DescriptionFromScene(PackedScene? from)
     {
         if(from is null) return null;
         else if(DescriptionCache.ContainsKey(from))

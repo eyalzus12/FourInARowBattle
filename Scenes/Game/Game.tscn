@@ -53,7 +53,7 @@ layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_top = -144.0
+offset_top = -200.0
 offset_right = 248.0
 grow_vertical = 0
 
@@ -72,6 +72,7 @@ text = "Hover over a token to learn more about it"
 label_settings = SubResource("LabelSettings_lkpjc")
 autowrap_mode = 2
 script = ExtResource("4_8pjqi")
+metadata/_edit_lock_ = true
 
 [node name="Player2TokenDescriptionPanel2" type="Panel" parent="Control"]
 layout_mode = 1
@@ -81,7 +82,7 @@ anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = -248.0
-offset_top = -144.0
+offset_top = -192.0
 grow_horizontal = 0
 grow_vertical = 0
 
@@ -101,3 +102,4 @@ label_settings = SubResource("LabelSettings_6s1y4")
 autowrap_mode = 2
 script = ExtResource("4_8pjqi")
 ActiveOnTurn = 1
+metadata/_edit_lock_ = true

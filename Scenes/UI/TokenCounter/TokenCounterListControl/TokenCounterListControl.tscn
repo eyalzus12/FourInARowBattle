@@ -60,7 +60,8 @@ AssociatedScene = ExtResource("3_2pshy")
 layout_mode = 2
 size_flags_vertical = 3
 TokenButtons = [NodePath("HBoxContainer/HBoxContainer_Buttons/Button")]
-TokenCount = 5
+TokenMaxCount = 3
+TokenCount = 3
 
 [node name="Button" type="Button" parent="TokenCounterControl2/HBoxContainer/HBoxContainer_Buttons" index="0"]
 layout_mode = 2

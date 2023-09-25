@@ -4,7 +4,7 @@ using System;
 public static class Extensions
 {
     public static Variant? GetMetaOrNull(this GodotObject o, StringName s) =>
-        o.HasMeta(s)?(Variant?)o.GetMeta(s):null;
+        o.HasMeta(s) ? (Variant?)o.GetMeta(s) : null;
     public static T GetMeta<[MustBeVariant] T>(this GodotObject o, StringName s) =>
         o.GetMeta(s).As<T>();
     public static Node GetAutoload(this Node n, NodePath p) =>

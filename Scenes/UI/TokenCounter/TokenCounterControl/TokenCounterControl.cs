@@ -86,13 +86,13 @@ public partial class TokenCounterControl : Control
                 _eventBus.EmitSignal(
                     EventBus.SignalName.TokenButtonHovered,
                     (int)ActiveOnTurn,
-                    buttonBind.AssociatedScene
+                    DescriptionLabel.DescriptionFromScene(buttonBind.AssociatedScene)
                 );
             button.MouseExited += () =>
                 _eventBus.EmitSignal(
                     EventBus.SignalName.TokenButtonStoppedHover,
                     (int)ActiveOnTurn,
-                    buttonBind.AssociatedScene
+                    DescriptionLabel.DescriptionFromScene(buttonBind.AssociatedScene)
                 );
         }
             
