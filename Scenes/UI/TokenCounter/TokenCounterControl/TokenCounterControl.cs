@@ -3,9 +3,6 @@ using System;
 
 public partial class TokenCounterControl : Control
 {
-    [Signal]
-    public delegate void CountChangedEventHandler();
-
     private Texture2D _texture = null!;
     private int _count = 0;
 
@@ -29,7 +26,6 @@ public partial class TokenCounterControl : Control
             _count = value;
             if(IsInsideTree())
             {
-                EmitSignal(SignalName.CountChanged);
                 TokenCountLabel.Text = Infinite?"∞/∞":$"{value}/{TokenMaxCount}";
                 if(!CanTake())
                     Disabled = true;

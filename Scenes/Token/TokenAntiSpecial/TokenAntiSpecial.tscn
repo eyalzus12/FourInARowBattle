@@ -1,0 +1,12 @@
+[gd_scene load_steps=4 format=3 uid="uid://dadj6xy53no0x"]
+
+[ext_resource type="PackedScene" uid="uid://3m1vfrt1mlek" path="res://Scenes/Token/Token.tscn" id="1_04xr7"]
+[ext_resource type="Script" path="res://Scenes/Token/TokenAntiSpecial/TokenAntiSpecial.cs" id="2_qq7si"]
+[ext_resource type="Texture2D" uid="uid://c7u4t3r1ur18a" path="res://Resources/Textures/Tokens/TokenAntiSpecial.png" id="3_8eg3m"]
+
+[node name="TokenAntiSpecial" instance=ExtResource("1_04xr7")]
+script = ExtResource("2_qq7si")
+TokenDescription = "Stops any special effects in its column. Lasts until another token of its type is dropped by the player who placed it."
+
+[node name="TokenSprite" parent="." index="0"]
+texture = ExtResource("3_8eg3m")

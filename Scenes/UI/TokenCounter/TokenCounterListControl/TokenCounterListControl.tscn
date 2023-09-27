@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://dk1ui8fmw6giq"]
+[gd_scene load_steps=15 format=3 uid="uid://dk1ui8fmw6giq"]
 
 [ext_resource type="Script" path="res://Scenes/UI/TokenCounter/TokenCounterListControl/TokenCounterListControl.cs" id="1_0obit"]
 [ext_resource type="PackedScene" uid="uid://br5gv43qf43mh" path="res://Scenes/UI/TokenCounter/TokenCounterControl/TokenCounterControl.tscn" id="1_aopfm"]
@@ -11,6 +11,8 @@
 [ext_resource type="PackedScene" uid="uid://dkpekqc4jobth" path="res://Scenes/Token/TokenVerticalFlip/TokenVerticalFlip.tscn" id="8_u52fu"]
 [ext_resource type="Texture2D" uid="uid://bohwjaaeph0pe" path="res://Resources/Textures/Tokens/TokenHorizontalFlip.png" id="9_lo7ph"]
 [ext_resource type="PackedScene" uid="uid://deotsndx6atst" path="res://Scenes/Token/TokenHorizontalFlip/TokenHorizontalFlip.tscn" id="10_4l87s"]
+[ext_resource type="PackedScene" uid="uid://dadj6xy53no0x" path="res://Scenes/Token/TokenAntiSpecial/TokenAntiSpecial.tscn" id="12_h4ylu"]
+[ext_resource type="Texture2D" uid="uid://c7u4t3r1ur18a" path="res://Resources/Textures/Tokens/TokenAntiSpecial.png" id="12_lmghj"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_67ypp"]
 font_size = 32
@@ -22,7 +24,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_0obit")
-Counters = [NodePath("TokenCounterControl"), NodePath("TokenCounterControl2"), NodePath("TokenCounterControl3")]
+Counters = [NodePath("TokenCounterControl"), NodePath("TokenCounterControl2"), NodePath("TokenCounterControl3"), NodePath("TokenCounterControl4")]
 ScoreLabel = NodePath("HBoxContainer/ScoreLabel")
 RefillButton = NodePath("HBoxContainer/RefillButton")
 
@@ -96,6 +98,23 @@ expand_icon = true
 script = ExtResource("4_ardkc")
 AssociatedScene = ExtResource("8_u52fu")
 
+[node name="TokenCounterControl4" parent="." node_paths=PackedStringArray("TokenButtons") instance=ExtResource("1_aopfm")]
+layout_mode = 2
+size_flags_vertical = 3
+TokenButtons = [NodePath("HBoxContainer/HBoxContainer_Buttons/Button")]
+TokenMaxCount = 1
+TokenCount = 1
+
+[node name="Button" type="Button" parent="TokenCounterControl4/HBoxContainer/HBoxContainer_Buttons" index="0"]
+layout_mode = 2
+size_flags_horizontal = 3
+icon = ExtResource("12_lmghj")
+icon_alignment = 1
+expand_icon = true
+script = ExtResource("4_ardkc")
+AssociatedScene = ExtResource("12_h4ylu")
+
 [editable path="TokenCounterControl"]
 [editable path="TokenCounterControl2"]
 [editable path="TokenCounterControl3"]
+[editable path="TokenCounterControl4"]

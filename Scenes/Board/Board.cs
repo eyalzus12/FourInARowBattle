@@ -5,6 +5,9 @@ public partial class Board : Node2D
 {
     public static readonly StringName TOKEN_TWEEN_META_NAME = "DropTween";
 
+    [Signal]
+    public delegate void TokenPlacedEventHandler(Board where, TokenBase who, int row, int col);
+
     [Export]
     public int Rows{get; set;} = 6;
     [Export]
@@ -60,7 +63,6 @@ public partial class Board : Node2D
     {
         _eventBus = GetTree().Root.GetNode<EventBus>(nameof(EventBus));
         TokenGrid = new TokenBase?[Rows,Columns];
-
         CreateHoleMasks();
     }
 
@@ -110,6 +112,7 @@ public partial class Board : Node2D
     public bool AddToken(int col, TokenBase t)
     {
         if(!IsInstanceValid(t)) return false;
+
         int? _row = FindTopSpot(col);
         if(_row is null)
         {
@@ -117,12 +120,15 @@ public partial class Board : Node2D
             return false;
         }
         int row = (int)_row;
+
+
         t.Scale = TokenScale;
         AddChild(t);
         var desiredPosition = ToLocal(HolePosition(row+1,col+1));
         TweenToken(t, desiredPosition + Vector2.Up * DropStartOffset, desiredPosition);
         TokenGrid[row,col] = t;
         t.OnPlace(this, row, col);
+        EmitSignal(SignalName.TokenPlaced, this, t, row, col);
         QueueRedraw();
         return true;
     }
@@ -340,6 +346,7 @@ public partial class Board : Node2D
         foreach(var t in tokens)
         {
             TokenGrid[tokenIdx,col] = t;
+            t.OnLocationUpdate(tokenIdx, col);
             TweenToken(t, t.Position, HolePosition(tokenIdx+1,col+1));
             tokenIdx--;
         }
@@ -374,6 +381,7 @@ public partial class Board : Node2D
             else
             {
                 newCol[newRow] = t;
+                t.OnLocationUpdate(newRow, col);
                 t.GlobalPosition = HolePosition(newRow+1,col+1);
                 --newRow;
             }
@@ -388,6 +396,7 @@ public partial class Board : Node2D
         {
             var t = tweenedList[i];
             TokenGrid[newRow,col] = t;
+            t.OnLocationUpdate(newRow, col);
             TweenToken(t, t.Position, HolePosition(newRow+1,col+1));
             newRow--;
         }
@@ -407,7 +416,10 @@ public partial class Board : Node2D
             TokenBase? t = TokenGrid[row,col];
             newRow[Columns-1-col] = t;
             if(t is not null)
+            {
+                t.OnLocationUpdate(row,Columns-col-1);
                 t.GlobalPosition = HolePosition(row+1,Columns-col);
+            }
         }
         for(int col = 0; col < Columns; ++col)
         {
@@ -432,7 +444,10 @@ public partial class Board : Node2D
                 TokenBase? t = TokenGrid[row,col];
                 newGrid[Rows-1-row,col] = t;
                 if(t is not null)
+                {
+                    t.OnLocationUpdate(Rows-row-1,col);
                     t.GlobalPosition = HolePosition(Rows-row,col+1);
+                }
             }
         TokenGrid = newGrid;
     }
@@ -461,7 +476,10 @@ public partial class Board : Node2D
                 TokenBase? t = TokenGrid[row,col];
                 newGrid[oldColumns-1-col,row] = t;
                 if(t is not null)
+                {
+                    t.OnLocationUpdate(oldColumns-col-1,row);
                     t.GlobalPosition = HolePosition(oldColumns-col,row+1);
+                }
             }
         TokenGrid = newGrid;
         CreateHoleMasks();
@@ -491,7 +509,10 @@ public partial class Board : Node2D
                 TokenBase? t = TokenGrid[row,col];
                 newGrid[col,oldRows-1-row] = t;
                 if(t is not null)
+                {
+                    t.OnLocationUpdate(col,oldRows-row-1);
                     t.GlobalPosition = HolePosition(col+1,oldRows-row);
+                }
             }
         TokenGrid = newGrid;
         CreateHoleMasks();
@@ -501,18 +522,15 @@ public partial class Board : Node2D
     {
         if(
             !t.IsInstanceValid() ||
-            !t.TokenTween.IsInstanceValid() ||
-            !t.TokenTween.IsValid()
+            !t.TokenTween.IsTweenValid()
         ) return;
 
         t.TokenTween.StepToEnd();
         //we do another check incase that the tween finishing
         //has some additionally behavior that could
         //make it invalid
-        if(
-            !IsInstanceValid(t.TokenTween) ||
-            !t.TokenTween.IsValid()
-        ) return;
+        if(!t.TokenTween.IsTweenValid())
+            return;
 
         t.TokenTween.Kill();
         //early dispose this tween to avoid relying on the GC

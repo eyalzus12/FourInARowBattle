@@ -41,7 +41,12 @@ public partial class TokenBase : Node2D
         
     }
 
-    public Action? TweenFinishedAction{get; protected set;}
+    public virtual void OnLocationUpdate(int row, int col)
+    {
+
+    }
+
+    public Action? TweenFinishedAction{get; set;}
     public void ConnectTweenFinished()
     {
         if(TweenFinishedAction is null) return;
@@ -49,7 +54,7 @@ public partial class TokenBase : Node2D
         if(TokenTween is not null)
             TokenTween.Finished += () =>
             {
-                TokenTween.Kill();
+                TokenTween?.Kill();
                 TokenTween = null;
                 if(TweenFinishedAction is not null)
                     TweenFinishedAction();
