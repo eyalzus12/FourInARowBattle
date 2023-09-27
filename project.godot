@@ -21,7 +21,7 @@ EventBus="*res://Autoloads/EventBus.cs"
 [display]
 
 window/stretch/mode="canvas_items"
-window/size/always_on_top.editor=true
+window/size/always_on_top.editor=false
 
 [dotnet]
 

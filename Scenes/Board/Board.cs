@@ -353,23 +353,43 @@ public partial class Board : Node2D
 
     public void FlipCol(int col)
     {
+        var tweenedList = new List<TokenBase>();
         var newCol = new TokenBase?[Rows];
+        int newRow = Rows-1;
         for(int row = 0; row < Rows; ++row)
         {
             TokenBase? t = TokenGrid[row,col];
-            DisableTween(t);
-            if(!IsInstanceValid(t)) TokenGrid[row,col] = null;
+            //DisableTween(t);
+            if(!IsInstanceValid(t)) t = TokenGrid[row,col] = null;
+            if(t is null) continue;
+            //has a valid tween
+            if(
+                t.TokenTween.IsInstanceValid() &&
+                t.TokenTween.IsValid()
+            )
+            {
+                tweenedList.Add(t);
+            }
+            //valid token. not moving.
+            else
+            {
+                newCol[newRow] = t;
+                t.GlobalPosition = HolePosition(newRow+1,col+1);
+                --newRow;
+            }
         }
+        //copy back over
         for(int row = 0; row < Rows; ++row)
         {
-            TokenBase? t = TokenGrid[row,col];
-            newCol[Rows-1-row] = t;
-            if(t is not null)
-                t.GlobalPosition = HolePosition(Rows-row,col+1);
+            TokenGrid[row,col] = (row <= newRow)?null:newCol[row];
         }
-        for(int row = 0; row < Rows; ++row)
+        //add tweened
+        for(int i = tweenedList.Count - 1; i >= 0; --i)
         {
-            TokenGrid[row,col] = newCol[row];
+            var t = tweenedList[i];
+            TokenGrid[newRow,col] = t;
+            TweenToken(t, t.Position, HolePosition(newRow+1,col+1));
+            newRow--;
         }
     }
 
@@ -480,10 +500,8 @@ public partial class Board : Node2D
     private static void DisableTween(TokenBase? t)
     {
         if(
-            t is null ||
-            !IsInstanceValid(t) ||
-            t.TokenTween is null ||
-            !IsInstanceValid(t.TokenTween) ||
+            !t.IsInstanceValid() ||
+            !t.TokenTween.IsInstanceValid() ||
             !t.TokenTween.IsValid()
         ) return;
 
@@ -499,6 +517,7 @@ public partial class Board : Node2D
         t.TokenTween.Kill();
         //early dispose this tween to avoid relying on the GC
         t.TokenTween.Dispose();
+        t.TokenTween = null;
     }
 
     public void RemoveToken(int row, int col)
@@ -506,7 +525,7 @@ public partial class Board : Node2D
         var t = TokenGrid[row,col];
         TokenGrid[row,col] = null;
         DisableTween(t);
-        if(t is not null && IsInstanceValid(t)) t.QueueFree();
+        if(t.IsInstanceValid()) t.QueueFree();
     }
 
     private void TweenToken(TokenBase t, Vector2 from, Vector2 to)

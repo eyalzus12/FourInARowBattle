@@ -49,6 +49,8 @@ public partial class TokenBase : Node2D
         if(TokenTween is not null)
             TokenTween.Finished += () =>
             {
+                TokenTween.Kill();
+                TokenTween = null;
                 if(TweenFinishedAction is not null)
                     TweenFinishedAction();
                 TweenFinishedAction = null;

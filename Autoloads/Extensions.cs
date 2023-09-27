@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 public static class Extensions
 {
@@ -29,4 +30,10 @@ public static class Extensions
         GameResultEnum.Player2Win => GameTurnEnum.Player2,
         _ => (GameTurnEnum)9999
     };
+
+    //the default IsInstanceValid does not tell the compiler
+    //that the paramater is not null if it returns true
+    //so this is a wrapper that does that
+    public static bool IsInstanceValid([NotNullWhen(true)] this GodotObject? o) =>
+        o is not null && GodotObject.IsInstanceValid(o);
 }
