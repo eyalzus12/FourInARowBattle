@@ -1,4 +1,5 @@
 using Godot;
+using System;
 using System.Collections.Generic;
 
 public partial class Board : Node2D
@@ -589,5 +590,63 @@ public partial class Board : Node2D
                 DecideResult();
             }
         }
+    }
+
+    public virtual void DeserializeFrom(BoardData data)
+    {
+        if(data.Grid.Count != data.Rows)
+            throw new ArgumentException($"Board data has row count of {data.Rows}, but its grid has {data.Grid.Count} rows");
+
+        //cleanup
+        _tweenedTokens.Clear();
+        _ghostToken = null;
+        for(int row = 0; row < Rows; ++row)
+        {
+            for(int col = 0; col < Columns; ++col)
+            {
+                TokenGrid[row,col]?.QueueFree();
+            }
+        }
+
+        Rows = data.Rows;
+        Columns = data.Columns;
+        WinRequirement = data.WinRequirement;
+
+        TokenGrid = new TokenBase?[Rows,Columns];
+        for(int row = 0; row < Rows; ++row)
+        {
+            if(data.Grid[row].Count != data.Columns)
+                throw new ArgumentException($"Board data has column count of {data.Columns}, but its {row}th row has {data.Grid[row].Count} elements");
+            for(int col = 0; col < Columns; ++col)
+            {
+                var tdata = data.Grid[row][col];
+                if(tdata is null) continue;
+                var t = ResourceLoader.Load<PackedScene>(tdata.TokenScenePath).Instantiate<TokenBase>();
+                TokenGrid[row,col] = t;
+                t.Scale = TokenScale;
+                AddChild(t);
+                t.DeserializeFrom(this, tdata);
+            }
+        }
+    }
+
+    public virtual BoardData SerializeTo()
+    {
+        BoardData data = new()
+        {
+            Rows = Rows,
+            Columns = Columns,
+            WinRequirement = WinRequirement,
+            Grid = new()
+        };
+        for(int row = 0; row < Rows; ++row)
+        {
+            data.Grid.Add(new Godot.Collections.Array<TokenData?>());
+            for(int col = 0; col < Columns; ++col)
+            {
+                data.Grid[row].Add(TokenGrid[row,col]?.SerializeTo());
+            }
+        }
+        return data;
     }
 }

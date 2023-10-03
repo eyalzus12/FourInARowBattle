@@ -100,7 +100,7 @@ public partial class TokenCounterControl : Control
         _eventBus.EmitSignal(EventBus.SignalName.TokenSelected, this, who);
     }
 
-    public void OnTurnChange(GameTurnEnum to)
+    public void OnTurnChange(GameTurnEnum to, bool isStartupSignal)
     {
         Disabled = to != ActiveOnTurn || !CanTake();
     }
@@ -109,4 +109,14 @@ public partial class TokenCounterControl : Control
     public bool CanAdd() => !Infinite && (TokenCount < TokenMaxCount);
     public void Take(int amount){if(!Infinite) TokenCount -= amount;}
     public void Add(int amount){if(!Infinite) TokenCount += amount;}
+
+    public void DeserializeFrom(TokenCounterData data)
+    {
+        TokenCount = data.TokenCount;
+    }
+
+    public TokenCounterData SerializeTo() => new()
+    {
+        TokenCount = TokenCount
+    };
 }

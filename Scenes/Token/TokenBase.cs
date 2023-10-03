@@ -33,7 +33,9 @@ public partial class TokenBase : Node2D
 
     public override void _Ready()
     {
-        Modulate = TokenColor;
+        //avoid overriding previous modulate
+        if(Modulate == Colors.White)
+            Modulate = TokenColor;
     }
 
     public virtual void OnPlace(Board board, int row, int col)
@@ -63,4 +65,19 @@ public partial class TokenBase : Node2D
         else
             TweenFinishedAction();
     }
+
+    public virtual void DeserializeFrom(Board board, TokenData data)
+    {
+        TokenColor = data.TokenColor;
+        Modulate = data.TokenModulate;
+        GlobalPosition = data.GlobalPosition;
+    }
+
+    public virtual TokenData SerializeTo() => new()
+    {
+        TokenScenePath = SceneFilePath,
+        TokenColor = TokenColor,
+        TokenModulate = Modulate,
+        GlobalPosition = GlobalPosition
+    };
 }

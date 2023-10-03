@@ -13,9 +13,10 @@ font_color = Color(0.67451, 0.67451, 0.67451, 1)
 font_size = 21
 font_color = Color(0.67451, 0.67451, 0.67451, 1)
 
-[node name="Game" type="Node2D" node_paths=PackedStringArray("GameBoard")]
+[node name="Game" type="Node2D" node_paths=PackedStringArray("GameBoard", "CounterLists")]
 script = ExtResource("1_uwj10")
 GameBoard = NodePath("Board")
+CounterLists = [NodePath("Control/TokenCounterListControl"), NodePath("Control/TokenCounterListControl2")]
 
 [node name="Board" parent="." instance=ExtResource("1_j8y8n")]
 
@@ -103,3 +104,21 @@ autowrap_mode = 2
 script = ExtResource("4_8pjqi")
 ActiveOnTurn = 1
 metadata/_edit_lock_ = true
+
+[node name="HBoxContainer" type="VBoxContainer" parent="Control"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -58.5
+offset_right = 58.5
+offset_bottom = 40.0
+grow_horizontal = 2
+
+[node name="Button" type="Button" parent="Control/HBoxContainer"]
+layout_mode = 2
+text = "Save thing"
+
+[node name="Button2" type="Button" parent="Control/HBoxContainer"]
+layout_mode = 2
+text = "Restore thing"

@@ -3,12 +3,9 @@ using System;
 
 public partial class EventBus : Node
 {
-    //a signal to be used for when a non-Game thing wants to advance the turn
-    [Signal]
-    public delegate void ExternalPassTurnEventHandler();
     //a signal to be used for turn changes
     [Signal]
-    public delegate void TurnChangedEventHandler(GameTurnEnum to);
+    public delegate void TurnChangedEventHandler(GameTurnEnum to, bool isStartupSignal=false);
     //a signal to be used for when a token selection button is pressed
     [Signal]
     public delegate void TokenSelectedEventHandler(TokenCounterControl what, TokenCounterButton who);

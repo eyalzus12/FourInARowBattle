@@ -1,8 +1,12 @@
 using Godot;
 using System;
+using System.Linq;
 
 public partial class TokenCounterListControl : Control
 {
+    [Signal]
+    public delegate void RefilledTokensEventHandler();
+
     private GameTurnEnum _activeOnTurn;
 
     [Export]
@@ -15,7 +19,7 @@ public partial class TokenCounterListControl : Control
     public Button RefillButton{get; set;} = null!;
 
     private bool _refillLocked = false;
-    private bool _noneCanAdd = true;
+    private bool _refillUnlockedNextTurn = false;
 
     private int _currentScore = 0;
     public int CurrentScore
@@ -68,13 +72,7 @@ public partial class TokenCounterListControl : Control
             }
         }
 
-        RefillButton.Pressed += () =>
-        {
-            if(!AnyCanAdd()) return;
-            foreach(var c in Counters) if(c.CanAdd()) c.Add(1);
-            _eventBus.EmitSignal(EventBus.SignalName.ExternalPassTurn);
-            if(!_refillLocked) _refillLocked = true;
-        };
+        RefillButton.Pressed += DoRefill;
         RefillButton.MouseEntered += () =>
             _eventBus.EmitSignal(
                 EventBus.SignalName.TokenButtonHovered,
@@ -92,7 +90,15 @@ public partial class TokenCounterListControl : Control
         _eventBus.ScoreIncreased += OnAddScore;
     }
 
-    public void OnTurnChange(GameTurnEnum to)
+    public void DoRefill()
+    {
+        if(!AnyCanAdd()) return;
+        foreach(var c in Counters) if(c.CanAdd()) c.Add(1);
+        if(!_refillLocked) _refillLocked = true;
+        EmitSignal(SignalName.RefilledTokens);
+    }
+
+    public void OnTurnChange(GameTurnEnum to, bool isStartupSignal)
     {
         //our turn
         if(to == ActiveOnTurn)
@@ -108,11 +114,18 @@ public partial class TokenCounterListControl : Control
             {
                 _refillLocked = false;
                 RefillButton.Disabled = true;
+                _refillUnlockedNextTurn = true;
             }
             else if(AnyCanAdd())
+            {
                 RefillButton.Disabled = false;
+                _refillUnlockedNextTurn = false;
+            }
             else
+            {
                 RefillButton.Disabled = true;
+                _refillUnlockedNextTurn = false;
+            }
         }
         //opponent's turn
         else
@@ -132,4 +145,31 @@ public partial class TokenCounterListControl : Control
         foreach(var c in Counters) if(c.CanAdd()) return true;
         return false;
     }
+
+    public void DeserializeFrom(TokenCounterListData data)
+    {
+        _lastSelection = null;
+        _lastSelectionButton = null;
+        
+        CurrentScore = data.Score;
+        _refillLocked = data.RefillLocked;
+        _refillUnlockedNextTurn = data.RefillUnlockedNextTurn;
+        //a bit of a heck: we'd activate the turn change signal after restoring
+        //but this can cause the refill button to incorrectly be re-activated
+        //so this assignment is needed to correctly get the previous state
+        if(_refillUnlockedNextTurn) _refillLocked = true;
+
+        if(data.Counters.Count != Counters.Count)
+            throw new ArgumentException($"Token counter list has {Counters.Count} counters, and there was an attempt to create it from data with {data.Counters.Count} counters");
+        for(int i = 0; i < Counters.Count; ++i)
+            Counters[i].DeserializeFrom(data.Counters[i]);
+    }
+
+    public TokenCounterListData SerializeTo() => new()
+    {
+        Score = CurrentScore,
+        RefillLocked = _refillLocked,
+        RefillUnlockedNextTurn = _refillUnlockedNextTurn,
+        Counters = Counters.Select(c => c.SerializeTo()).ToGodotArray()
+    };
 }
