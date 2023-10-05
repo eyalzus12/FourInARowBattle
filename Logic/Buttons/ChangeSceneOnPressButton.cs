@@ -3,12 +3,12 @@ using System;
 
 public partial class ChangeSceneOnPressButton : BaseButton
 {
-    [Export]
-    public PackedScene ChangeTo{get; set;} = null!;
+    [Export(PropertyHint.File)]
+    public string ChangeTo{get; set;} = "";
 
     public override void _Pressed()
     {
-        var err = GetTree().ChangeSceneToPacked(ChangeTo);
+        var err = GetTree().ChangeSceneToFile(ChangeTo);
         if(err != Error.Ok)
             GD.Print($"Error while attempting to change scene: {err}");
     }

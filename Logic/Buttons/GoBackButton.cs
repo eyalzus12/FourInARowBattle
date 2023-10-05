@@ -7,7 +7,7 @@ public partial class GoBackButton : ChangeSceneOnPressButton
     public override void _UnhandledInput(InputEvent @event)
     {
         if(@event is InputEventMouseButton mb &&
-            mb.ButtonIndex == MouseButton.Xbutton2 &&
+            mb.ButtonIndex == MouseButton.Xbutton1 &&
             mb.Pressed)
         {
             GetViewport().SetInputAsHandled();
