@@ -1,0 +1,78 @@
+[gd_scene load_steps=4 format=3 uid="uid://d28qj6ph1beco"]
+
+[ext_resource type="Script" path="res://Logic/Buttons/ChangeSceneOnPressButton.cs" id="1_w7sya"]
+[ext_resource type="PackedScene" uid="uid://cwwejfivdwlu6" path="res://Scenes/UI/Menus/LocalPlayMenu/LocalPlayMenu.tscn" id="2_8nbe4"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_un1xh"]
+font_size = 56
+font_color = Color(0.827451, 0.827451, 0.827451, 1)
+outline_size = 9
+outline_color = Color(0, 0, 0, 1)
+shadow_color = Color(0, 0, 0, 1)
+shadow_offset = Vector2(-10, 1)
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ButtonsMarginContainer" type="MarginContainer" parent="."]
+layout_mode = 0
+offset_right = 1152.0
+offset_bottom = 648.0
+theme_override_constants/margin_left = 300
+theme_override_constants/margin_top = 100
+theme_override_constants/margin_right = 300
+theme_override_constants/margin_bottom = 100
+
+[node name="ButtonsVBoxContainer" type="VBoxContainer" parent="ButtonsMarginContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="ButtonsMarginContainer/ButtonsVBoxContainer"]
+layout_mode = 2
+text = "FOUR IN A ROW
+BATTLE"
+label_settings = SubResource("LabelSettings_un1xh")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="LocalPlayMarginContainer" type="MarginContainer" parent="ButtonsMarginContainer/ButtonsVBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="LocalPlay" type="Button" parent="ButtonsMarginContainer/ButtonsVBoxContainer/LocalPlayMarginContainer"]
+layout_mode = 2
+tooltip_text = "Play locally on the same computer"
+text = "Local Play"
+script = ExtResource("1_w7sya")
+ChangeTo = ExtResource("2_8nbe4")
+
+[node name="RemotePlayMarginContainer" type="MarginContainer" parent="ButtonsMarginContainer/ButtonsVBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="RemotePlay" type="Button" parent="ButtonsMarginContainer/ButtonsVBoxContainer/RemotePlayMarginContainer"]
+layout_mode = 2
+tooltip_text = "Play with someone else who is hosting a game"
+text = "Remote Play"
+script = ExtResource("1_w7sya")
+
+[node name="GameHostMarginContainer" type="MarginContainer" parent="ButtonsMarginContainer/ButtonsVBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="GameHost" type="Button" parent="ButtonsMarginContainer/ButtonsVBoxContainer/GameHostMarginContainer"]
+layout_mode = 2
+tooltip_text = "Host a game to be able to play remotely"
+text = "Host a Game"
+script = ExtResource("1_w7sya")

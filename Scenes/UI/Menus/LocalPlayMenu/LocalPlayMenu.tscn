@@ -1,0 +1,74 @@
+[gd_scene load_steps=5 format=3 uid="uid://cwwejfivdwlu6"]
+
+[ext_resource type="Script" path="res://Logic/Buttons/ChangeSceneOnPressButton.cs" id="1_in5bj"]
+[ext_resource type="Script" path="res://Logic/Buttons/GoBackButton.cs" id="2_cu7f1"]
+[ext_resource type="PackedScene" uid="uid://d28qj6ph1beco" path="res://Scenes/UI/Menus/MainMenu/MainMenu.tscn" id="3_vt3rq"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_661pw"]
+font_size = 56
+font_color = Color(0.827451, 0.827451, 0.827451, 1)
+outline_size = 9
+outline_color = Color(0, 0, 0, 1)
+shadow_color = Color(0, 0, 0, 1)
+shadow_offset = Vector2(-10, 1)
+
+[node name="LocalPlayScene" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ButtonsMarginContainer" type="MarginContainer" parent="."]
+offset_right = 1152.0
+offset_bottom = 648.0
+theme_override_constants/margin_left = 300
+theme_override_constants/margin_top = 100
+theme_override_constants/margin_right = 300
+theme_override_constants/margin_bottom = 100
+
+[node name="ButtonsVBoxContainer" type="VBoxContainer" parent="ButtonsMarginContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="ButtonsMarginContainer/ButtonsVBoxContainer"]
+layout_mode = 2
+text = "Local Play"
+label_settings = SubResource("LabelSettings_661pw")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="NewGameMarginContainer" type="MarginContainer" parent="ButtonsMarginContainer/ButtonsVBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="NewGame" type="Button" parent="ButtonsMarginContainer/ButtonsVBoxContainer/NewGameMarginContainer"]
+layout_mode = 2
+tooltip_text = "Play locally on the same computer"
+theme_override_font_sizes/font_size = 30
+text = "Create New Game"
+script = ExtResource("1_in5bj")
+
+[node name="ContinueGameMarginContainer" type="MarginContainer" parent="ButtonsMarginContainer/ButtonsVBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="ContinueGame" type="Button" parent="ButtonsMarginContainer/ButtonsVBoxContainer/ContinueGameMarginContainer"]
+layout_mode = 2
+tooltip_text = "Play with someone else who is hosting a game"
+theme_override_font_sizes/font_size = 30
+text = "Continue From Previous Game"
+
+[node name="GoBack" type="Button" parent="."]
+modulate = Color(1, 0.156863, 0.403922, 1)
+layout_mode = 1
+offset_right = 168.0
+offset_bottom = 88.0
+text = "Back To Main Menu"
+script = ExtResource("2_cu7f1")
+ChangeTo = ExtResource("3_vt3rq")
