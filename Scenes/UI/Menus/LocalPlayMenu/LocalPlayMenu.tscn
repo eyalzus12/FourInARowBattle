@@ -1,6 +1,7 @@
-[gd_scene load_steps=4 format=3 uid="uid://cwwejfivdwlu6"]
+[gd_scene load_steps=5 format=3 uid="uid://cwwejfivdwlu6"]
 
 [ext_resource type="Script" path="res://Logic/Buttons/ChangeSceneOnPressButton.cs" id="1_in5bj"]
+[ext_resource type="Script" path="res://Logic/Buttons/SelectSaveDataAndChangeSceneButton.cs" id="2_bbejk"]
 [ext_resource type="Script" path="res://Logic/Buttons/GoBackButton.cs" id="2_cu7f1"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_661pw"]
@@ -56,6 +57,7 @@ mouse_filter = 1
 theme_override_font_sizes/font_size = 30
 text = "Create New Game"
 script = ExtResource("1_in5bj")
+ChangeTo = "res://Scenes/Game/Game.tscn"
 
 [node name="ContinueGameMarginContainer" type="MarginContainer" parent="ButtonsMarginContainer/ButtonsVBoxContainer"]
 layout_mode = 2
@@ -64,12 +66,15 @@ mouse_filter = 2
 theme_override_constants/margin_top = 10
 theme_override_constants/margin_bottom = 10
 
-[node name="ContinueGame" type="Button" parent="ButtonsMarginContainer/ButtonsVBoxContainer/ContinueGameMarginContainer"]
+[node name="ContinueGame" type="Button" parent="ButtonsMarginContainer/ButtonsVBoxContainer/ContinueGameMarginContainer" node_paths=PackedStringArray("FileSelectDialog")]
 layout_mode = 2
 tooltip_text = "Play with someone else who is hosting a game"
 mouse_filter = 1
 theme_override_font_sizes/font_size = 30
 text = "Continue From Previous Game"
+script = ExtResource("2_bbejk")
+FileSelectDialog = NodePath("../../../../FileDialog")
+ChangeTo = "res://Scenes/Game/Game.tscn"
 
 [node name="GoBack" type="Button" parent="."]
 modulate = Color(1, 0.156863, 0.403922, 1)
@@ -80,3 +85,14 @@ mouse_filter = 1
 text = "Back To Main Menu"
 script = ExtResource("2_cu7f1")
 ChangeTo = "res://Scenes/UI/Menus/MainMenu/MainMenu.tscn"
+
+[node name="FileDialog" type="FileDialog" parent="."]
+title = "Open a File"
+size = Vector2i(430, 162)
+unresizable = true
+popup_window = true
+min_size = Vector2i(430, 70)
+ok_button_text = "Open"
+file_mode = 0
+access = 1
+filters = PackedStringArray("*.frsave ; Game Save Data")
