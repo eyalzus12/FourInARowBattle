@@ -8,6 +8,8 @@ public partial class Board : Node2D
 
     [Signal]
     public delegate void TokenPlacedEventHandler(Board where, TokenBase who, int row, int col);
+    [Signal]
+    public delegate void TweenedTokenCountChangedEventHandler(int to);
 
     [Export]
     public int Rows{get; set;} = 6;
@@ -76,10 +78,8 @@ public partial class Board : Node2D
             if(_row is not null)
             {
                 var row = (int)_row;
-                var start = HolePosition(row+1,ghostToken.Column+1) - CenterOffset;
-                var size = 2 * SlotRadius * Vector2.One;
-                var center = start + size/2;
-                var newsize = size * TokenScale / HoleScale;
+                var center = ToLocal(HolePosition(row+1,ghostToken.Column+1));
+                var newsize = 2 * TokenRadius * Vector2.One;
                 var newstart = center - newsize/2;
                 DrawTextureRect(
                     ghostToken.TokenTexture,
@@ -580,6 +580,7 @@ public partial class Board : Node2D
         t.TokenTween.Finished += RemoveFromTweenedTokensSet;
         t.TreeExited += RemoveFromTweenedTokensSet;
         _tweenedTokens.Add(t);
+        EmitSignal(SignalName.TweenedTokenCountChanged, _tweenedTokens.Count);
         
         void RemoveFromTweenedTokensSet()
         {
@@ -589,6 +590,7 @@ public partial class Board : Node2D
             {
                 DecideResult();
             }
+            EmitSignal(SignalName.TweenedTokenCountChanged, _tweenedTokens.Count);
         }
     }
 
@@ -599,6 +601,7 @@ public partial class Board : Node2D
 
         //cleanup
         _tweenedTokens.Clear();
+        EmitSignal(SignalName.TweenedTokenCountChanged, _tweenedTokens.Count);
         _ghostToken = null;
         for(int row = 0; row < Rows; ++row)
         {
@@ -610,7 +613,10 @@ public partial class Board : Node2D
 
         Rows = data.Rows;
         Columns = data.Columns;
+        BoardBase.Position = data.BoardPosition;
+        BoardBase.Size = data.BoardSize;
         WinRequirement = data.WinRequirement;
+        CreateHoleMasks();
 
         TokenGrid = new TokenBase?[Rows,Columns];
         for(int row = 0; row < Rows; ++row)
@@ -637,7 +643,9 @@ public partial class Board : Node2D
             Rows = Rows,
             Columns = Columns,
             WinRequirement = WinRequirement,
-            Grid = new()
+            Grid = new(),
+            BoardPosition = BoardBase.Position,
+            BoardSize = BoardBase.Size
         };
         for(int row = 0; row < Rows; ++row)
         {

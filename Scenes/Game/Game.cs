@@ -62,8 +62,6 @@ public partial class Game : Node2D
             DropDetectorIdx = null;
     }
 
-    private GameData? _save;
-
     public override void _Ready()
     {
         _eventBus = GetTree().Root.GetNode<EventBus>(nameof(EventBus));
@@ -79,12 +77,12 @@ public partial class Game : Node2D
         //and update their disabled/enabled state
         _eventBus.EmitSignal(EventBus.SignalName.TurnChanged, (int)Turn, true);
 
-        GetNode<Button>("Control/HBoxContainer/Button").Pressed += () => _save = SerializeTo();
-        GetNode<Button>("Control/HBoxContainer/Button2").Pressed += () =>
+        var persistentData = GetTree().Root.GetNode<PersistentData>(nameof(PersistentData));
+        if(persistentData.ContinueFromState is not null)
         {
-            if(_save is not null)
-                DeserializeFrom(_save);
-        };
+            DeserializeFrom(persistentData.ContinueFromState);
+            persistentData.ContinueFromState = null;
+        }
     }
 
     public void SetupDropDetectors()
@@ -110,7 +108,8 @@ public partial class Game : Node2D
             area.MouseEntered += () => OnDropDetectorMouseEnter(colBind);
             DropDetectorShapes.Add(shape);
             DropDetectors.Add(area);
-            AddChild(area);
+            //add the areas directly after the board, so that the save/load buttons take priority
+            GameBoard.AddSibling(area);
             area.GlobalPosition = center;
         }
     }
@@ -122,7 +121,7 @@ public partial class Game : Node2D
             col.SetDeferred(CollisionShape2D.PropertyName.Disabled, disabled);
     }
 
-    public override void _Input(InputEvent @event)
+    public override void _UnhandledInput(InputEvent @event)
     {
         if(
             @event.IsPressed() && !@event.IsEcho() && 
@@ -217,6 +216,9 @@ public partial class Game : Node2D
             CounterLists[i].DeserializeFrom(data.Players[i]);
         //make sure stuff works correctly
         _eventBus.EmitSignal(EventBus.SignalName.TurnChanged, (int)Turn, true);
+
+        SetupDropDetectors();
+        SetDetectorsDisabled(false);
     }
 
     public GameData SerializeTo() => new()

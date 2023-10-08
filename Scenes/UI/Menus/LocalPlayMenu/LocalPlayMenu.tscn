@@ -1,8 +1,8 @@
 [gd_scene load_steps=5 format=3 uid="uid://cwwejfivdwlu6"]
 
 [ext_resource type="Script" path="res://Logic/Buttons/ChangeSceneOnPressButton.cs" id="1_in5bj"]
-[ext_resource type="Script" path="res://Logic/Buttons/SelectSaveDataAndChangeSceneButton.cs" id="2_bbejk"]
 [ext_resource type="Script" path="res://Logic/Buttons/GoBackButton.cs" id="2_cu7f1"]
+[ext_resource type="Script" path="res://Logic/Buttons/ChangeSceneAndLoadGameButton.cs" id="2_gtos6"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_661pw"]
 font_size = 56
@@ -72,7 +72,7 @@ tooltip_text = "Play with someone else who is hosting a game"
 mouse_filter = 1
 theme_override_font_sizes/font_size = 30
 text = "Continue From Previous Game"
-script = ExtResource("2_bbejk")
+script = ExtResource("2_gtos6")
 FileSelectDialog = NodePath("../../../../FileDialog")
 ChangeTo = "res://Scenes/Game/Game.tscn"
 
@@ -87,12 +87,16 @@ script = ExtResource("2_cu7f1")
 ChangeTo = "res://Scenes/UI/Menus/MainMenu/MainMenu.tscn"
 
 [node name="FileDialog" type="FileDialog" parent="."]
+snap_2d_transforms_to_pixel = true
+snap_2d_vertices_to_pixel = true
 title = "Open a File"
 size = Vector2i(430, 162)
+exclusive = false
 unresizable = true
 popup_window = true
 min_size = Vector2i(430, 70)
 ok_button_text = "Open"
 file_mode = 0
 access = 1
-filters = PackedStringArray("*.frsave ; Game Save Data")
+root_subfolder = "SaveData"
+filters = PackedStringArray("*.res ; Game Save Data")

@@ -1,9 +1,11 @@
-[gd_scene load_steps=7 format=3 uid="uid://dyhkvrlph6p16"]
+[gd_scene load_steps=9 format=3 uid="uid://dyhkvrlph6p16"]
 
 [ext_resource type="PackedScene" uid="uid://bdfmvb6h0jo6b" path="res://Scenes/Board/Board.tscn" id="1_j8y8n"]
 [ext_resource type="Script" path="res://Scenes/Game/Game.cs" id="1_uwj10"]
 [ext_resource type="PackedScene" uid="uid://dk1ui8fmw6giq" path="res://Scenes/UI/TokenCounter/TokenCounterListControl/TokenCounterListControl.tscn" id="4_3pt17"]
 [ext_resource type="Script" path="res://Scenes/UI/DescriptionLabel/DescriptionLabel.cs" id="4_8pjqi"]
+[ext_resource type="Script" path="res://Logic/Buttons/SaveGameButton.cs" id="5_pvlxa"]
+[ext_resource type="Script" path="res://Logic/Buttons/LoadGameButton.cs" id="6_apnrb"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_lkpjc"]
 font_size = 21
@@ -21,12 +23,14 @@ CounterLists = [NodePath("Control/TokenCounterListControl"), NodePath("Control/T
 [node name="Board" parent="." instance=ExtResource("1_j8y8n")]
 
 [node name="Control" type="Control" parent="."]
+texture_filter = 4
 layout_mode = 3
 anchors_preset = 0
 offset_left = -576.0
 offset_top = -320.0
 offset_right = 576.0
 offset_bottom = 320.0
+mouse_filter = 1
 
 [node name="TokenCounterListControl" parent="Control" instance=ExtResource("4_3pt17")]
 layout_mode = 1
@@ -115,10 +119,41 @@ offset_right = 58.5
 offset_bottom = 40.0
 grow_horizontal = 2
 
-[node name="Button" type="Button" parent="Control/HBoxContainer"]
+[node name="Save Game" type="Button" parent="Control/HBoxContainer" node_paths=PackedStringArray("GameToSave", "SaveGamePopup")]
 layout_mode = 2
-text = "Save thing"
+text = "Save Game"
+script = ExtResource("5_pvlxa")
+GameToSave = NodePath("../../..")
+SaveGamePopup = NodePath("../../../SaveDialog")
 
-[node name="Button2" type="Button" parent="Control/HBoxContainer"]
+[node name="Load Game" type="Button" parent="Control/HBoxContainer" node_paths=PackedStringArray("GameToLoadTo", "LoadGamePopup")]
 layout_mode = 2
-text = "Restore thing"
+text = "Load Game"
+script = ExtResource("6_apnrb")
+GameToLoadTo = NodePath("../../..")
+LoadGamePopup = NodePath("../../../LoadDialog")
+
+[node name="SaveDialog" type="FileDialog" parent="."]
+snap_2d_transforms_to_pixel = true
+snap_2d_vertices_to_pixel = true
+size = Vector2i(392, 162)
+exclusive = false
+unresizable = true
+popup_window = true
+access = 1
+root_subfolder = "SaveData"
+filters = PackedStringArray("*.res ; Game Save Data")
+
+[node name="LoadDialog" type="FileDialog" parent="."]
+snap_2d_transforms_to_pixel = true
+snap_2d_vertices_to_pixel = true
+mode = 2
+title = "Open a File"
+exclusive = false
+unresizable = true
+popup_window = true
+ok_button_text = "Open"
+file_mode = 0
+access = 1
+root_subfolder = "SaveData"
+filters = PackedStringArray("*.res ; Game Save Data")

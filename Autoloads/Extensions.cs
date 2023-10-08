@@ -48,4 +48,11 @@ public static class Extensions
         t.IsInstanceValid() && t.IsValid();
     //Linq-like conversion from IEnumerable to godot array
     public static Godot.Collections.Array<T> ToGodotArray<[MustBeVariant] T>(this IEnumerable<T> e) => new(e);
+    //Convert a Rect2 to a list of positions, to be used for functions requiring polygons
+    public static Vector2[] ToPolygon(this Rect2 r) => new[]{r.Position, r.Position + r.Size*Vector2.Right, r.Position + r.Size, r.Position + r.Size*Vector2.Down};
+    //Helper to move controls around
+    public static void CenterOn(this Control c, Vector2 at) => c.GlobalPosition = at - c.GetGlobalRect().Size/2;
+    
+    public static Vector2I GetVisibleSize(this Window w) => (Vector2I)w.GetVisibleRect().Size;
+    public static Vector2I GetSizeOfDecorations(this Window w) => w.GetSizeWithDecorations() - w.Size;
 }
