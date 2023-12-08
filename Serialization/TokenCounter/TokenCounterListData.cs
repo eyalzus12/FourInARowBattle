@@ -1,5 +1,6 @@
 using Godot;
-using System;
+
+namespace FourInARowBattle;
 
 public partial class TokenCounterListData : Resource
 {

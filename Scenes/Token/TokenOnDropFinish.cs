@@ -1,5 +1,4 @@
-using Godot;
-using System;
+namespace FourInARowBattle;
 
 public abstract partial class TokenOnDropFinish : TokenBase
 {

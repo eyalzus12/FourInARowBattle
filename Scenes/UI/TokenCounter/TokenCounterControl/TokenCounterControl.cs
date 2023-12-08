@@ -1,5 +1,6 @@
 using Godot;
-using System;
+
+namespace FourInARowBattle;
 
 public partial class TokenCounterControl : Control
 {
@@ -40,7 +41,7 @@ public partial class TokenCounterControl : Control
         set
         {
             _disabled = value;
-            foreach(var button in TokenButtons)
+            foreach(TokenCounterButton button in TokenButtons)
                 button.Disabled = _disabled;
         }
     }
@@ -56,7 +57,7 @@ public partial class TokenCounterControl : Control
             _activeOnTurn = value;
             if(IsInsideTree())
             {
-                foreach(var button in TokenButtons)
+                foreach(TokenCounterButton button in TokenButtons)
                 {
                     button.Modulate = _activeOnTurn.GameTurnToColor();
                 }
@@ -73,9 +74,9 @@ public partial class TokenCounterControl : Control
         TokenCount = _count;
         ActiveOnTurn = _activeOnTurn;
 
-        foreach(var button in TokenButtons)
+        foreach(TokenCounterButton button in TokenButtons)
         {
-            var buttonBind = button;
+            TokenCounterButton buttonBind = button;
             button.Pressed += () =>
                 OnSelectButtonPressed(buttonBind);
             button.MouseEntered += () =>

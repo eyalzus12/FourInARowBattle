@@ -2,6 +2,8 @@ using Godot;
 using System;
 using System.Collections.Generic;
 
+namespace FourInARowBattle;
+
 public partial class Board : Node2D
 {
     public static readonly StringName TOKEN_TWEEN_META_NAME = "DropTween";
@@ -73,14 +75,14 @@ public partial class Board : Node2D
     {
         if(_ghostToken is not null)
         {
-            var ghostToken = (GhostTokenRenderData)_ghostToken;
-            var _row = FindTopSpot(ghostToken.Column);
+            GhostTokenRenderData ghostToken = (GhostTokenRenderData)_ghostToken;
+            int? _row = FindTopSpot(ghostToken.Column);
             if(_row is not null)
             {
-                var row = (int)_row;
-                var center = ToLocal(HolePosition(row+1,ghostToken.Column+1));
-                var newsize = 2 * TokenRadius * Vector2.One;
-                var newstart = center - newsize/2;
+                int row = (int)_row;
+                Vector2 center = ToLocal(HolePosition(row+1,ghostToken.Column+1));
+                Vector2 newsize = 2 * TokenRadius * Vector2.One;
+                Vector2 newstart = center - newsize/2;
                 DrawTextureRect(
                     ghostToken.TokenTexture,
                     new Rect2(newstart, newsize),
@@ -125,7 +127,7 @@ public partial class Board : Node2D
 
         t.Scale = TokenScale;
         AddChild(t);
-        var desiredPosition = ToLocal(HolePosition(row+1,col+1));
+        Vector2 desiredPosition = ToLocal(HolePosition(row+1,col+1));
         TweenToken(t, desiredPosition + Vector2.Up * DropStartOffset, desiredPosition);
         TokenGrid[row,col] = t;
         t.OnPlace(this, row, col);
@@ -163,19 +165,19 @@ public partial class Board : Node2D
         }
         if(!haveFree) return GameResultEnum.Draw;
 
-        foreach(var (result,count) in resultCounts)
+        foreach((GameResultEnum result, int count) in resultCounts)
         {
             if(count != 0)
             {
                 //the counters work by player turn
                 //so we need to convert the result to the turn
                 //for non-player results we just give a nonexistent turn value
-                var resultTurn = result.GameResultToGameTurn();
+                GameTurnEnum resultTurn = result.GameResultToGameTurn();
                 _eventBus.EmitSignal(EventBus.SignalName.ScoreIncreased, (int)resultTurn, count);
             }
         }
 
-        foreach(var (row,col) in toRemove)
+        foreach((int row, int col) in toRemove)
         {
             RemoveToken(row,col);
         }
@@ -195,12 +197,12 @@ public partial class Board : Node2D
     private void CheckSpotWin(int row, int col, Dictionary<GameResultEnum, int> resultCounts, List<(int,int)> toRemove)
     {
         TokenBase? token = TokenGrid[row,col];
-        if(!IsInstanceValid(token)) TokenGrid[row,col] = token = null;
+        if(!token.IsInstanceValid()) TokenGrid[row,col] = token = null;
         if(token is null || token.Result == GameResultEnum.None) return;
 
         bool foundWin = false;
         List<(int,int)> currentTokenStreak = new(WinRequirement-1);
-        if(!resultCounts.ContainsKey(token.Result)) resultCounts[token.Result] = 0;
+        if(!resultCounts.ContainsKey(token!.Result)) resultCounts[token.Result] = 0;
 
         //check up
         if(row >= WinRequirement-1)
@@ -344,7 +346,7 @@ public partial class Board : Node2D
                 tokens.Add(t);
         }
         int tokenIdx = Rows-1;
-        foreach(var t in tokens)
+        foreach(TokenBase t in tokens)
         {
             TokenGrid[tokenIdx,col] = t;
             t.OnLocationUpdate(tokenIdx, col);
@@ -361,8 +363,8 @@ public partial class Board : Node2D
 
     public void FlipCol(int col)
     {
-        var tweenedList = new List<TokenBase>();
-        var newCol = new TokenBase?[Rows];
+        List<TokenBase> tweenedList = new();
+        TokenBase?[] newCol = new TokenBase?[Rows];
         int newRow = Rows-1;
         for(int row = 0; row < Rows; ++row)
         {
@@ -395,7 +397,7 @@ public partial class Board : Node2D
         //add tweened
         for(int i = tweenedList.Count - 1; i >= 0; --i)
         {
-            var t = tweenedList[i];
+            TokenBase t = tweenedList[i];
             TokenGrid[newRow,col] = t;
             t.OnLocationUpdate(newRow, col);
             TweenToken(t, t.Position, HolePosition(newRow+1,col+1));
@@ -405,7 +407,7 @@ public partial class Board : Node2D
 
     public void FlipRow(int row)
     {
-        var newRow = new TokenBase?[Columns];
+        TokenBase?[] newRow = new TokenBase?[Columns];
         for(int col = 0; col < Columns; ++col)
         {
             TokenBase? t = TokenGrid[row,col];
@@ -431,7 +433,7 @@ public partial class Board : Node2D
     public void FlipVertical()
     {
         //i,j -> Rows-1-i,j
-        var newGrid = new TokenBase?[Rows,Columns];
+        TokenBase?[,] newGrid = new TokenBase?[Rows,Columns];
         for(int row = 0; row < Rows; ++row)
             for(int col = 0; col < Columns; ++col)
             {
@@ -470,7 +472,7 @@ public partial class Board : Node2D
         //swap
         (Rows,Columns) = (Columns,Rows);
         //go over grid
-        var newGrid = new TokenBase?[Rows,Columns];
+        TokenBase?[,] newGrid = new TokenBase?[Rows,Columns];
         for(int row = 0; row < oldRows; ++row)
             for(int col = 0; col < oldColumns; ++col)
             {
@@ -503,7 +505,7 @@ public partial class Board : Node2D
         //swap
         (Rows,Columns) = (Columns,Rows);
         //go over grid
-        var newGrid = new TokenBase?[Rows,Columns];
+        TokenBase?[,] newGrid = new TokenBase?[Rows,Columns];
         for(int row = 0; row < oldRows; ++row)
             for(int col = 0; col < oldColumns; ++col)
             {
@@ -541,7 +543,7 @@ public partial class Board : Node2D
 
     public void RemoveToken(int row, int col)
     {
-        var t = TokenGrid[row,col];
+        TokenBase? t = TokenGrid[row,col];
         TokenGrid[row,col] = null;
         DisableTween(t);
         if(t.IsInstanceValid()) t.QueueFree();
@@ -550,7 +552,7 @@ public partial class Board : Node2D
     private void TweenToken(TokenBase t, Vector2 from, Vector2 to)
     {
         if(!IsInstanceValid(t)) return;
-        var distanceLeft = from.DistanceTo(to);
+        float distanceLeft = from.DistanceTo(to);
 
         if(!IsInstanceValid(t.TokenTween)) t.TokenTween = null;
         t.TokenTween?.Kill();
@@ -625,9 +627,9 @@ public partial class Board : Node2D
                 throw new ArgumentException($"Board data has column count of {data.Columns}, but its {row}th row has {data.Grid[row].Count} elements");
             for(int col = 0; col < Columns; ++col)
             {
-                var tdata = data.Grid[row][col];
+                TokenData? tdata = data.Grid[row][col];
                 if(tdata is null) continue;
-                var t = ResourceLoader.Load<PackedScene>(tdata.TokenScenePath).Instantiate<TokenBase>();
+                TokenBase t = ResourceLoader.Load<PackedScene>(tdata.TokenScenePath).Instantiate<TokenBase>();
                 TokenGrid[row,col] = t;
                 t.Scale = TokenScale;
                 AddChild(t);

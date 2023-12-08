@@ -1,5 +1,6 @@
 using Godot;
-using System;
+
+namespace FourInARowBattle;
 
 public partial class LoadGameButton : Button
 {
@@ -12,7 +13,7 @@ public partial class LoadGameButton : Button
     {
         LoadGamePopup.FileSelected += (string path) =>
         {
-            var saveData = ResourceLoader.Load<GameData>(path);
+            GameData saveData = ResourceLoader.Load<GameData>(path);
             GameToLoadTo.DeserializeFrom(saveData);
         };
         
@@ -21,7 +22,7 @@ public partial class LoadGameButton : Button
 
     public override void _Pressed()
     {
-        var decorations = GetWindow().GetSizeOfDecorations();
+        Vector2I decorations = GetWindow().GetSizeOfDecorations();
         LoadGamePopup.PopupCentered(GetWindow().GetVisibleSize() - new Vector2I(0,decorations.Y));
     }
 }

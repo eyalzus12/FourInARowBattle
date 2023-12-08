@@ -1,7 +1,8 @@
 using Godot;
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+
+namespace FourInARowBattle;
 
 public partial class DescriptionLabel : Label
 {
@@ -60,8 +61,8 @@ public partial class DescriptionLabel : Label
         }
         else
         {
-            var token = from.Instantiate<TokenBase>();
-            var result = DescriptionCache[from] = token.TokenDescription;
+            TokenBase token = from.Instantiate<TokenBase>();
+            string result = DescriptionCache[from] = token.TokenDescription;
             token.QueueFree();
             return result;
         }

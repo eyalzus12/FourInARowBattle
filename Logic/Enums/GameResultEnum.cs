@@ -1,5 +1,5 @@
-using Godot;
-using System;
+namespace FourInARowBattle;
+
 public enum GameResultEnum
 {
     None,

@@ -1,5 +1,6 @@
 using Godot;
-using System;
+
+namespace FourInARowBattle;
 
 public partial class Startup : Node
 {
@@ -9,7 +10,7 @@ public partial class Startup : Node
     {
         if(!DirAccess.DirExistsAbsolute(GAME_SAVE_FOLDER_BASE))
         {
-            var err = DirAccess.MakeDirAbsolute(GAME_SAVE_FOLDER_BASE);
+            Error err = DirAccess.MakeDirAbsolute(GAME_SAVE_FOLDER_BASE);
             if(err != Error.Ok)
                 GD.PushError($"Error {err} while trying to create save data folder");
         }

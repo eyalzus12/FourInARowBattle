@@ -1,8 +1,8 @@
 using Godot;
-using System;
-using System.Linq;
 using System.Diagnostics.CodeAnalysis;
 using System.Collections.Generic;
+
+namespace FourInARowBattle;
 
 public static class Extensions
 {
@@ -43,7 +43,7 @@ public static class Extensions
     //so this is a wrapper that does that.
     //why do extension methods work with null? that's wack
     public static bool IsInstanceValid([NotNullWhen(true)] this GodotObject? o) =>
-        o is not null && GodotObject.IsInstanceValid(o);
+        o is not null && GodotObject.IsInstanceValid(o) && !(o is Node n && n.IsQueuedForDeletion());
     public static bool IsTweenValid([NotNullWhen(true)] this Tween? t) =>
         t.IsInstanceValid() && t.IsValid();
     //Linq-like conversion from IEnumerable to godot array

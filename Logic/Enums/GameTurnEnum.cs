@@ -1,3 +1,5 @@
+namespace FourInARowBattle;
+
 public enum GameTurnEnum
 {
     Player1,

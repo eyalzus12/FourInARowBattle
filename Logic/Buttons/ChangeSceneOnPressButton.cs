@@ -1,14 +1,15 @@
 using Godot;
-using System;
+
+namespace FourInARowBattle;
 
 public partial class ChangeSceneOnPressButton : BaseButton
 {
-    [Export(PropertyHint.File)]
+    [Export(PropertyHint.File, "*.tscn,*.scn")]
     public string ChangeTo{get; set;} = "";
 
     public override void _Pressed()
     {
-        var err = GetTree().ChangeSceneToFile(ChangeTo);
+        Error err = GetTree().ChangeSceneToFile(ChangeTo);
         if(err != Error.Ok)
             GD.Print($"Error while attempting to change scene: {err}");
     }

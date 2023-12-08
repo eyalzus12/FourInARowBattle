@@ -2,6 +2,8 @@ using Godot;
 using System;
 using System.Linq;
 
+namespace FourInARowBattle;
+
 public partial class TokenCounterListControl : Control
 {
     [Signal]
@@ -42,7 +44,7 @@ public partial class TokenCounterListControl : Control
             _activeOnTurn = value;
             if(IsInsideTree())
             {
-                foreach(var c in Counters)
+                foreach(TokenCounterControl c in Counters)
                     c.ActiveOnTurn = _activeOnTurn;
             }
         }
@@ -58,12 +60,12 @@ public partial class TokenCounterListControl : Control
 
         ActiveOnTurn = _activeOnTurn;
         CurrentScore = 0;
-        foreach(var c in Counters)
+        foreach(TokenCounterControl c in Counters)
         {
-            var cBind = c;
-            foreach(var button in c.TokenButtons)
+            TokenCounterControl cBind = c;
+            foreach(TokenCounterButton button in c.TokenButtons)
             {
-                var bBind = button;
+                TokenCounterButton bBind = button;
                 button.Pressed += () =>
                 {
                     _lastSelection = cBind;
@@ -93,7 +95,7 @@ public partial class TokenCounterListControl : Control
     public void DoRefill()
     {
         if(!AnyCanAdd()) return;
-        foreach(var c in Counters) if(c.CanAdd()) c.Add(1);
+        foreach(TokenCounterControl c in Counters) if(c.CanAdd()) c.Add(1);
         if(!_refillLocked) _refillLocked = true;
         EmitSignal(SignalName.RefilledTokens);
     }
@@ -142,7 +144,7 @@ public partial class TokenCounterListControl : Control
 
     public bool AnyCanAdd()
     {
-        foreach(var c in Counters) if(c.CanAdd()) return true;
+        foreach(TokenCounterControl c in Counters) if(c.CanAdd()) return true;
         return false;
     }
 

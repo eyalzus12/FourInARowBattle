@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+namespace FourInARowBattle;
+
 public partial class Game : Node2D
 {
     
@@ -69,7 +71,7 @@ public partial class Game : Node2D
         SetupDropDetectors();
         SetDetectorsDisabled(false);
         _eventBus.TokenSelected += OnTokenSelected;
-        foreach(var clist in CounterLists)
+        foreach(TokenCounterListControl clist in CounterLists)
             clist.RefilledTokens += PassTurn;
 
         //_Ready is called on children before the parent
@@ -77,7 +79,7 @@ public partial class Game : Node2D
         //and update their disabled/enabled state
         _eventBus.EmitSignal(EventBus.SignalName.TurnChanged, (int)Turn, true);
 
-        var persistentData = GetTree().Root.GetNode<PersistentData>(nameof(PersistentData));
+        PersistentData persistentData = GetTree().Root.GetNode<PersistentData>(nameof(PersistentData));
         if(persistentData.ContinueFromState is not null)
         {
             DeserializeFrom(persistentData.ContinueFromState);
@@ -88,7 +90,7 @@ public partial class Game : Node2D
     public void SetupDropDetectors()
     {
         DropDetectorIdx = null;
-        foreach(var area in DropDetectors) area.QueueFree();
+        foreach(Area2D area in DropDetectors) area.QueueFree();
         DropDetectors.Clear();
         DropDetectorShapes.Clear();
         for(int col = 1; col <= GameBoard.Columns; ++col)
@@ -103,7 +105,7 @@ public partial class Game : Node2D
                 Disabled = true
             };
             area.AddChild(shape);
-            var colBind = col-1;
+            int colBind = col-1;
             area.MouseExited += () => OnDropDetectorMouseExit(colBind);
             area.MouseEntered += () => OnDropDetectorMouseEnter(colBind);
             DropDetectorShapes.Add(shape);
@@ -117,7 +119,7 @@ public partial class Game : Node2D
     public void SetDetectorsDisabled(bool disabled)
     {
         DropDetectorIdx = null;
-        foreach(var col in DropDetectorShapes)
+        foreach(CollisionShape2D col in DropDetectorShapes)
             col.SetDeferred(CollisionShape2D.PropertyName.Disabled, disabled);
     }
 

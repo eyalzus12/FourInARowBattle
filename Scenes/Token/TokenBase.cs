@@ -1,8 +1,11 @@
 using Godot;
 using System;
 
+namespace FourInARowBattle;
+
 public partial class TokenBase : Node2D
 {
+
     [Export(PropertyHint.MultilineText)]
     public string TokenDescription{get; set;} = "NO DESCRIPTION SET FOR THIS TOKEN";
 

@@ -1,5 +1,6 @@
 using Godot;
-using System;
+
+namespace FourInARowBattle;
 
 public partial class SaveGameButton : Button
 {
@@ -14,8 +15,8 @@ public partial class SaveGameButton : Button
 
         SaveGamePopup.FileSelected += (string path) =>
         {
-            var saveData = GameToSave.SerializeTo();
-            var err = ResourceSaver.Save(saveData, path, ResourceSaver.SaverFlags.Compress);
+            GameData saveData = GameToSave.SerializeTo();
+            Error err = ResourceSaver.Save(saveData, path, ResourceSaver.SaverFlags.Compress);
             if(err != Error.Ok)
                 GD.Print($"Error {err} while trying to save game");
         };
@@ -25,7 +26,7 @@ public partial class SaveGameButton : Button
 
     public override void _Pressed()
     {
-        var decorations = GetWindow().GetSizeOfDecorations();
+        Vector2I decorations = GetWindow().GetSizeOfDecorations();
         SaveGamePopup.PopupCentered(GetWindow().GetVisibleSize() - new Vector2I(0,decorations.Y));
     }
 }
