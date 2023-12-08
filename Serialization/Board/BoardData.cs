@@ -1,4 +1,5 @@
 using Godot;
+using Godot.Collections;
 
 namespace FourInARowBattle;
 
@@ -11,7 +12,7 @@ public partial class BoardData : Resource
     [Export]
     public int WinRequirement{get; set;}
     [Export]
-    public Godot.Collections.Array<Godot.Collections.Array<TokenData?>> Grid{get; set;} = new();
+    public Array<Array<TokenData?>> Grid{get; set;} = new();
     [Export]
     public Vector2 BoardPosition{get; set;}
     [Export]

@@ -65,12 +65,8 @@ public partial class TokenCounterControl : Control
         }
     }
 
-    private EventBus _eventBus = null!;
-
     public override void _Ready()
     {
-        _eventBus = GetTree().Root.GetNode<EventBus>(nameof(EventBus));
-        
         TokenCount = _count;
         ActiveOnTurn = _activeOnTurn;
 
@@ -80,25 +76,25 @@ public partial class TokenCounterControl : Control
             button.Pressed += () =>
                 OnSelectButtonPressed(buttonBind);
             button.MouseEntered += () =>
-                _eventBus.EmitSignal(
+                Autoloads.EventBus.EmitSignal(
                     EventBus.SignalName.TokenButtonHovered,
                     (int)ActiveOnTurn,
                     DescriptionLabel.DescriptionFromScene(buttonBind.AssociatedScene)
                 );
             button.MouseExited += () =>
-                _eventBus.EmitSignal(
+                Autoloads.EventBus.EmitSignal(
                     EventBus.SignalName.TokenButtonStoppedHover,
                     (int)ActiveOnTurn,
                     DescriptionLabel.DescriptionFromScene(buttonBind.AssociatedScene)
                 );
         }
             
-        _eventBus.TurnChanged += OnTurnChange;
+        Autoloads.EventBus.TurnChanged += OnTurnChange;
     }
 
     public void OnSelectButtonPressed(TokenCounterButton who)
     {
-        _eventBus.EmitSignal(EventBus.SignalName.TokenSelected, this, who);
+        Autoloads.EventBus.EmitSignal(EventBus.SignalName.TokenSelected, this, who);
     }
 
     public void OnTurnChange(GameTurnEnum to, bool isStartupSignal)

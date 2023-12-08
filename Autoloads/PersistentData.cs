@@ -6,4 +6,9 @@ namespace FourInARowBattle;
 public partial class PersistentData : Node
 {
     public GameData? ContinueFromState{get; set;}
+
+    public override void _Ready()
+    {
+        Autoloads.PersistentData = this;
+    }
 }

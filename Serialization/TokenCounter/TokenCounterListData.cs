@@ -1,4 +1,5 @@
 using Godot;
+using Godot.Collections;
 
 namespace FourInARowBattle;
 
@@ -11,5 +12,5 @@ public partial class TokenCounterListData : Resource
     [Export]
     public bool RefillUnlockedNextTurn{get; set;}
     [Export]
-    public Godot.Collections.Array<TokenCounterData> Counters{get; set;} = new();
+    public Array<TokenCounterData> Counters{get; set;} = new();
 }

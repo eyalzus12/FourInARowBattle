@@ -33,8 +33,6 @@ public partial class Game : Node2D
     public List<Area2D> DropDetectors{get; set;} = new();
     public List<CollisionShape2D> DropDetectorShapes{get; set;} = new();
 
-    private EventBus _eventBus = null!;
-
     private int? _dropDetectorIdx;
     public int? DropDetectorIdx
     {
@@ -66,24 +64,21 @@ public partial class Game : Node2D
 
     public override void _Ready()
     {
-        _eventBus = GetTree().Root.GetNode<EventBus>(nameof(EventBus));
-
         SetupDropDetectors();
         SetDetectorsDisabled(false);
-        _eventBus.TokenSelected += OnTokenSelected;
+        Autoloads.EventBus.TokenSelected += OnTokenSelected;
         foreach(TokenCounterListControl clist in CounterLists)
             clist.RefilledTokens += PassTurn;
 
         //_Ready is called on children before the parent
         //so we can do this to signal the token counters
         //and update their disabled/enabled state
-        _eventBus.EmitSignal(EventBus.SignalName.TurnChanged, (int)Turn, true);
+        Autoloads.EventBus.EmitSignal(EventBus.SignalName.TurnChanged, (int)Turn, true);
 
-        PersistentData persistentData = GetTree().Root.GetNode<PersistentData>(nameof(PersistentData));
-        if(persistentData.ContinueFromState is not null)
+        if(Autoloads.PersistentData.ContinueFromState is not null)
         {
-            DeserializeFrom(persistentData.ContinueFromState);
-            persistentData.ContinueFromState = null;
+            DeserializeFrom(Autoloads.PersistentData.ContinueFromState);
+            Autoloads.PersistentData.ContinueFromState = null;
         }
     }
 
@@ -120,13 +115,13 @@ public partial class Game : Node2D
     {
         DropDetectorIdx = null;
         foreach(CollisionShape2D col in DropDetectorShapes)
-            col.SetDeferred(CollisionShape2D.PropertyName.Disabled, disabled);
+            col.SetDeferredDisabled(disabled);
     }
 
     public override void _UnhandledInput(InputEvent @event)
     {
         if(
-            @event.IsPressed() && !@event.IsEcho() && 
+            @event.IsJustPressed() && 
             @event is InputEventMouseButton mb &&
             DropDetectorIdx is not null &&
             _selectedControl is not null &&
@@ -136,7 +131,7 @@ public partial class Game : Node2D
         {
             if(mb.ButtonIndex == MouseButton.Left)
             {
-                TokenBase t = _selectedButton.AssociatedScene.Instantiate<TokenBase>();
+                TokenBase t = Autoloads.ObjectPool.GetObject<TokenBase>(_selectedButton.AssociatedScene);
                 t.TokenColor = TurnColor;
                 if(GameBoard.AddToken((int)DropDetectorIdx, t))
                 {
@@ -147,7 +142,7 @@ public partial class Game : Node2D
         }
 
         if(
-            @event.IsPressed() && !@event.IsEcho() &&
+            @event.IsJustPressed() &&
             @event is InputEventKey ek
         )
         {
@@ -156,20 +151,28 @@ public partial class Game : Node2D
             switch(ek.Keycode)
             {
                 case Key.W or Key.S:
+                {
                     GameBoard.FlipVertical();
                     //show ghost token in correct position
                     GameBoard.QueueRedraw();
                     needNewDetectors = false;
-                    break;
+                }
+                break;
                 case Key.A:
+                {
                     GameBoard.RotateLeft();
-                    break;
+                }
+                break;
                 case Key.D:
+                {
                     GameBoard.RotateRight();
-                    break;
+                }
+                break;
                 default:
+                {
                     needGravity = false;
-                    break;
+                }
+                break;
             }
 
             if(needGravity)
@@ -192,7 +195,7 @@ public partial class Game : Node2D
         _selectedControl = null;
         //force redraw of ghost token
         DropDetectorIdx = _dropDetectorIdx;
-        _eventBus.EmitSignal(EventBus.SignalName.TurnChanged, (int)Turn, false);
+        Autoloads.EventBus.EmitSignal(EventBus.SignalName.TurnChanged, (int)Turn, false);
     }
 
     public void OnTokenSelected(TokenCounterControl what, TokenCounterButton who)
@@ -217,7 +220,7 @@ public partial class Game : Node2D
         for(int i = 0; i < CounterLists.Count; ++i)
             CounterLists[i].DeserializeFrom(data.Players[i]);
         //make sure stuff works correctly
-        _eventBus.EmitSignal(EventBus.SignalName.TurnChanged, (int)Turn, true);
+        Autoloads.EventBus.EmitSignal(EventBus.SignalName.TurnChanged, (int)Turn, true);
 
         SetupDropDetectors();
         SetDetectorsDisabled(false);

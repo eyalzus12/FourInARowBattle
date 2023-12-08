@@ -14,8 +14,6 @@ public partial class DescriptionLabel : Label
     [Export]
     public GameTurnEnum ActiveOnTurn{get; set;}
 
-    private EventBus _eventBus = null!;
-
     private string? _description = null;
 
     public override void _Ready()
@@ -25,10 +23,8 @@ public partial class DescriptionLabel : Label
 
         UpdateDescription(null);
 
-        _eventBus = GetTree().Root.GetNode<EventBus>(nameof(EventBus));
-
-        _eventBus.TokenButtonHovered += OnTokenHover;
-        _eventBus.TokenButtonStoppedHover += OnTokenStopHover;
+        Autoloads.EventBus.TokenButtonHovered += OnTokenHover;
+        Autoloads.EventBus.TokenButtonStoppedHover += OnTokenStopHover;
     }
 
     private void OnTokenHover(GameTurnEnum turn, string description)
@@ -50,6 +46,11 @@ public partial class DescriptionLabel : Label
         UpdateDescription(null);
     }
 
+    /*
+    There is no easy way to find the type of the root node of a PackedScene
+    So we create an instance and cache the result
+    */
+
     //this method returns null iff it is given null
     [return: NotNullIfNotNull(nameof(from))]
     public static string? DescriptionFromScene(PackedScene? from)
@@ -61,9 +62,9 @@ public partial class DescriptionLabel : Label
         }
         else
         {
-            TokenBase token = from.Instantiate<TokenBase>();
+            TokenBase token = Autoloads.ObjectPool.GetObject<TokenBase>(from);
             string result = DescriptionCache[from] = token.TokenDescription;
-            token.QueueFree();
+            Autoloads.ObjectPool.ReturnObject(token);
             return result;
         }
     }

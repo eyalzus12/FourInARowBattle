@@ -13,7 +13,7 @@ public partial class LoadGameButton : Button
     {
         LoadGamePopup.FileSelected += (string path) =>
         {
-            GameData saveData = ResourceLoader.Load<GameData>(path);
+            GameData saveData = ResourceLoader.Load<GameData>(path, cacheMode: ResourceLoader.CacheMode.Replace);
             GameToLoadTo.DeserializeFrom(saveData);
         };
         

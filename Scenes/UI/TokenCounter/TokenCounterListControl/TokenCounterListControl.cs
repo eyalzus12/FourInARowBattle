@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Linq;
+using Godot.Collections;
 
 namespace FourInARowBattle;
 
@@ -12,7 +13,7 @@ public partial class TokenCounterListControl : Control
     private GameTurnEnum _activeOnTurn;
 
     [Export]
-    public Godot.Collections.Array<TokenCounterControl> Counters{get; set;} = new();
+    public Array<TokenCounterControl> Counters{get; set;} = new();
 
     [Export]
     public Label ScoreLabel{get; set;} = null!;
@@ -52,12 +53,9 @@ public partial class TokenCounterListControl : Control
 
     private TokenCounterControl? _lastSelection = null;
     private TokenCounterButton? _lastSelectionButton = null;
-    private EventBus _eventBus = null!;
 
     public override void _Ready()
     {
-        _eventBus = GetTree().Root.GetNode<EventBus>(nameof(EventBus));
-
         ActiveOnTurn = _activeOnTurn;
         CurrentScore = 0;
         foreach(TokenCounterControl c in Counters)
@@ -76,20 +74,20 @@ public partial class TokenCounterListControl : Control
 
         RefillButton.Pressed += DoRefill;
         RefillButton.MouseEntered += () =>
-            _eventBus.EmitSignal(
+            Autoloads.EventBus.EmitSignal(
                 EventBus.SignalName.TokenButtonHovered,
                 (int)ActiveOnTurn,
                 DescriptionLabel.REFILL_DESCRIPTION
             );
         RefillButton.MouseExited += () =>
-            _eventBus.EmitSignal(
+            Autoloads.EventBus.EmitSignal(
                 EventBus.SignalName.TokenButtonStoppedHover,
                 (int)ActiveOnTurn,
                 DescriptionLabel.REFILL_DESCRIPTION
             );
 
-        _eventBus.TurnChanged += OnTurnChange;
-        _eventBus.ScoreIncreased += OnAddScore;
+        Autoloads.EventBus.TurnChanged += OnTurnChange;
+        Autoloads.EventBus.ScoreIncreased += OnAddScore;
     }
 
     public void DoRefill()

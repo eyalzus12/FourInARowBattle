@@ -7,14 +7,11 @@ public partial class ChangeSceneAndLoadGameButton : ChangeSceneOnPressButton
     [Export]
     public FileDialog FileSelectDialog{get; set;} = null!;
 
-    private PersistentData _persistentData = null!;
-
     public override void _Ready()
     {
-        _persistentData = GetTree().Root.GetNode<PersistentData>(nameof(PersistentData));
         FileSelectDialog.FileSelected += (string path) =>
         {
-            _persistentData.ContinueFromState = ResourceLoader.Load<GameData>(path);
+            Autoloads.PersistentData.ContinueFromState = ResourceLoader.Load<GameData>(path, cacheMode: ResourceLoader.CacheMode.Replace);
             base._Pressed();
         };
         
@@ -23,7 +20,7 @@ public partial class ChangeSceneAndLoadGameButton : ChangeSceneOnPressButton
 
     public override void _Pressed()
     {
-        var decorations = GetWindow().GetSizeOfDecorations();
+        Vector2I decorations = GetWindow().GetSizeOfDecorations();
         FileSelectDialog.PopupCentered(GetWindow().GetVisibleSize() - new Vector2I(0,decorations.Y));
     }
 }

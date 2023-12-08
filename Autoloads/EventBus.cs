@@ -18,4 +18,9 @@ public partial class EventBus : Node
     public delegate void TokenButtonHoveredEventHandler(GameTurnEnum turn, string description);
     [Signal]
     public delegate void TokenButtonStoppedHoverEventHandler(GameTurnEnum turn, string description);
+
+    public override void _Ready()
+    {
+        Autoloads.EventBus = this;
+    }
 }

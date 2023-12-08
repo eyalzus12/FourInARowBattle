@@ -50,7 +50,7 @@ public partial class TokenAntiSpecial : TokenBase
             $"of type {nameof(TokenDataAntiSpecial)}, "+
             $"but there was an attempt to create one with type {data.GetType().Name}");
         base.DeserializeFrom(board, data);
-        var adata = (TokenDataAntiSpecial)data;
+        TokenDataAntiSpecial adata = (TokenDataAntiSpecial)data;
         _activeCol = adata.TokenEffectIsActive?adata.TokenColumn:null;
         //if this token is still active, we need it to reconnect its signals
         if(_activeCol is not null)

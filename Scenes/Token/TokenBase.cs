@@ -5,7 +5,6 @@ namespace FourInARowBattle;
 
 public partial class TokenBase : Node2D
 {
-
     [Export(PropertyHint.MultilineText)]
     public string TokenDescription{get; set;} = "NO DESCRIPTION SET FOR THIS TOKEN";
 
@@ -55,11 +54,12 @@ public partial class TokenBase : Node2D
     public void ConnectTweenFinished()
     {
         if(TweenFinishedAction is null) return;
-        if(!IsInstanceValid(TokenTween)) TokenTween = null;
+        if(!TokenTween.IsInstanceValid()) TokenTween = null;
         if(TokenTween is not null)
             TokenTween.Finished += () =>
             {
                 TokenTween?.Kill();
+                TokenTween?.Dispose();
                 TokenTween = null;
                 if(TweenFinishedAction is not null)
                     TweenFinishedAction();

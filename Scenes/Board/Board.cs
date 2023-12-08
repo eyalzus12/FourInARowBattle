@@ -60,13 +60,10 @@ public partial class Board : Node2D
     private readonly record struct GhostTokenRenderData(Texture2D TokenTexture, Color TokenColor, int Column){}
     private GhostTokenRenderData? _ghostToken;
 
-    private EventBus _eventBus = null!;
-
     private readonly HashSet<TokenBase> _tweenedTokens = new();
 
     public override void _Ready()
     {
-        _eventBus = GetTree().Root.GetNode<EventBus>(nameof(EventBus));
         TokenGrid = new TokenBase?[Rows,Columns];
         CreateHoleMasks();
     }
@@ -114,12 +111,13 @@ public partial class Board : Node2D
 
     public bool AddToken(int col, TokenBase t)
     {
-        if(!IsInstanceValid(t)) return false;
+        if(!t.IsInstanceValid()) return false;
 
         int? _row = FindTopSpot(col);
         if(_row is null)
         {
-            t.QueueFree();
+            DisableTween(t);
+            Autoloads.ObjectPool.ReturnObject(t);
             return false;
         }
         int row = (int)_row;
@@ -173,7 +171,7 @@ public partial class Board : Node2D
                 //so we need to convert the result to the turn
                 //for non-player results we just give a nonexistent turn value
                 GameTurnEnum resultTurn = result.GameResultToGameTurn();
-                _eventBus.EmitSignal(EventBus.SignalName.ScoreIncreased, (int)resultTurn, count);
+                Autoloads.EventBus.EmitSignal(EventBus.SignalName.ScoreIncreased, (int)resultTurn, count);
             }
         }
 
@@ -305,7 +303,7 @@ public partial class Board : Node2D
         int row = 0;
         for(; row < Rows; row++)
         {
-            if(IsInstanceValid(TokenGrid[row,col])) break;
+            if(TokenGrid[row,col].IsInstanceValid()) break;
             TokenGrid[row,col] = null;
         }
         if(row == 0) return null;
@@ -317,7 +315,7 @@ public partial class Board : Node2D
         int row = Rows-1;
         for(; row >= 0; row--)
         {
-            if(IsInstanceValid(TokenGrid[row,col])) break;
+            if(TokenGrid[row,col].IsInstanceValid()) break;
             TokenGrid[row,col] = null;
         }
         if(row == Rows-1) return null;
@@ -338,9 +336,7 @@ public partial class Board : Node2D
         for(int row = Rows-1; row >= 0; row--)
         {
             TokenBase? t = TokenGrid[row,col];
-            if(t is null)
-                continue;
-            else if(!IsInstanceValid(t) || t.IsQueuedForDeletion())
+            if(!t.IsInstanceValid())
                 TokenGrid[row,col] = null;
             else
                 tokens.Add(t);
@@ -369,8 +365,7 @@ public partial class Board : Node2D
         for(int row = 0; row < Rows; ++row)
         {
             TokenBase? t = TokenGrid[row,col];
-            //DisableTween(t);
-            if(!IsInstanceValid(t)) t = TokenGrid[row,col] = null;
+            if(!t.IsInstanceValid()) t = TokenGrid[row,col] = null;
             if(t is null) continue;
             //has a valid tween
             if(
@@ -412,7 +407,7 @@ public partial class Board : Node2D
         {
             TokenBase? t = TokenGrid[row,col];
             DisableTween(t);
-            if(!IsInstanceValid(t)) TokenGrid[row,col] = null;
+            if(!t.IsInstanceValid()) TokenGrid[row,col] = null;
         }
         for(int col = 0; col < Columns; ++col)
         {
@@ -439,7 +434,7 @@ public partial class Board : Node2D
             {
                 TokenBase? t = TokenGrid[row,col];
                 DisableTween(t);
-                if(!IsInstanceValid(t)) TokenGrid[row,col] = null;
+                if(!t.IsInstanceValid()) TokenGrid[row,col] = null;
             }
         for(int row = 0; row < Rows; ++row)
             for(int col = 0; col < Columns; ++col)
@@ -467,7 +462,7 @@ public partial class Board : Node2D
             {
                 TokenBase? t = TokenGrid[row,col];
                 DisableTween(t);
-                if(!IsInstanceValid(t)) TokenGrid[row,col] = null;
+                if(!t.IsInstanceValid()) TokenGrid[row,col] = null;
             }
         //swap
         (Rows,Columns) = (Columns,Rows);
@@ -500,7 +495,7 @@ public partial class Board : Node2D
             {
                 TokenBase? t = TokenGrid[row,col];
                 DisableTween(t);
-                if(!IsInstanceValid(t)) TokenGrid[row,col] = null;
+                if(!t.IsInstanceValid()) TokenGrid[row,col] = null;
             }
         //swap
         (Rows,Columns) = (Columns,Rows);
@@ -529,9 +524,11 @@ public partial class Board : Node2D
         ) return;
 
         t.TokenTween.StepToEnd();
-        //we do another check incase that the tween finishing
-        //has some additionally behavior that could
-        //make it invalid
+        /*
+            we do another check incase that the tween finishing
+            has some additional behavior that could
+            make it invalid
+        */
         if(!t.TokenTween.IsTweenValid())
             return;
 
@@ -546,15 +543,16 @@ public partial class Board : Node2D
         TokenBase? t = TokenGrid[row,col];
         TokenGrid[row,col] = null;
         DisableTween(t);
-        if(t.IsInstanceValid()) t.QueueFree();
+        if(t.IsInstanceValid())
+            Autoloads.ObjectPool.ReturnObject(t);
     }
 
     private void TweenToken(TokenBase t, Vector2 from, Vector2 to)
     {
-        if(!IsInstanceValid(t)) return;
+        if(!t.IsInstanceValid()) return;
         float distanceLeft = from.DistanceTo(to);
 
-        if(!IsInstanceValid(t.TokenTween)) t.TokenTween = null;
+        if(!t.TokenTween.IsTweenValid()) t.TokenTween = null;
         t.TokenTween?.Kill();
         t.TokenTween = t.CreateTween();
         //need reconnect
@@ -609,7 +607,11 @@ public partial class Board : Node2D
         {
             for(int col = 0; col < Columns; ++col)
             {
-                TokenGrid[row,col]?.QueueFree();
+                TokenBase? t = TokenGrid[row,col];
+                DisableTween(t);
+                if(t.IsInstanceValid())
+                    Autoloads.ObjectPool.ReturnObject(t);
+                TokenGrid[row,col] = null;
             }
         }
 
@@ -629,7 +631,8 @@ public partial class Board : Node2D
             {
                 TokenData? tdata = data.Grid[row][col];
                 if(tdata is null) continue;
-                TokenBase t = ResourceLoader.Load<PackedScene>(tdata.TokenScenePath).Instantiate<TokenBase>();
+                PackedScene scene = ResourceLoader.Load<PackedScene>(tdata.TokenScenePath);
+                TokenBase t = Autoloads.ObjectPool.GetObject<TokenBase>(scene);
                 TokenGrid[row,col] = t;
                 t.Scale = TokenScale;
                 AddChild(t);
