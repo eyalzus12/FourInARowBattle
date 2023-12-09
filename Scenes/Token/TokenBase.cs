@@ -45,7 +45,7 @@ public partial class TokenBase : Node2D
         
     }
 
-    public virtual void OnLocationUpdate(int row, int col)
+    public virtual void OnLocationUpdate(Board board, int row, int col)
     {
 
     }
@@ -56,15 +56,25 @@ public partial class TokenBase : Node2D
         if(TweenFinishedAction is null) return;
         if(!TokenTween.IsInstanceValid()) TokenTween = null;
         if(TokenTween is not null)
+        {
+            //bind to current tween
+            Tween bind = TokenTween;
+
             TokenTween.Finished += () =>
             {
-                TokenTween?.Kill();
-                TokenTween?.Dispose();
-                TokenTween = null;
                 if(TweenFinishedAction is not null)
                     TweenFinishedAction();
                 TweenFinishedAction = null;
+
+                //make sure old tween doesn't destroy new one
+                if(TokenTween == bind)
+                {
+                    TokenTween?.Kill();
+                    TokenTween?.Dispose();
+                    TokenTween = null;
+                }
             };
+        }
         else
             TweenFinishedAction();
     }

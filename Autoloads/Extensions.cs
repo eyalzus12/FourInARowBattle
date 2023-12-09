@@ -52,6 +52,8 @@ public static class Extensions
 
     public static void SetDeferredDisabled(this CollisionShape2D col, bool disabled) => col.SetDeferred(CollisionShape2D.PropertyName.Disabled, disabled);
 
+    public static bool ContainsNotNull<T>(this HashSet<T> set, T? t) => t is not null && set.Contains(t);
+
     public static void Play(
         this AudioStreamPlayer player, AudioStream stream,
         string bus = "Master",

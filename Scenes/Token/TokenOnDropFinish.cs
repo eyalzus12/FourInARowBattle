@@ -8,5 +8,11 @@ public abstract partial class TokenOnDropFinish : TokenBase
         ConnectTweenFinished();
     }
 
+    public override void OnLocationUpdate(Board board, int row, int col)
+    {
+        if(TweenFinishedAction is not null)
+            TweenFinishedAction = () => OnDropFinish(board, row, col);
+    }
+
     public abstract void OnDropFinish(Board board, int row, int col);
 }

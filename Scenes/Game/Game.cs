@@ -168,6 +168,12 @@ public partial class Game : Node2D
                     GameBoard.RotateRight();
                 }
                 break;
+                //debug key
+                case Key.F3:
+                {
+                    Autoloads.ObjectPool.CleanPool();
+                }
+                break;
                 default:
                 {
                     needGravity = false;

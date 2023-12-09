@@ -21,45 +21,34 @@ public partial class AudioManager : Node
     public override void _Ready()
     {
         Autoloads.AudioManager = this;
-        CreateNewPool(ref _playersPool, PLAYER_POOL_FACTOR);
-        CreateNewPool(ref _players2DPool, PLAYER2D_POOL_FACTOR);
-        CreateNewPool(ref _players3DPool, PLAYER3D_POOL_FACTOR);
+        _playersPool = new(PLAYER_POOL_FACTOR, OnCreate(() => _playersPool));
+        _players2DPool = new(PLAYER2D_POOL_FACTOR, OnCreate(() => _players2DPool));
+        _players3DPool = new(PLAYER3D_POOL_FACTOR, OnCreate(() => _players3DPool));
     }
 
     private static readonly StringName FinishedSignal = "finished";
 
-    private void CreateNewPool<T>(ref Pool<T> pool, int factor) where T : Node, new()
-    {
-        pool = new(factor, OnCreateInside(pool), OnDeleteInside<T>());
-    }
-
-    private Action<T> OnCreateInside<T>(Pool<T> inside) where T : Node, new() =>
+    //hack: give a function that returns the pool to fetch the pool value later
+    //instead of right now, when it is null
+    private Action<T> OnCreate<T>(Func<Pool<T>> pool) where T : Node, new() => 
         (T t) =>
         {
             if(!t.IsInsideTree())
             {
                 AddChild(t);
-                t.Connect(FinishedSignal, Callable.From(() => inside.ReturnObject(t)));
+                t.Connect(FinishedSignal, Callable.From(() => pool().ReturnObject(t)));
             }
-        };
-    
-    private static Action<T> OnDeleteInside<T>() where T : Node, new() =>
-        (T t) =>
-        {
-            t.QueueFree();
         };
 
     public class Pool<T> where T : new()
     {
         public int PoolFactor{get; set;}
         public Action<T>? OnCreate{get; set;}
-        public Action<T>? OnDelete{get; set;}
 
-        public Pool(int factor, Action<T>? onCreate = null, Action<T>? onDelete = null)
+        public Pool(int factor, Action<T>? onCreate = null)
         {
             PoolFactor = factor;
             OnCreate = onCreate;
-            OnDelete = onDelete;
         }
 
         public Queue<T> PoolQueue{get; set;} = new();
@@ -75,7 +64,9 @@ public partial class AudioManager : Node
                     T newT = new();
                     if(OnCreate is not null)
                         OnCreate(newT);
-                    ReturnObject(newT);
+                    PoolQueue.Enqueue(newT);
+                    PoolQueueSet.Add(newT);
+                    PoolList.Add(newT);
                 }
             }
 
@@ -86,24 +77,13 @@ public partial class AudioManager : Node
 
         public void ReturnObject(T t)
         {
-            if(!PoolQueueSet.Contains(t))
-            {
-                PoolQueue.Enqueue(t);
-                PoolQueueSet.Add(t);
-            }
-
             if(!PoolList.Contains(t))
-            {
-                PoolList.Add(t);
-            }
-        }
-
-        public void Cleanup()
-        {
-            if(OnDelete is not null) foreach(T t in PoolList) OnDelete(t);
-            PoolList.Clear();
-            PoolQueue.Clear();
-            PoolQueueSet.Clear();
+                return;
+            if(PoolQueueSet.Contains(t))
+                return;
+            
+            PoolQueue.Enqueue(t);
+            PoolQueueSet.Add(t);
         }
     }
 }
