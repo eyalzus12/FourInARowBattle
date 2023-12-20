@@ -1,14 +1,26 @@
 using System;
+using Godot;
 
 namespace FourInARowBattle;
 
 public static class Autoloads
 {
-    private static T GetAutoload<T>(T? _t) => _t ?? throw new InvalidOperationException($"Cannot grab {typeof(T).Name} autoload as it is null. Make sure that it is initialized");
+    private static T GetAutoload<T>(T? _t)
+    {
+        if(_t is null)
+        {
+            GD.PushError($"Cannot grab {typeof(T).Name} autoload as it is null. Make sure that it is initialized");
+            return default!;
+        }
+        return _t;
+    }
     private static void SetAutoload<T>(ref T? _t, T value)
     {
         if(_t is not null)
-            throw new InvalidOperationException($"Attempt to set {typeof(T).Name} autoload when it is already set");
+        {
+            GD.PushError($"Attempt to set {typeof(T).Name} autoload when it is already set");
+            return;
+        }
         _t = value;
     }
 

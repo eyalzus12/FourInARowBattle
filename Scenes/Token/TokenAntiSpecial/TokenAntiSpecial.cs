@@ -39,6 +39,7 @@ public partial class TokenAntiSpecial : TokenBase
 
     public override void OnLocationUpdate(Board board, int row, int col)
     {
+        base.OnLocationUpdate(board, row, col);
         if(_activeCol is not null)
             _activeCol = col;
     }

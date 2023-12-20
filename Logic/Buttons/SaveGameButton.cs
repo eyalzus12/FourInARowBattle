@@ -18,7 +18,7 @@ public partial class SaveGameButton : Button
             GameData saveData = GameToSave.SerializeTo();
             Error err = ResourceSaver.Save(saveData, path, ResourceSaver.SaverFlags.Compress);
             if(err != Error.Ok)
-                GD.Print($"Error {err} while trying to save game");
+                GD.PushError($"Error {err} while trying to save game");
         };
         
         GetWindow().SizeChanged += _Pressed;

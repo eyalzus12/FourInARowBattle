@@ -13,6 +13,6 @@ public partial class ChangeSceneOnPressButton : BaseButton
     {
         Error err = GetTree().ChangeSceneToFile(ChangeTo);
         if(err != Error.Ok)
-            GD.Print($"Error while attempting to change scene: {err}");
+            GD.PushError($"Error while attempting to change scene: {err}");
     }
 }
