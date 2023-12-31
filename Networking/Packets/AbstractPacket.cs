@@ -31,6 +31,21 @@ public abstract class AbstractPacket
                 packet = new Packet_Dummy();
                 return true;
             }
+            case PacketTypeEnum.INVALID_PACKET:
+            {
+                GD.PushError("Received packet type INVALID_PACKET, but that packet type is for internal use only. Use INVALID_PACKET_INFORM to respond to an invalid packet");
+                buffer.PopLeft();
+                packet = new Packet_InvalidPacket(){GivenPacketType = PacketTypeEnum.INVALID_PACKET};
+                return true;
+            }
+            case PacketTypeEnum.INVALID_PACKET_INFORM:
+            {
+                if(buffer.Count < 2) return false;
+                buffer.PopLeft();
+                PacketTypeEnum givenPacketType = (PacketTypeEnum)buffer.PopLeft();
+                packet = new Packet_InvalidPacketInform(){GivenPacketType = givenPacketType};
+                return true;
+            }
             case PacketTypeEnum.CREATE_LOBBY_REQUEST:
             {
                 if(buffer.Count < 5) return false;
@@ -248,24 +263,75 @@ public abstract class AbstractPacket
                 return true;
             }
             case PacketTypeEnum.GAME_ACTION_PLACE_OK:
-                break;
+            {
+                buffer.PopLeft();
+                packet = new Packet_GameActionPlaceOk();
+                return true;
+            }
             case PacketTypeEnum.GAME_ACTION_PLACE_FAIL:
-                break;
+            {
+                if(buffer.Count < 2) return false;
+                buffer.PopLeft();
+                ErrorCodeEnum error = (ErrorCodeEnum)buffer.PopLeft();
+                packet = new Packet_GameActionPlaceFail(){ErrorCode = error};
+                return true;
+            }
             case PacketTypeEnum.GAME_ACTION_PLACE_OTHER:
-                break;
+            {
+                if(buffer.Count < 6) return false;
+                uint size = Utils.LoadBigEndianU32(new[]{buffer[2], buffer[3], buffer[4], buffer[5]}, 0);
+                if(buffer.Count < 6 + size) return false;
+                buffer.PopLeft();
+                byte column = buffer.PopLeft();
+                for(int i = 0; i < 4; ++i) buffer.PopLeft();
+                byte[] path = new byte[size];
+                for(int i = 0; i < size; ++i) path[i] = buffer.PopLeft();
+                packet = new Packet_GameActionPlaceOther(){Column = column, ScenePath = path.GetStringFromUtf8()};
+                return true;
+            }
             case PacketTypeEnum.GAME_ACTION_REFILL:
-                break;
+            {
+                buffer.PopLeft();
+                packet = new Packet_GameActionRefill();
+                return true;
+            }
             case PacketTypeEnum.GAME_ACTION_REFILL_OK:
-                break;
+            {
+                buffer.PopLeft();
+                packet = new Packet_GameActionRefillOk();
+                return true;
+            }
             case PacketTypeEnum.GAME_ACTION_REFILL_FAIL:
-                break;
+            {
+                if(buffer.Count < 2) return false;
+                buffer.PopLeft();
+                ErrorCodeEnum error = (ErrorCodeEnum)buffer.PopLeft();
+                packet = new Packet_GameActionRefillFail(){ErrorCode = error};
+                return true;
+            }
             case PacketTypeEnum.GAME_ACTION_REFILL_OTHER:
-                break;
+            {
+                buffer.PopLeft();
+                packet = new Packet_GameActionRefillOther();
+                return true;
+            }
             case PacketTypeEnum.GAME_FINISHED:
-                break;
+            {
+                if(buffer.Count < 10) return false;
+                GameResultEnum result = (GameResultEnum)buffer[1];
+                int player1Score = (int)Utils.LoadBigEndianU32(new[]{buffer[2], buffer[3], buffer[4], buffer[5]}, 0);
+                int player2Score = (int)Utils.LoadBigEndianU32(new[]{buffer[6], buffer[7], buffer[8], buffer[9]}, 0);
+                for(int i = 0; i < 10; ++i) buffer.PopLeft();
+                packet = new Packet_GameFinished(){Result = result, Player1Score = player1Score, Player2Score = player2Score};
+                return true;
+            }
             default:
+            {
                 GD.PushError($"Unknown packet type {type}");
-                return false;
+                buffer.PopLeft();
+                packet = new Packet_InvalidPacket(){GivenPacketType = type};
+                return true;
+            }
         }
     }
 }

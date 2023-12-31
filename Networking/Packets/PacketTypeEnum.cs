@@ -5,6 +5,12 @@ public enum PacketTypeEnum : byte
     //dummy message
     //data: none
     DUMMY,
+    //invalid packet type
+    //data: given packet type
+    INVALID_PACKET,
+    //server tells client they sent bad packet
+    //data: given packet type
+    INVALID_PACKET_INFORM,
     //request to create a lobby
     //data: name length(8b) + name(var)
     CREATE_LOBBY_REQUEST,
