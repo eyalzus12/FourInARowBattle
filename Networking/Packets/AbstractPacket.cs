@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace FourInARowBattle;
 
-public abstract class AbstractPacket
+public abstract partial class AbstractPacket : Resource
 {
     public abstract PacketTypeEnum PacketType{get;}
 

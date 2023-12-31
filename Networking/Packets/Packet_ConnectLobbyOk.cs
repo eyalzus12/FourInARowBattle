@@ -1,18 +1,18 @@
 using System.Linq;
-using System.Text;
 using Godot;
 
 namespace FourInARowBattle;
 
-public class Packet_ConnectLobbyOk : AbstractPacket
+public partial class Packet_ConnectLobbyOk : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.CONNECT_LOBBY_OK;
 
-    public string OtherPlayerName{get; init;} = null!;
+    [Export]
+    public string OtherPlayerName{get; set;} = null!;
 
     public override byte[] ToByteArray()
     {
-        byte[] stringBuffer = Encoding.UTF8.GetBytes(OtherPlayerName);
+        byte[] stringBuffer = OtherPlayerName.ToUtf8Buffer();
         if(stringBuffer.Length > byte.MaxValue)
         {
             GD.PushError($"Player name is too long: {OtherPlayerName}");

@@ -1,10 +1,13 @@
+using Godot;
+
 namespace FourInARowBattle;
 
-public class Packet_InvalidPacketInform : AbstractPacket
+public partial class Packet_InvalidPacketInform : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.INVALID_PACKET_INFORM;
 
-    public PacketTypeEnum GivenPacketType{get; init;}
+    [Export]
+    public PacketTypeEnum GivenPacketType{get; set;}
 
     public override byte[] ToByteArray()
     {

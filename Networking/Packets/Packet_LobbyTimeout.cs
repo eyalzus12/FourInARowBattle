@@ -1,6 +1,6 @@
 namespace FourInARowBattle;
 
-public class Packet_LobbyTimeout : AbstractPacket
+public partial class Packet_LobbyTimeout : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.LOBBY_TIMEOUT;
 

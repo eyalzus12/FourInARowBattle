@@ -1,12 +1,17 @@
+using Godot;
+
 namespace FourInARowBattle;
 
-public class Packet_GameFinished : AbstractPacket
+public partial class Packet_GameFinished : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.GAME_FINISHED;
 
-    public GameResultEnum Result{get; init;}
-    public int Player1Score{get; init;}
-    public int Player2Score{get; init;}
+    [Export]
+    public GameResultEnum Result{get; set;}
+    [Export]
+    public int Player1Score{get; set;}
+    [Export]
+    public int Player2Score{get; set;}
 
     public override byte[] ToByteArray()
     {

@@ -1,11 +1,14 @@
 
+using Godot;
+
 namespace FourInARowBattle;
 
-public class Packet_GameActionRefillFail : AbstractPacket
+public partial class Packet_GameActionRefillFail : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.GAME_ACTION_REFILL_FAIL;
 
-    public ErrorCodeEnum ErrorCode{get; init;}
+    [Export]
+    public ErrorCodeEnum ErrorCode{get; set;}
 
     public override byte[] ToByteArray()
     {

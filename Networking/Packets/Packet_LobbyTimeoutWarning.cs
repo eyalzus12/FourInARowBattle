@@ -1,16 +1,19 @@
+using Godot;
+
 namespace FourInARowBattle;
 
 public class Packet_LobbyTimeoutWarning : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.LOBBY_TIMEOUT_WARNING;
 
-    public uint SecondsRemaining{get; init;}
+    [Export]
+    public int SecondsRemaining{get; set;}
 
     public override byte[] ToByteArray()
     {
         byte[] buffer = new byte[1 + 4];
         Utils.StoreBigEndianU8((byte)PacketType, buffer, 0);
-        Utils.StoreBigEndianU32(SecondsRemaining, buffer, 1);
+        Utils.StoreBigEndianU32((uint)SecondsRemaining, buffer, 1);
         return buffer;
     }
 }

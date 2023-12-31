@@ -8,6 +8,9 @@ namespace FourInARowBattle;
 //and sends out a signal when there's a full packet in the buffer
 public partial class PacketConverter : Node
 {
+    [Signal]
+    public delegate void GotPacketEventHandler(AbstractPacket packet);
+
     [Export]
     public WebSocketWrapper? Socket{get; set;} = null;
 
@@ -23,7 +26,10 @@ public partial class PacketConverter : Node
     {
         foreach(byte b in data)
             Buffer.PushRight(b);
-        
+        if(AbstractPacket.TryConstructFrom(Buffer, out AbstractPacket? packet))
+        {
+            EmitSignal(PacketConverter.SignalName.GotPacket, packet);
+        }
     }
 
     

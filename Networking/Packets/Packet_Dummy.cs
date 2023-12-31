@@ -1,6 +1,6 @@
 namespace FourInARowBattle;
 
-public class Packet_Dummy : AbstractPacket
+public partial class Packet_Dummy : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.DUMMY;
 

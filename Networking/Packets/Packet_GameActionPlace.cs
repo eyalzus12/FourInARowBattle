@@ -2,12 +2,14 @@ using Godot;
 
 namespace FourInARowBattle;
 
-public class Packet_GameActionPlace : AbstractPacket
+public partial class Packet_GameActionPlace : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.GAME_ACTION_PLACE;
 
-    public byte Column{get; init;}
-    public string ScenePath{get; init;} = null!;
+    [Export]
+    public byte Column{get; set;}
+    [Export]
+    public string ScenePath{get; set;} = null!;
 
     public override byte[] ToByteArray()
     {

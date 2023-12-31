@@ -1,6 +1,6 @@
 namespace FourInARowBattle;
 
-public class Packet_GameActionRefillOk : AbstractPacket
+public partial class Packet_GameActionRefillOk : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.GAME_ACTION_REFILL_OK;
 

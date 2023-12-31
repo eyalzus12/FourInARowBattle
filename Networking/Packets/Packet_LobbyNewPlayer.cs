@@ -3,11 +3,12 @@ using Godot;
 
 namespace FourInARowBattle;
 
-public class Packet_LobbyNewPlayer : AbstractPacket
+public partial class Packet_LobbyNewPlayer : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.LOBBY_NEW_PLAYER;
 
-    public string OtherPlayerName{get; init;} = null!;
+    [Export]
+    public string OtherPlayerName{get; set;} = null!;
 
     public override byte[] ToByteArray()
     {

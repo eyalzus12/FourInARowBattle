@@ -1,6 +1,6 @@
 namespace FourInARowBattle;
 
-public class Packet_NewGameRequested : AbstractPacket
+public partial class Packet_NewGameRequested : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.NEW_GAME_REQUESTED;
 

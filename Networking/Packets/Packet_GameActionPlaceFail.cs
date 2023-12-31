@@ -1,11 +1,14 @@
 
+using Godot;
+
 namespace FourInARowBattle;
 
-public class Packet_GameActionPlaceFail : AbstractPacket
+public partial class Packet_GameActionPlaceFail : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.GAME_ACTION_PLACE_FAIL;
 
-    public ErrorCodeEnum ErrorCode{get; init;}
+    [Export]
+    public ErrorCodeEnum ErrorCode{get; set;}
 
     public override byte[] ToByteArray()
     {

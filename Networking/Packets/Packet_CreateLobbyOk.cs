@@ -1,11 +1,14 @@
 
+using Godot;
+
 namespace FourInARowBattle;
 
-public class Packet_CreateLobbyOk : AbstractPacket
+public partial class Packet_CreateLobbyOk : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.CREATE_LOBBY_OK;
 
-    public uint LobbyId{get; init;}
+    [Export]
+    public uint LobbyId{get; set;}
 
     public override byte[] ToByteArray()
     {

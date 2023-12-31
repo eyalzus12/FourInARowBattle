@@ -1,6 +1,6 @@
 namespace FourInARowBattle;
 
-public class Packet_LobbyDisconnect : AbstractPacket
+public partial class Packet_LobbyDisconnect : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.LOBBY_DISCONNECT;
 

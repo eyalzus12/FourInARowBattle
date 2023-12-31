@@ -1,10 +1,13 @@
+using Godot;
+
 namespace FourInARowBattle;
 
-public class Packet_NewGameCancelFail : AbstractPacket
+public partial class Packet_NewGameCancelFail : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.NEW_GAME_CANCEL_FAIL;
 
-    public ErrorCodeEnum ErrorCode{get; init;}
+    [Export]
+    public ErrorCodeEnum ErrorCode{get; set;}
 
     public override byte[] ToByteArray()
     {

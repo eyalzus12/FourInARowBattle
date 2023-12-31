@@ -1,10 +1,13 @@
+using Godot;
+
 namespace FourInARowBattle;
 
-public class Packet_NewGameStarting : AbstractPacket
+public partial class Packet_NewGameStarting : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.NEW_GAME_STARTING;
 
-    public GameTurnEnum GameTurn{get; init;}
+    [Export]
+    public GameTurnEnum GameTurn{get; set;}
 
     public override byte[] ToByteArray()
     {
