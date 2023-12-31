@@ -217,20 +217,24 @@ public abstract partial class AbstractPacket : Resource
             }
             case PacketTypeEnum.LOBBY_DISCONNECT:
             {
+                if(buffer.Count < 2) return false;
                 buffer.PopLeft();
-                packet = new Packet_LobbyDisconnect();
+                DisconnectReasonEnum reason = (DisconnectReasonEnum)buffer.PopLeft();
+                packet = new Packet_LobbyDisconnect(){Reason = reason};
                 return true;
             }
             case PacketTypeEnum.LOBBY_DISCONNECT_OTHER:
             {
+                if(buffer.Count < 2) return false;
                 buffer.PopLeft();
-                packet = new Packet_LobbyDisconnectOther();
+                DisconnectReasonEnum reason = (DisconnectReasonEnum)buffer.PopLeft();
+                packet = new Packet_LobbyDisconnectOther(){Reason = reason};
                 return true;
             }
             case PacketTypeEnum.LOBBY_TIMEOUT_WARNING:
             {
                 if(buffer.Count < 5) return false;
-                uint secondsRemaining = Utils.LoadBigEndianU32(new[]{buffer[1], buffer[2], buffer[3], buffer[4]}, 0);
+                int secondsRemaining = (int)Utils.LoadBigEndianU32(new[]{buffer[1], buffer[2], buffer[3], buffer[4]}, 0);
                 for(int i = 0; i < 5; ++i) buffer.PopLeft();
                 packet = new Packet_LobbyTimeoutWarning(){SecondsRemaining = secondsRemaining};
                 return true;

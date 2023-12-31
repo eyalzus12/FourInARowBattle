@@ -82,10 +82,10 @@ public enum PacketTypeEnum : byte
     //data: none
     NEW_GAME_CANCELED,
     //disconnect from the lobby
-    //data: none
+    //data: reason(8b)
     LOBBY_DISCONNECT,
     //other player disconnected from lobby
-    //data: none
+    //data: reason(8b)
     LOBBY_DISCONNECT_OTHER,
     //lobby will timeout soon
     //data: seconds remaining(32b)
