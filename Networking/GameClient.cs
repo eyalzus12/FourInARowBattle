@@ -10,6 +10,10 @@ public partial class GameClient : Node
 
     private readonly Deque<byte> _buffer = new();
 
+    private uint? _lobby = null;
+    private uint? _lobbyConnectionRequest = null;
+    private string? _otherPlayer = null;
+
     public override void _Ready()
     {
         if(Client is not null)
@@ -59,6 +63,7 @@ public partial class GameClient : Node
             case Packet_CreateLobbyOk _packet:
             {
                 GD.Print($"Server created lobby: {_packet.LobbyId}");
+                _lobby = _packet.LobbyId;
                 break;
             }
             case Packet_CreateLobbyFail _packet:
@@ -74,16 +79,21 @@ public partial class GameClient : Node
             case Packet_ConnectLobbyOk _packet:
             {
                 GD.Print($"Connected to lobby! Other player: {_packet.OtherPlayerName}");
+                _lobby = _lobbyConnectionRequest;
+                _lobbyConnectionRequest = null;
+                _otherPlayer = _packet.OtherPlayerName;
                 break;
             }
             case Packet_ConnectLobbyFail _packet:
             {
                 GD.Print($"Connecting to lobby failed with error: {_packet.ErrorCode}");
+                _lobbyConnectionRequest = null;
                 break;
             }
             case Packet_LobbyNewPlayer _packet:
             {
                 GD.Print($"New player joined lobby: {_packet.OtherPlayerName}");
+                _otherPlayer = _packet.OtherPlayerName;
                 break;
             }
             case Packet_NewGameRequest:
@@ -104,6 +114,7 @@ public partial class GameClient : Node
             case Packet_NewGameRequested:
             {
                 GD.Print("Other player wants to start a game");
+                //show choice to user
                 break;
             }
             case Packet_NewGameAccept:
@@ -174,6 +185,7 @@ public partial class GameClient : Node
             case Packet_LobbyDisconnectOther _packet:
             {
                 GD.Print($"Other player disconnected: {_packet.Reason}");
+                _otherPlayer = null;
                 break;
             }
             case Packet_LobbyTimeoutWarning _packet:
@@ -184,6 +196,8 @@ public partial class GameClient : Node
             case Packet_LobbyTimeout:
             {
                 GD.Print("Lobby timed out");
+                _lobby = null;
+                _otherPlayer = null;
                 break;
             }
             case Packet_NewGameStarting _packet:
@@ -243,4 +257,15 @@ public partial class GameClient : Node
             }
         }
     }
+
+    public void CreateLobby() => SendPacket(new Packet_CreateLobbyRequest());
+    public void ConnectToLobby(uint lobby){SendPacket(new Packet_ConnectLobbyRequest(){LobbyId = lobby}); _lobbyConnectionRequest = lobby;}
+    public void DisconnectFromLobby_Desire() => SendPacket(new Packet_LobbyDisconnect(){Reason = DisconnectReasonEnum.DESIRE});
+    public void DisconnectFromLobby_Desync() => SendPacket(new Packet_LobbyDisconnect(){Reason = DisconnectReasonEnum.DESYNC});
+    public void RequestNewGame(){if(_lobby is not null) SendPacket(new Packet_NewGameRequest());}
+    public void AcceptNewGame(){if(_lobby is not null) SendPacket(new Packet_NewGameAccept());}
+    public void RejectNewGame(){if(_lobby is not null) SendPacket(new Packet_NewGameReject());}
+    public void CancelNewGame(){if(_lobby is not null) SendPacket(new Packet_NewGameCancel());}
+    public void PlaceToken(byte column, string path) => SendPacket(new Packet_GameActionPlace(){Column = column, ScenePath = path});
+    public void Refill() => SendPacket(new Packet_GameActionRefill());
 }
