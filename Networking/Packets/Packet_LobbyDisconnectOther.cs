@@ -9,6 +9,11 @@ public partial class Packet_LobbyDisconnectOther : AbstractPacket
     [Export]
     public DisconnectReasonEnum Reason{get; set;}
 
+    public Packet_LobbyDisconnectOther(DisconnectReasonEnum reason)
+    {
+        Reason = reason;
+    }
+
     public override byte[] ToByteArray()
     {
         byte[] buffer = new byte[1 + 1];

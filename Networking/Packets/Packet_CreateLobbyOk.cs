@@ -10,6 +10,11 @@ public partial class Packet_CreateLobbyOk : AbstractPacket
     [Export]
     public uint LobbyId{get; set;}
 
+    public Packet_CreateLobbyOk(uint lobbyId)
+    {
+        LobbyId = lobbyId;
+    }
+
     public override byte[] ToByteArray()
     {
         byte[] buffer = new byte[1 + 4];

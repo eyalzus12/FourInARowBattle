@@ -10,6 +10,11 @@ public partial class Packet_CreateLobbyRequest : AbstractPacket
     [Export]
     public string PlayerName{get; set;} = null!;
 
+    public Packet_CreateLobbyRequest(string playerName)
+    {
+        PlayerName = playerName;
+    }
+
     public override byte[] ToByteArray()
     {
         byte[] stringBuffer = PlayerName.ToUtf8Buffer();

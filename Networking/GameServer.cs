@@ -1,21 +1,51 @@
 using Godot;
 using DequeNet;
+using System.Collections.Generic;
+using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace FourInARowBattle;
 
 public partial class GameServer : Node
 {
+    private sealed class Player
+    {
+        public Player(int id, string name)
+        {
+            Id = id;
+            Name = name;
+            Lobby = null;
+        }
+
+        public int Id{get; init;}
+        public string Name{get; set;}
+        public Lobby? Lobby{get; set;}
+    }
+    
+    private sealed class Lobby
+    {
+        public uint Id{get; init;}
+        public Player?[] Players{get; private set;} = new Player[2];
+
+        public Player? Requester{get; set;} = null; 
+        public bool InGame{get; set;} = false;
+    }
+
     [Export]
     public WebSocketServer? Server{get; set;}
 
     private readonly Deque<byte> _buffer = new();
 
-    private readonly LobbyManager _lobbyManager = new();
+    private readonly Dictionary<int, Player> _players = new();
+    private readonly Dictionary<uint, Lobby> _lobbies = new();
 
     public override void _Ready()
     {
         if(Server is not null)
+        {
             Server.PacketReceived += OnWebSocketServerPacketReceived;
+            Server.ClientDisconnected += OnWebSocketClientDisconnected;
+        }
     }
 
     public void OnWebSocketServerPacketReceived(int peerId, byte[] packetBytes)
@@ -28,6 +58,50 @@ public partial class GameServer : Node
                 HandlePacket(peerId, packet);
             }
         }
+    }
+
+    public void OnWebSocketClientDisconnected(int peerId) => RemovePlayer(peerId, DisconnectReasonEnum.CONNECTION);
+
+    private void RemovePlayer(int peerId, DisconnectReasonEnum reason)
+    {
+        if(!_players.TryGetValue(peerId, out Player? player)) return;
+        _players.Remove(player.Id);
+        Lobby? lobby = player.Lobby;
+        if(lobby is null) return;
+        lobby.InGame = false;
+        lobby.Requester = null;
+
+        if(lobby.Players[0] == player)
+        {
+            lobby.Players[0] = lobby.Players[1];
+            lobby.Players[1] = null;
+        }
+        else
+        {
+            lobby.Players[1] = null;
+        }
+        Player? other = lobby.Players[0];
+        if(other is null) _lobbies.Remove(lobby.Id);
+        else SendPacket(other.Id, new Packet_LobbyDisconnectOther(reason));
+    }
+
+    private bool UpdateName(int peerId, string name, [NotNullWhen(true)] out Player? player)
+    {
+        if(_players.TryGetValue(peerId, out player))
+        {
+            if(player.Lobby is not null)
+            {
+                return false;
+            }
+            //update name
+            player.Name = name;
+        }
+        //new player
+        else
+        {
+            player = _players[peerId] = new Player(peerId, name);
+        }
+        return true;
     }
 
     public void SendPacket(int peerId, AbstractPacket packet)
@@ -47,254 +121,190 @@ public partial class GameServer : Node
             case Packet_InvalidPacket _packet:
             {
                 GD.Print($"Got invalid packet from {peerId}: {_packet.GivenPacketType}");
-                break;
-            }
-            case Packet_InvalidPacketInform:
-            {
-                GD.PushError($"I'm server. Why is {peerId} informing me of invalid packet?");
+                SendPacket(peerId, new Packet_InvalidPacketInform(_packet.GivenPacketType));
                 break;
             }
             case Packet_CreateLobbyRequest _packet:
             {
                 GD.Print($"{peerId} wants to create lobby. Player name: {_packet.PlayerName}");
-                _lobbyManager.RegisterNewPlayer(peerId, _packet.PlayerName);
-                uint? lobby = _lobbyManager.GetPlayerLobby(peerId);
-                if(lobby is not null)
+
+                if(!UpdateName(peerId, _packet.PlayerName, out Player? player))
                 {
-                    SendPacket(peerId, new Packet_CreateLobbyFail(){ErrorCode = ErrorCodeEnum.CANNOT_CREATE_WHILE_IN_LOBBY});
+                    SendPacket(peerId, new Packet_CreateLobbyFail(ErrorCodeEnum.CANNOT_CREATE_WHILE_IN_LOBBY));
+                    break;
                 }
-                else
-                {
-                    uint lobbyId = _lobbyManager.GetAvailableLobbyId();
-                    _lobbyManager.CreateNewLobby(lobbyId);
-                    _lobbyManager.AddPlayerToLobby(peerId, lobbyId, out string? _);
-                    SendPacket(peerId, new Packet_CreateLobbyOk());
-                }
-                break;
-            }
-            case Packet_CreateLobbyOk:
-            {
-                GD.PushError($"I'm server. Why did {peerId} send create lobby ok?");
-                break;
-            }
-            case Packet_CreateLobbyFail:
-            {
-                GD.PushError($"I'm server. Why did {peerId} send create lobby fail?");
+
+                //create lobby
+                uint id; do{id = GD.Randi();} while(!_lobbies.ContainsKey(id));
+                Lobby lobby = new(){Id = id};
+                lobby.Players[0] = player;
+                player.Lobby = lobby;
+                _lobbies[id] = lobby;
+
+                //respond
+                SendPacket(peerId, new Packet_CreateLobbyOk(id));
                 break;
             }
             case Packet_ConnectLobbyRequest _packet:
             {
                 GD.Print($"{peerId} wants to connect to lobby {_packet.LobbyId} with name {_packet.PlayerName}");
-                _lobbyManager.RegisterNewPlayer(peerId, _packet.PlayerName);
-                LobbyManagerErrorEnum err = _lobbyManager.AddPlayerToLobby(peerId, _packet.LobbyId, out string? other);
-                switch(err)
+
+                if(!UpdateName(peerId, _packet.PlayerName, out Player? player))
                 {
-                    case LobbyManagerErrorEnum.NONE:
-                        SendPacket(peerId, new Packet_ConnectLobbyOk(){OtherPlayerName = other});
-                        break;
-                    case LobbyManagerErrorEnum.LOBBY_DOES_NOT_EXIST:
-                        SendPacket(peerId, new Packet_ConnectLobbyFail(){ErrorCode = ErrorCodeEnum.CANNOT_JOIN_LOBBY_DOES_NOT_EXIST});
-                        break;
-                    case LobbyManagerErrorEnum.PLAYER_ALREADY_IN_LOBBY or LobbyManagerErrorEnum.PLAYER_ALREADY_IN_THAT_LOBBY:
-                        SendPacket(peerId, new Packet_ConnectLobbyFail(){ErrorCode = ErrorCodeEnum.CANNOT_JOIN_WHILE_IN_LOBBY});
-                        break;
-                    case LobbyManagerErrorEnum.LOBBY_IS_FULL:
-                        SendPacket(peerId, new Packet_ConnectLobbyFail(){ErrorCode = ErrorCodeEnum.CANNOT_JOIN_LOBBY_FULL});
-                        break;
-                    default:
-                        GD.PushError($"Unexpected lobby manager error: {err}");
-                        break;
+                    SendPacket(peerId, new Packet_ConnectLobbyFail(ErrorCodeEnum.CANNOT_JOIN_WHILE_IN_LOBBY));
+                    break;
                 }
-                break;
-            }
-            case Packet_ConnectLobbyOk:
-            {
-                GD.PushError($"I'm server. Why did {peerId} send connect lobby ok?");
-                break;
-            }
-            case Packet_ConnectLobbyFail:
-            {
-                GD.PushError($"I'm server. Why did {peerId} send lobby fail?");
-                break;
-            }
-            case Packet_LobbyNewPlayer:
-            {
-                GD.PushError($"I'm server. Why did {peerId} send lobby new player?");
+                if(!_lobbies.TryGetValue(_packet.LobbyId, out Lobby? lobby))
+                {
+                    SendPacket(peerId, new Packet_ConnectLobbyFail(ErrorCodeEnum.CANNOT_JOIN_LOBBY_DOES_NOT_EXIST));
+                    break;
+                }
+
+                Player? other = null;
+                //first spot avail
+                if(lobby.Players[0] is null)
+                {
+                    lobby.Players[0] = player;
+                    player.Lobby = lobby;
+                }
+                //second spot avail
+                else if(lobby.Players[1] is null)
+                {
+                    lobby.Players[1] = player;
+                    player.Lobby = lobby;
+                    other = lobby.Players[0];
+                }
+                //full
+                else
+                {
+                    SendPacket(peerId, new Packet_ConnectLobbyFail(ErrorCodeEnum.CANNOT_JOIN_LOBBY_FULL));
+                    break;
+                }
+
+                SendPacket(player.Id, new Packet_ConnectLobbyOk(other?.Name ?? ""));
+                if(other is not null)
+                    SendPacket(other.Id, new Packet_LobbyNewPlayer(player.Name!));
                 break;
             }
             case Packet_NewGameRequest:
             {
                 GD.Print($"{peerId} wants to start new game");
-                LobbyManagerErrorEnum err = _lobbyManager.MakeRequest(peerId, out int? other);
-                switch(err)
+
+                if(!_players.TryGetValue(peerId, out Player? player) || player.Lobby is null)
                 {
-                    case LobbyManagerErrorEnum.NONE:
-                        SendPacket(peerId, new Packet_NewGameRequestOk());
-                        SendPacket(other??0, new Packet_NewGameRequested());
-                        break;
-                    case LobbyManagerErrorEnum.PLAYER_DOES_NOT_EXIST or LobbyManagerErrorEnum.PLAYER_NOT_IN_LOBBY:
-                        SendPacket(peerId, new Packet_NewGameRequestFail(){ErrorCode = ErrorCodeEnum.CANNOT_REQUEST_START_NO_LOBBY});
-                        break;
-                    case LobbyManagerErrorEnum.MID_GAME:
-                        SendPacket(peerId, new Packet_NewGameRequestFail(){ErrorCode = ErrorCodeEnum.CANNOT_REQUEST_START_MID_GAME});
-                        break;
-                    case LobbyManagerErrorEnum.REQUEST_ALREADY_EXISTS:
-                        SendPacket(peerId, new Packet_NewGameRequestFail(){ErrorCode = ErrorCodeEnum.CANNOT_REQUEST_START_ALREADY_DID});
-                        break;
-                    case LobbyManagerErrorEnum.NO_OTHER_PLAYER:
-                        SendPacket(peerId, new Packet_NewGameRequestFail(){ErrorCode = ErrorCodeEnum.CANNOT_REQUEST_START_NO_OTHER_PLAYER});
-                        break;
-                    default:
-                        GD.PushError($"Unexpected lobby manager error: {err}");
-                        break;
+                    SendPacket(peerId, new Packet_NewGameRequestFail(ErrorCodeEnum.CANNOT_REQUEST_START_NO_LOBBY));
+                    break;
                 }
-                break;
-            }
-            case Packet_NewGameRequestOk:
-            {
-                GD.PushError($"I'm server. Why did {peerId} send new game request ok?");
-                break;
-            }
-            case Packet_NewGameRequestFail:
-            {
-                GD.PushError($"I'm server. Why did {peerId} send new game request fail?");
-                break;
-            }
-            case Packet_NewGameRequested:
-            {
-                GD.PushError($"I'm server. Why did {peerId} send new game requested?");
+                Lobby lobby = player.Lobby;
+
+                if(lobby.Players[1] is null)
+                {
+                    SendPacket(peerId, new Packet_NewGameRequestFail(ErrorCodeEnum.CANNOT_REQUEST_START_NO_OTHER_PLAYER));
+                    break;
+                }
+                if(lobby.Requester is not null)
+                {
+                    SendPacket(peerId, new Packet_NewGameRequestFail(ErrorCodeEnum.CANNOT_REQUEST_START_ALREADY_DID));
+                    break;
+                }
+                if(lobby.InGame)
+                {
+                    SendPacket(peerId, new Packet_NewGameRequestFail(ErrorCodeEnum.CANNOT_REQUEST_START_MID_GAME));
+                    break;
+                }
+
+                lobby.Requester = player;
+                Player other = lobby.Players[0] == player ? lobby.Players[1]! : lobby.Players[0]!;
+                SendPacket(player.Id, new Packet_NewGameRequestOk());
+                SendPacket(other.Id, new Packet_NewGameRequested());
                 break;
             }
             case Packet_NewGameAccept:
             {
                 GD.Print($"{peerId} approves new game request");
-                LobbyManagerErrorEnum err = _lobbyManager.ConsumeRequest(peerId, out int? other);
-                switch(err)
+
+                if(!_players.TryGetValue(peerId, out Player? player) || player.Lobby is null)
                 {
-                    case LobbyManagerErrorEnum.NONE:
-                        SendPacket(peerId, new Packet_NewGameAcceptOk());
-                        SendPacket(other??0, new Packet_NewGameAccepted());
-                        //now start game:
-                        
-                        break;
-                    case LobbyManagerErrorEnum.PLAYER_DOES_NOT_EXIST or LobbyManagerErrorEnum.PLAYER_NOT_IN_LOBBY or LobbyManagerErrorEnum.REQUEST_DOES_NOT_EXIST:
-                        SendPacket(peerId, new Packet_NewGameAcceptFail(){ErrorCode = ErrorCodeEnum.CANNOT_APPROVE_NO_REQUEST});
-                        break;
-                    default:
-                        GD.PushError($"Unexpected lobby manager error: {err}");
-                        break;
+                    SendPacket(peerId, new Packet_NewGameAcceptFail(ErrorCodeEnum.CANNOT_APPROVE_NOT_IN_LOBBY));
+                    break;
                 }
-                break;
-            }
-            case Packet_NewGameAcceptOk:
-            {
-                GD.PushError($"I'm server. Why did {peerId} send new game accept ok?");
-                break;
-            }
-            case Packet_NewGameAcceptFail:
-            {
-                GD.PushError($"I'm server. Why did {peerId} send new game accept fail?");
-                break;
-            }
-            case Packet_NewGameAccepted:
-            {
-                GD.PushError($"I'm server. Why did {peerId} send new game accepted?");
+                Lobby lobby = player.Lobby;
+
+                if(lobby.Requester is null)
+                {
+                    SendPacket(peerId, new Packet_NewGameAcceptFail(ErrorCodeEnum.CANNOT_APPROVE_NO_REQUEST));
+                    break;
+                }
+                if(lobby.Requester == player)
+                {
+                    SendPacket(peerId, new Packet_NewGameAcceptFail(ErrorCodeEnum.CANNOT_APPROVE_YOUR_REQUEST));
+                    break;
+                }
+
+                lobby.Requester = null;
+                Player other = lobby.Players[0] == player ? lobby.Players[1]! : lobby.Players[0]!;
+                SendPacket(player.Id, new Packet_NewGameAcceptOk());
+                SendPacket(other.Id, new Packet_NewGameAccepted());
                 break;
             }
             case Packet_NewGameReject:
             {
                 GD.Print($"{peerId} rejects new game request");
-                LobbyManagerErrorEnum err = _lobbyManager.ConsumeRequest(peerId, out int? other);
-                switch(err)
+                if(!_players.TryGetValue(peerId, out Player? player) || player.Lobby is null)
                 {
-                    case LobbyManagerErrorEnum.NONE:
-                        SendPacket(peerId, new Packet_NewGameRejectOk());
-                        SendPacket(other??0, new Packet_NewGameRejected());
-                        break;
-                    case LobbyManagerErrorEnum.PLAYER_DOES_NOT_EXIST or LobbyManagerErrorEnum.PLAYER_NOT_IN_LOBBY or LobbyManagerErrorEnum.REQUEST_DOES_NOT_EXIST:
-                        SendPacket(peerId, new Packet_NewGameRejectFail(){ErrorCode = ErrorCodeEnum.CANNOT_REJECT_NO_REQUEST});
-                        break;
-                    default:
-                        GD.PushError($"Unexpected lobby manager error: {err}");
-                        break;
+                    SendPacket(peerId, new Packet_NewGameRejectFail(ErrorCodeEnum.CANNOT_REJECT_NOT_IN_LOBBY));
+                    break;
                 }
-                break;
-            }
-            case Packet_NewGameRejectOk:
-            {
-                GD.PushError($"I'm server. Why did {peerId} send new game reject ok?");
-                break;
-            }
-            case Packet_NewGameRejectFail:
-            {
-                GD.PushError($"I'm server. Why did {peerId} send new game reject fail?");
-                break;
-            }
-            case Packet_NewGameRejected:
-            {
-                GD.PushError($"I'm server. Why did {peerId} send new game rejected?");
+                Lobby lobby = player.Lobby;
+
+                if(lobby.Requester is null)
+                {
+                    SendPacket(peerId, new Packet_NewGameRejectFail(ErrorCodeEnum.CANNOT_REJECT_NO_REQUEST));
+                    break;
+                }
+                if(lobby.Requester == player)
+                {
+                    SendPacket(peerId, new Packet_NewGameRejectFail(ErrorCodeEnum.CANNOT_REJECT_YOUR_REQUEST));
+                    break;
+                }
+
+                lobby.Requester = null;
+                Player other = lobby.Players[0] == player ? lobby.Players[1]! : lobby.Players[0]!;
+                SendPacket(player.Id, new Packet_NewGameRejectOk());
+                SendPacket(other.Id, new Packet_NewGameRejected());
                 break;
             }
             case Packet_NewGameCancel:
             {
                 GD.Print($"{peerId} cancels new game request");
-                LobbyManagerErrorEnum err = _lobbyManager.ConsumeRequest(peerId, out int? other);
-                switch(err)
+                if(!_players.TryGetValue(peerId, out Player? player) || player.Lobby is null)
                 {
-                    case LobbyManagerErrorEnum.NONE:
-                        SendPacket(peerId, new Packet_NewGameCancelOk());
-                        SendPacket(other??0, new Packet_NewGameCanceled());
-                        break;
-                    case LobbyManagerErrorEnum.PLAYER_DOES_NOT_EXIST or LobbyManagerErrorEnum.PLAYER_NOT_IN_LOBBY or LobbyManagerErrorEnum.REQUEST_DOES_NOT_EXIST:
-                        SendPacket(peerId, new Packet_NewGameCancelFail(){ErrorCode = ErrorCodeEnum.CANNOT_CANCEL_NO_REQUEST});
-                        break;
-                    default:
-                        GD.PushError($"Unexpected lobby manager error: {err}");
-                        break;
+                    SendPacket(peerId, new Packet_NewGameCancelFail(ErrorCodeEnum.CANNOT_CANCEL_NOT_IN_LOBBY));
+                    break;
                 }
-                break;
-            }
-            case Packet_NewGameCancelOk:
-            {
-                GD.PushError($"I'm server. Why did {peerId} send new game cancel ok?");
-                break;
-            }
-            case Packet_NewGameCancelFail:
-            {
-                GD.PushError($"I'm server. Why did {peerId} send new game cancel fail?");
-                break;
-            }
-            case Packet_NewGameCanceled:
-            {
-                GD.PushError($"I'm server. Why did {peerId} send new game canceled?");
+                Lobby lobby = player.Lobby;
+
+                if(lobby.Requester is null)
+                {
+                    SendPacket(peerId, new Packet_NewGameCancelFail(ErrorCodeEnum.CANNOT_CANCEL_NO_REQUEST));
+                    break;
+                }
+                if(lobby.Requester != player)
+                {
+                    SendPacket(peerId, new Packet_NewGameCancelFail(ErrorCodeEnum.CANNOT_CANCEL_NOT_YOUR_REQUEST));
+                    break;
+                }
+
+                lobby.Requester = null;
+                Player other = lobby.Players[0] == player ? lobby.Players[1]! : lobby.Players[0]!;
+                SendPacket(player.Id, new Packet_NewGameCancelOk());
+                SendPacket(other.Id, new Packet_NewGameCanceled());
                 break;
             }
             case Packet_LobbyDisconnect _packet:
             {
                 GD.Print($"{peerId} is disconnecting. Reason: {_packet.Reason}");
-                _lobbyManager.GetPlayerOutOfLobby(peerId, out int? other);
-                if(other is not null)
-                    SendPacket(other??0, new Packet_LobbyDisconnectOther(){Reason = _packet.Reason});
-                break;
-            }
-            case Packet_LobbyDisconnectOther:
-            {
-                GD.PushError($"I'm server. Why did {peerId} send lobby disconnect other?");
-                break;
-            }
-            case Packet_LobbyTimeoutWarning:
-            {
-                GD.PushError($"I'm server. Why did {peerId} send lobby timeout warning?");
-                break;
-            }
-            case Packet_LobbyTimeout:
-            {
-                GD.PushError($"I'm server. Why did {peerId} send lobby timeout?");
-                break;
-            }
-            case Packet_NewGameStarting:
-            {
-                GD.PushError($"I'm server. Why did {peerId} send new game starting?");
+                RemovePlayer(peerId, _packet.Reason);
                 break;
             }
             case Packet_GameActionPlace _packet:
@@ -302,49 +312,14 @@ public partial class GameServer : Node
                 GD.Print($"{peerId} is placing {_packet.ScenePath} at {_packet.Column}");
                 break;
             }
-            case Packet_GameActionPlaceOk:
-            {
-                GD.PushError($"I'm server. Why did {peerId} send game action place ok?");
-                break;
-            }
-            case Packet_GameActionPlaceFail:
-            {
-                GD.PushError($"I'm server. Why did {peerId} send game action place fail?");
-                break;
-            }
-            case Packet_GameActionPlaceOther:
-            {
-                GD.PushError($"I'm server. Why did {peerId} send game action place other?");
-                break;
-            }
             case Packet_GameActionRefill:
             {
                 GD.Print($"{peerId} is refilling");
                 break;
             }
-            case Packet_GameActionRefillOk:
-            {
-                GD.PushError($"I'm server. Why did {peerId} send game action refill ok?");
-                break;
-            }
-            case Packet_GameActionRefillFail:
-            {
-                GD.PushError($"I'm server. Why did {peerId} send game action refill fail?");
-                break;
-            }
-            case Packet_GameActionRefillOther:
-            {
-                GD.PushError($"I'm server. Why did {peerId} send game action refill other?");
-                break;
-            }
-            case Packet_GameFinished:
-            {
-                GD.PushError($"I'm server. Why did {peerId} send game finished?");
-                break;
-            }
             default:
             {
-                GD.PushError($"Unknown packet type {packet.GetType().Name}");
+                GD.PushError($"Server did not expect packet of type {packet.GetType().Name} from {peerId}");
                 break;
             }
         }

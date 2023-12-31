@@ -35,15 +35,14 @@ public abstract partial class AbstractPacket : Resource
             {
                 GD.PushError("Received packet type INVALID_PACKET, but that packet type is for internal use only. Use INVALID_PACKET_INFORM to respond to an invalid packet");
                 buffer.PopLeft();
-                packet = new Packet_InvalidPacket(){GivenPacketType = PacketTypeEnum.INVALID_PACKET};
+                packet = new Packet_InvalidPacket(PacketTypeEnum.INVALID_PACKET);
                 return true;
             }
             case PacketTypeEnum.INVALID_PACKET_INFORM:
             {
                 if(buffer.Count < 2) return false;
                 buffer.PopLeft();
-                PacketTypeEnum givenPacketType = (PacketTypeEnum)buffer.PopLeft();
-                packet = new Packet_InvalidPacketInform(){GivenPacketType = givenPacketType};
+                packet = new Packet_InvalidPacketInform((PacketTypeEnum)buffer.PopLeft());
                 return true;
             }
             case PacketTypeEnum.CREATE_LOBBY_REQUEST:
@@ -53,7 +52,7 @@ public abstract partial class AbstractPacket : Resource
                 if(buffer.Count < 5 + size) return false;
                 for(int i = 0; i < 2; ++i) buffer.PopLeft();
                 byte[] name = new byte[size]; for(int i = 0; i < size; ++i) name[i] = buffer.PopLeft();
-                packet = new Packet_CreateLobbyRequest(){PlayerName = name.GetStringFromUtf8()};
+                packet = new Packet_CreateLobbyRequest(name.GetStringFromUtf8());
                 return true;
             }
             case PacketTypeEnum.CREATE_LOBBY_OK:
@@ -61,15 +60,14 @@ public abstract partial class AbstractPacket : Resource
                 if(buffer.Count < 5) return false;
                 uint lobbyId = Utils.LoadBigEndianU32(new[]{buffer[1], buffer[2], buffer[3], buffer[4]}, 0);
                 for(int i = 0; i < 5; ++i) buffer.PopLeft();
-                packet = new Packet_CreateLobbyOk(){LobbyId = lobbyId};
+                packet = new Packet_CreateLobbyOk(lobbyId);
                 return true;
             }
             case PacketTypeEnum.CREATE_LOBBY_FAIL:
             {
                 if(buffer.Count < 2) return false;
                 buffer.PopLeft();
-                ErrorCodeEnum error = (ErrorCodeEnum)buffer.PopLeft();
-                packet = new Packet_CreateLobbyFail(){ErrorCode = error};
+                packet = new Packet_CreateLobbyFail((ErrorCodeEnum)buffer.PopLeft());
                 return true;
             }
             case PacketTypeEnum.CONNECT_LOBBY_REQUEST:
@@ -80,7 +78,7 @@ public abstract partial class AbstractPacket : Resource
                 uint lobbyId = Utils.LoadBigEndianU32(new[]{buffer[1], buffer[2], buffer[3], buffer[4]}, 0);
                 for(int i = 0; i < 6; ++i) buffer.PopLeft();
                 byte[] name = new byte[size]; for(int i = 0; i < size; ++i) name[i] = buffer.PopLeft();
-                packet = new Packet_ConnectLobbyRequest(){LobbyId = lobbyId, PlayerName = name.GetStringFromUtf8()};
+                packet = new Packet_ConnectLobbyRequest(lobbyId, name.GetStringFromUtf8());
                 return true;
             }
             case PacketTypeEnum.CONNECT_LOBBY_OK:
@@ -90,15 +88,14 @@ public abstract partial class AbstractPacket : Resource
                 if(buffer.Count < 2 + size) return false;
                 for(int i = 0; i < 2; ++i) buffer.PopLeft();
                 byte[] name = new byte[size]; for(int i = 0; i < size; ++i) name[i] = buffer.PopLeft();
-                packet = new Packet_ConnectLobbyOk(){OtherPlayerName = name.GetStringFromUtf8()};
+                packet = new Packet_ConnectLobbyOk(name.GetStringFromUtf8());
                 return true;
             }
             case PacketTypeEnum.CONNECT_LOBBY_FAIL:
             {
                 if(buffer.Count < 2) return false;
                 buffer.PopLeft();
-                ErrorCodeEnum error = (ErrorCodeEnum)buffer.PopLeft();
-                packet = new Packet_ConnectLobbyFail(){ErrorCode = error};
+                packet = new Packet_ConnectLobbyFail((ErrorCodeEnum)buffer.PopLeft());
                 return true;
             }
             case PacketTypeEnum.LOBBY_NEW_PLAYER:
@@ -108,7 +105,7 @@ public abstract partial class AbstractPacket : Resource
                 if(buffer.Count < 2 + size) return false;
                 for(int i = 0; i < 2; ++i) buffer.PopLeft();
                 byte[] name = new byte[size]; for(int i = 0; i < size; ++i) name[i] = buffer.PopLeft();
-                packet = new Packet_LobbyNewPlayer(){OtherPlayerName = name.GetStringFromUtf8()};
+                packet = new Packet_LobbyNewPlayer(name.GetStringFromUtf8());
                 return true;
             }
             case PacketTypeEnum.NEW_GAME_REQUEST:
@@ -127,8 +124,7 @@ public abstract partial class AbstractPacket : Resource
             {
                 if(buffer.Count < 2) return false;
                 buffer.PopLeft();
-                ErrorCodeEnum error = (ErrorCodeEnum)buffer.PopLeft();
-                packet = new Packet_NewGameRequestFail(){ErrorCode = error};
+                packet = new Packet_NewGameRequestFail((ErrorCodeEnum)buffer.PopLeft());
                 return true;
             }
             case PacketTypeEnum.NEW_GAME_REQUESTED:
@@ -153,8 +149,7 @@ public abstract partial class AbstractPacket : Resource
             {
                 if(buffer.Count < 2) return false;
                 buffer.PopLeft();
-                ErrorCodeEnum error = (ErrorCodeEnum)buffer.PopLeft();
-                packet = new Packet_NewGameAcceptFail(){ErrorCode = error};
+                packet = new Packet_NewGameAcceptFail((ErrorCodeEnum)buffer.PopLeft());
                 return true;
             }
             case PacketTypeEnum.NEW_GAME_ACCEPTED:
@@ -179,8 +174,7 @@ public abstract partial class AbstractPacket : Resource
             {
                 if(buffer.Count < 2) return false;
                 buffer.PopLeft();
-                ErrorCodeEnum error = (ErrorCodeEnum)buffer.PopLeft();
-                packet = new Packet_NewGameRejectFail(){ErrorCode = error};
+                packet = new Packet_NewGameRejectFail((ErrorCodeEnum)buffer.PopLeft());
                 return true;
             }
             case PacketTypeEnum.NEW_GAME_REJECTED:
@@ -205,8 +199,7 @@ public abstract partial class AbstractPacket : Resource
             {
                 if(buffer.Count < 2) return false;
                 buffer.PopLeft();
-                ErrorCodeEnum error = (ErrorCodeEnum)buffer.PopLeft();
-                packet = new Packet_NewGameCancelFail(){ErrorCode = error};
+                packet = new Packet_NewGameCancelFail((ErrorCodeEnum)buffer.PopLeft());
                 return true;
             }
             case PacketTypeEnum.NEW_GAME_CANCELED:
@@ -219,16 +212,14 @@ public abstract partial class AbstractPacket : Resource
             {
                 if(buffer.Count < 2) return false;
                 buffer.PopLeft();
-                DisconnectReasonEnum reason = (DisconnectReasonEnum)buffer.PopLeft();
-                packet = new Packet_LobbyDisconnect(){Reason = reason};
+                packet = new Packet_LobbyDisconnect((DisconnectReasonEnum)buffer.PopLeft());
                 return true;
             }
             case PacketTypeEnum.LOBBY_DISCONNECT_OTHER:
             {
                 if(buffer.Count < 2) return false;
                 buffer.PopLeft();
-                DisconnectReasonEnum reason = (DisconnectReasonEnum)buffer.PopLeft();
-                packet = new Packet_LobbyDisconnectOther(){Reason = reason};
+                packet = new Packet_LobbyDisconnectOther((DisconnectReasonEnum)buffer.PopLeft());
                 return true;
             }
             case PacketTypeEnum.LOBBY_TIMEOUT_WARNING:
@@ -236,7 +227,7 @@ public abstract partial class AbstractPacket : Resource
                 if(buffer.Count < 5) return false;
                 int secondsRemaining = (int)Utils.LoadBigEndianU32(new[]{buffer[1], buffer[2], buffer[3], buffer[4]}, 0);
                 for(int i = 0; i < 5; ++i) buffer.PopLeft();
-                packet = new Packet_LobbyTimeoutWarning(){SecondsRemaining = secondsRemaining};
+                packet = new Packet_LobbyTimeoutWarning(secondsRemaining);
                 return true;
             }
             case PacketTypeEnum.LOBBY_TIMEOUT:
@@ -249,8 +240,7 @@ public abstract partial class AbstractPacket : Resource
             {
                 if(buffer.Count < 2) return false;
                 buffer.PopLeft();
-                GameTurnEnum turn = (GameTurnEnum)buffer.PopLeft();
-                packet = new Packet_NewGameStarting(){GameTurn = turn};
+                packet = new Packet_NewGameStarting((GameTurnEnum)buffer.PopLeft());
                 return true;
             }
             case PacketTypeEnum.GAME_ACTION_PLACE:
@@ -258,12 +248,10 @@ public abstract partial class AbstractPacket : Resource
                 if(buffer.Count < 6) return false;
                 uint size = Utils.LoadBigEndianU32(new[]{buffer[2], buffer[3], buffer[4], buffer[5]}, 0);
                 if(buffer.Count < 6 + size) return false;
-                buffer.PopLeft();
-                byte column = buffer.PopLeft();
-                for(int i = 0; i < 4; ++i) buffer.PopLeft();
-                byte[] path = new byte[size];
-                for(int i = 0; i < size; ++i) path[i] = buffer.PopLeft();
-                packet = new Packet_GameActionPlace(){Column = column, ScenePath = path.GetStringFromUtf8()};
+                byte column = buffer[1];
+                for(int i = 0; i < 6; ++i) buffer.PopLeft();
+                byte[] path = new byte[size]; for(int i = 0; i < size; ++i) path[i] = buffer.PopLeft();
+                packet = new Packet_GameActionPlace(column, path.GetStringFromUtf8());
                 return true;
             }
             case PacketTypeEnum.GAME_ACTION_PLACE_OK:
@@ -276,8 +264,7 @@ public abstract partial class AbstractPacket : Resource
             {
                 if(buffer.Count < 2) return false;
                 buffer.PopLeft();
-                ErrorCodeEnum error = (ErrorCodeEnum)buffer.PopLeft();
-                packet = new Packet_GameActionPlaceFail(){ErrorCode = error};
+                packet = new Packet_GameActionPlaceFail((ErrorCodeEnum)buffer.PopLeft());
                 return true;
             }
             case PacketTypeEnum.GAME_ACTION_PLACE_OTHER:
@@ -285,12 +272,10 @@ public abstract partial class AbstractPacket : Resource
                 if(buffer.Count < 6) return false;
                 uint size = Utils.LoadBigEndianU32(new[]{buffer[2], buffer[3], buffer[4], buffer[5]}, 0);
                 if(buffer.Count < 6 + size) return false;
-                buffer.PopLeft();
-                byte column = buffer.PopLeft();
-                for(int i = 0; i < 4; ++i) buffer.PopLeft();
-                byte[] path = new byte[size];
-                for(int i = 0; i < size; ++i) path[i] = buffer.PopLeft();
-                packet = new Packet_GameActionPlaceOther(){Column = column, ScenePath = path.GetStringFromUtf8()};
+                byte column = buffer[1];
+                for(int i = 0; i < 6; ++i) buffer.PopLeft();
+                byte[] path = new byte[size]; for(int i = 0; i < size; ++i) path[i] = buffer.PopLeft();
+                packet = new Packet_GameActionPlaceOther(column, path.GetStringFromUtf8());
                 return true;
             }
             case PacketTypeEnum.GAME_ACTION_REFILL:
@@ -309,8 +294,7 @@ public abstract partial class AbstractPacket : Resource
             {
                 if(buffer.Count < 2) return false;
                 buffer.PopLeft();
-                ErrorCodeEnum error = (ErrorCodeEnum)buffer.PopLeft();
-                packet = new Packet_GameActionRefillFail(){ErrorCode = error};
+                packet = new Packet_GameActionRefillFail((ErrorCodeEnum)buffer.PopLeft());
                 return true;
             }
             case PacketTypeEnum.GAME_ACTION_REFILL_OTHER:
@@ -326,14 +310,14 @@ public abstract partial class AbstractPacket : Resource
                 int player1Score = (int)Utils.LoadBigEndianU32(new[]{buffer[2], buffer[3], buffer[4], buffer[5]}, 0);
                 int player2Score = (int)Utils.LoadBigEndianU32(new[]{buffer[6], buffer[7], buffer[8], buffer[9]}, 0);
                 for(int i = 0; i < 10; ++i) buffer.PopLeft();
-                packet = new Packet_GameFinished(){Result = result, Player1Score = player1Score, Player2Score = player2Score};
+                packet = new Packet_GameFinished(result, player1Score, player2Score);
                 return true;
             }
             default:
             {
                 GD.PushError($"Unknown packet type {type}");
                 buffer.PopLeft();
-                packet = new Packet_InvalidPacket(){GivenPacketType = type};
+                packet = new Packet_InvalidPacket(type);
                 return true;
             }
         }

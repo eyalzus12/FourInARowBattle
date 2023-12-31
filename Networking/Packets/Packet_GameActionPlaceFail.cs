@@ -10,6 +10,11 @@ public partial class Packet_GameActionPlaceFail : AbstractPacket
     [Export]
     public ErrorCodeEnum ErrorCode{get; set;}
 
+    public Packet_GameActionPlaceFail(ErrorCodeEnum errorCode)
+    {
+        ErrorCode = errorCode;
+    }
+
     public override byte[] ToByteArray()
     {
         byte[] buffer = new byte[1 + 1];

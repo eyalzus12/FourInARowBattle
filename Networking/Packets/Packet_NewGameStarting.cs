@@ -9,6 +9,11 @@ public partial class Packet_NewGameStarting : AbstractPacket
     [Export]
     public GameTurnEnum GameTurn{get; set;}
 
+    public Packet_NewGameStarting(GameTurnEnum gameTurn)
+    {
+        GameTurn = gameTurn;
+    }
+
     public override byte[] ToByteArray()
     {
         byte[] buffer = new byte[1 + 1];

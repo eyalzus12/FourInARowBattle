@@ -10,6 +10,11 @@ public partial class Packet_CreateLobbyFail : AbstractPacket
     [Export]
     public ErrorCodeEnum ErrorCode{get; set;}
 
+    public Packet_CreateLobbyFail(ErrorCodeEnum errorCode)
+    {
+        ErrorCode = errorCode;
+    }
+
     public override byte[] ToByteArray()
     {
         byte[] buffer = new byte[1 + 1];

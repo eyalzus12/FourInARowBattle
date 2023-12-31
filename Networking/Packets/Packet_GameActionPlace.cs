@@ -11,6 +11,12 @@ public partial class Packet_GameActionPlace : AbstractPacket
     [Export]
     public string ScenePath{get; set;} = null!;
 
+    public Packet_GameActionPlace(byte column, string scenePath)
+    {
+        Column = column;
+        ScenePath = scenePath;
+    }
+
     public override byte[] ToByteArray()
     {
         byte[] stringBuffer = ScenePath.ToUtf8Buffer();

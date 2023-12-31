@@ -18,67 +18,67 @@ public partial class WebSocketClient : Node
     public string[] SupportedProtocols{get; set;} = Array.Empty<string>();
 
     public TlsOptions? TlsOptions{get; set;} = null;
-    public WebSocketPeer Socket{get; set;} = new();
-    public WebSocketPeer.State LastState{get; set;} = WebSocketPeer.State.Closed;
+    private WebSocketPeer _socket = new();
+    private WebSocketPeer.State _lastState = WebSocketPeer.State.Closed;
 
     public Error ConnectToUrl(string url)
     {
-        Socket.HandshakeHeaders = HandshakeHeaders;
-        Socket.SupportedProtocols = SupportedProtocols;
-        Error err = Socket.ConnectToUrl(url, TlsOptions);
+        _socket.HandshakeHeaders = HandshakeHeaders;
+        _socket.SupportedProtocols = SupportedProtocols;
+        Error err = _socket.ConnectToUrl(url, TlsOptions);
         if(err != Error.Ok)
         {
             GD.PushError($"Error {err} while attempting to connect to url {url}");
             return err;
         }
-        LastState = Socket.GetReadyState();
+        _lastState = _socket.GetReadyState();
         return Error.Ok;
     }
 
     public Error SendPacket(byte[] packet)
     {
-        return Socket.PutPacket(packet);
+        return _socket.PutPacket(packet);
     }
 
     public byte[]? GetPacket()
     {
-        if(Socket.GetAvailablePacketCount() < 1) return null;
-        return Socket.GetPacket();
+        if(_socket.GetAvailablePacketCount() < 1) return null;
+        return _socket.GetPacket();
     }
 
     public Error TryGetPacket(out byte[]? packet)
     {
         packet = null;
-        if(Socket.GetAvailablePacketCount() < 1) return Error.Ok;
-        packet = Socket.GetPacket();
-        return Socket.GetPacketError();
+        if(_socket.GetAvailablePacketCount() < 1) return Error.Ok;
+        packet = _socket.GetPacket();
+        return _socket.GetPacketError();
     }
 
     public void Close(int code = 1000, string reason = "")
     {
-        Socket.Close(code, reason);
+        _socket.Close(code, reason);
     }
 
     public void Clear()
     {
-        Socket = new();
-        LastState = Socket.GetReadyState();
+        _socket = new();
+        _lastState = _socket.GetReadyState();
     }
 
     public void Poll()
     {
-        WebSocketPeer.State state = Socket.GetReadyState();
+        WebSocketPeer.State state = _socket.GetReadyState();
         if(state != WebSocketPeer.State.Closed)
-            Socket.Poll();
-        if(LastState != state)
+            _socket.Poll();
+        if(_lastState != state)
         {
-            LastState = state;
+            _lastState = state;
             if(state == WebSocketPeer.State.Open)
                 EmitSignal(WebSocketClient.SignalName.ConnectedToServer);
             else if(state == WebSocketPeer.State.Closed)
                 EmitSignal(WebSocketClient.SignalName.ConnectionClosed);
         }
-        while(Socket.GetReadyState() == WebSocketPeer.State.Open && Socket.GetAvailablePacketCount() > 0)
+        while(_socket.GetReadyState() == WebSocketPeer.State.Open && _socket.GetAvailablePacketCount() > 0)
         {
             Error err = TryGetPacket(out byte[]? packet);
             if(err != Error.Ok)

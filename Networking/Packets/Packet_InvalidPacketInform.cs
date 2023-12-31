@@ -9,6 +9,11 @@ public partial class Packet_InvalidPacketInform : AbstractPacket
     [Export]
     public PacketTypeEnum GivenPacketType{get; set;}
 
+    public Packet_InvalidPacketInform(PacketTypeEnum givenPacketType)
+    {
+        GivenPacketType = givenPacketType;
+    }
+
     public override byte[] ToByteArray()
     {
         byte[] buffer = new byte[1 + 1];

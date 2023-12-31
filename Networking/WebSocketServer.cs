@@ -8,7 +8,7 @@ namespace FourInARowBattle;
 
 public partial class WebSocketServer : Node
 {
-    public sealed class PendingPeer
+    private sealed class PendingPeer
     {
         public ulong ConnectTime{get; set;}
         public StreamPeerTcp Tcp{get; set;}
@@ -43,7 +43,7 @@ public partial class WebSocketServer : Node
     {
         _refuseNewConnections = value;
         if(_refuseNewConnections)
-            PendingPeers.Clear();
+            _pendingPeers.Clear();
     }}
 
     [ExportCategory("Tls")]
@@ -54,25 +54,25 @@ public partial class WebSocketServer : Node
     [Export]
     public CryptoKey? TlsKey{get; set;} = null;
 
-    public TcpServer TcpServer{get; private set;} = new();
-    public HashSet<PendingPeer> PendingPeers{get; private set;} = new();
-    public Dictionary<int, WebSocketPeer> Peers{get; private set;} = new();
+    private readonly TcpServer _tcpServer = new();
+    private readonly HashSet<PendingPeer> _pendingPeers = new();
+    private readonly Dictionary<int, WebSocketPeer> _peers = new();
 
     public Error Listen(ushort port)
     {
-        if(TcpServer.IsListening())
+        if(_tcpServer.IsListening())
         {
             GD.PushError("Attempt to listen on already listening TCP server");
             return Error.AlreadyInUse;
         }
-        return TcpServer.Listen(port);
+        return _tcpServer.Listen(port);
     }
 
     public void Stop()
     {
-        TcpServer.Stop();
-        PendingPeers.Clear();
-        Peers.Clear();
+        _tcpServer.Stop();
+        _pendingPeers.Clear();
+        _peers.Clear();
     }
 
     public Error SendPacket(int peerId, byte[] packet)
@@ -83,7 +83,7 @@ public partial class WebSocketServer : Node
         if(peerId < 0)
         {
             Error? firstErr = null;
-            foreach((int id, WebSocketPeer ws) in Peers)
+            foreach((int id, WebSocketPeer ws) in _peers)
             {
                 if(id == -peerId) continue;
                 Error err = ws.PutPacket(packet);
@@ -97,7 +97,7 @@ public partial class WebSocketServer : Node
         }
         else
         {
-            if(!Peers.TryGetValue(peerId, out WebSocketPeer? ws))
+            if(!_peers.TryGetValue(peerId, out WebSocketPeer? ws))
             {
                 GD.PushError($"Peer Id {peerId} does not exist");
                 return Error.DoesNotExist;
@@ -108,7 +108,7 @@ public partial class WebSocketServer : Node
 
     public byte[]? GetPacket(int peerId)
     {
-        if(!Peers.TryGetValue(peerId, out WebSocketPeer? ws))
+        if(!_peers.TryGetValue(peerId, out WebSocketPeer? ws))
         {
             GD.PushError($"Peer Id {peerId} does not exist");
             return null;
@@ -121,7 +121,7 @@ public partial class WebSocketServer : Node
     public Error TryGetPacket(int peerId, out byte[]? packet)
     {
         packet = null;
-        if(!Peers.TryGetValue(peerId, out WebSocketPeer? ws))
+        if(!_peers.TryGetValue(peerId, out WebSocketPeer? ws))
         {
             GD.PushError($"Peer Id {peerId} does not exist");
             return Error.DoesNotExist;
@@ -134,7 +134,7 @@ public partial class WebSocketServer : Node
 
     public bool HasPacket(int peerId)
     {
-        if(!Peers.TryGetValue(peerId, out WebSocketPeer? ws))
+        if(!_peers.TryGetValue(peerId, out WebSocketPeer? ws))
         {
             GD.PushError($"Peer Id {peerId} does not exist");
             return false;
@@ -150,40 +150,40 @@ public partial class WebSocketServer : Node
 
     public void Poll()
     {
-        if(!TcpServer.IsListening())
+        if(!_tcpServer.IsListening())
             return;
         
         //get new pending peers
-        while(!RefuseNewConnections && TcpServer.IsConnectionAvailable())
+        while(!RefuseNewConnections && _tcpServer.IsConnectionAvailable())
         {
-            StreamPeerTcp? sp = TcpServer.TakeConnection();
+            StreamPeerTcp? sp = _tcpServer.TakeConnection();
             if(sp is null)
             {
                 GD.PushError("Got null stream peer while taking a tcp connection");
                 continue;
             }
-            PendingPeers.Add(new(sp));
+            _pendingPeers.Add(new(sp));
         }
 
         //timeout peers
-        List<PendingPeer> pendingPeersCopy = PendingPeers.ToList();
+        List<PendingPeer> pendingPeersCopy = _pendingPeers.ToList();
         foreach(PendingPeer peer in pendingPeersCopy)
         {
             if(ConnectPending(peer) && peer.ConnectTime + HandshakeTimeout < Time.GetTicksMsec())
             {
-                PendingPeers.Remove(peer);
+                _pendingPeers.Remove(peer);
             }
         }
 
         //get packets and disconnect peers that deserve it
-        List<KeyValuePair<int, WebSocketPeer>> peersCopy = Peers.ToList();
+        List<KeyValuePair<int, WebSocketPeer>> peersCopy = _peers.ToList();
         foreach((int id, WebSocketPeer ws) in peersCopy)
         {
             ws.Poll();
             if(ws.GetReadyState() != WebSocketPeer.State.Open)
             {
                 EmitSignal(WebSocketServer.SignalName.ClientDisconnected, id);
-                Peers.Remove(id);
+                _peers.Remove(id);
                 continue;
             }
             while(ws.GetAvailablePacketCount() > 0)
@@ -210,8 +210,8 @@ public partial class WebSocketServer : Node
             {
                 //find unused id
                 int id;
-                do {id = GD.RandRange(2, 1 << 30);} while(!Peers.ContainsKey(id));
-                Peers.Add(id, peer.WebSocket);
+                do {id = GD.RandRange(2, 1 << 30);} while(!_peers.ContainsKey(id));
+                _peers.Add(id, peer.WebSocket);
                 EmitSignal(WebSocketServer.SignalName.ClientConnected, id);
                 return true; // Success
             }

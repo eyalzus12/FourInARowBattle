@@ -1,4 +1,3 @@
-
 using Godot;
 
 namespace FourInARowBattle;
@@ -9,6 +8,11 @@ public partial class Packet_NewGameRequestFail : AbstractPacket
 
     [Export]
     public ErrorCodeEnum ErrorCode{get; set;}
+
+    public Packet_NewGameRequestFail(ErrorCodeEnum errorCode)
+    {
+        ErrorCode = errorCode;
+    }
 
     public override byte[] ToByteArray()
     {

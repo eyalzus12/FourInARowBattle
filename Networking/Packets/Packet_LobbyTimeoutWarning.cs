@@ -9,6 +9,11 @@ public class Packet_LobbyTimeoutWarning : AbstractPacket
     [Export]
     public int SecondsRemaining{get; set;}
 
+    public Packet_LobbyTimeoutWarning(int secondsRemaining)
+    {
+        SecondsRemaining = secondsRemaining;
+    }
+
     public override byte[] ToByteArray()
     {
         byte[] buffer = new byte[1 + 4];

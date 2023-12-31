@@ -12,6 +12,12 @@ public partial class Packet_ConnectLobbyRequest : AbstractPacket
     [Export]
     public string PlayerName{get; set;} = null!;
 
+    public Packet_ConnectLobbyRequest(uint lobbyId, string playerName)
+    {
+        LobbyId = lobbyId;
+        PlayerName = playerName;
+    }
+
     public override byte[] ToByteArray()
     {
         byte[] stringBuffer = PlayerName.ToUtf8Buffer();

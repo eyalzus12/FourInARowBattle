@@ -13,6 +13,13 @@ public partial class Packet_GameFinished : AbstractPacket
     [Export]
     public int Player2Score{get; set;}
 
+    public Packet_GameFinished(GameResultEnum result, int player1Score, int player2Score)
+    {
+        Result = result;
+        Player1Score = player1Score;
+        Player2Score = player2Score;
+    }
+
     public override byte[] ToByteArray()
     {
         byte[] buffer = new byte[1 + 1 + 4 + 4];

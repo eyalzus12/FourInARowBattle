@@ -9,6 +9,11 @@ public partial class Packet_NewGameRejectFail : AbstractPacket
     [Export]
     public ErrorCodeEnum ErrorCode{get; set;}
 
+    public Packet_NewGameRejectFail(ErrorCodeEnum errorCode)
+    {
+        ErrorCode = errorCode;
+    }
+
     public override byte[] ToByteArray()
     {
         byte[] buffer = new byte[1 + 1];
