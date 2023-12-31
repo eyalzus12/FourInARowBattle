@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Godot;
 
@@ -8,11 +9,11 @@ public partial class Packet_ConnectLobbyOk : AbstractPacket
     public override PacketTypeEnum PacketType => PacketTypeEnum.CONNECT_LOBBY_OK;
 
     [Export]
-    public string OtherPlayerName{get; set;} = null!;
+    public string? OtherPlayerName{get; set;} = null;
 
     public override byte[] ToByteArray()
     {
-        byte[] stringBuffer = OtherPlayerName.ToUtf8Buffer();
+        byte[] stringBuffer = OtherPlayerName?.ToUtf8Buffer() ?? Array.Empty<byte>();
         if(stringBuffer.Length > byte.MaxValue)
         {
             GD.PushError($"Player name is too long: {OtherPlayerName}");

@@ -10,20 +10,26 @@ public enum ErrorCodeEnum : byte
     CANNOT_CREATE_WHILE_IN_LOBBY,
     //cannot join lobby - current in lobby
     CANNOT_JOIN_WHILE_IN_LOBBY,
-    //lobby does not exist
-    LOBBY_DOES_NOT_EXIST,
+    //cannot join lobby - does not exist
+    CANNOT_JOIN_LOBBY_DOES_NOT_EXIST,
+    //cannot join lobby - full
+    CANNOT_JOIN_LOBBY_FULL,
     //can't approve - no request sent
     CANNOT_APPROVE_NO_REQUEST,
     //can't reject - no request sent
     CANNOT_REJECT_NO_REQUEST,
     //can't cancel - no request sent
     CANNOT_CANCEL_NO_REQUEST,
-    //can't start game - no other player
-    CANNOT_START_NO_OTHER_PLAYER,
-    //can't start game - current in game
-    CANNOT_START_MID_GAME,
-    //can't start game - not in lobby
-    CANNOT_START_NO_LOBBY,
+    //can't cancel - not your request
+    CANNOT_CANCEL_NOT_YOUR_REQUEST,
+    //can't request start game - no other player
+    CANNOT_REQUEST_START_NO_OTHER_PLAYER,
+    //can't request start game - already in game
+    CANNOT_REQUEST_START_MID_GAME,
+    //can't request start game - not in lobby
+    CANNOT_REQUEST_START_NO_LOBBY,
+    //can't request start game - request already in progress
+    CANNOT_REQUEST_START_ALREADY_DID,
     //can't place - not your turn
     CANNOT_PLACE_NOT_YOUR_TURN,
     //can't refill - not your turn
