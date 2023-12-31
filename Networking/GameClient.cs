@@ -37,12 +37,10 @@ public partial class GameClient : Node
     public void OnWebSocketClientPacketReceived(byte[] packetBytes)
     {
         foreach(byte b in packetBytes) _buffer.PushRight(b);
-        if(_buffer.Count > 0)
+
+        while(_buffer.Count > 0 && AbstractPacket.TryConstructFrom(_buffer, out AbstractPacket? packet))
         {
-            if(AbstractPacket.TryConstructFrom(_buffer, out AbstractPacket? packet))
-            {
-                HandlePacket(packet);
-            }
+            HandlePacket(packet);
         }
     }
     public void SendPacket(AbstractPacket packet)

@@ -51,58 +51,14 @@ public partial class GameServer : Node
     public void OnWebSocketServerPacketReceived(int peerId, byte[] packetBytes)
     {
         foreach(byte b in packetBytes) _buffer.PushRight(b);
-        if(_buffer.Count > 0)
+        
+        while(_buffer.Count > 0 && AbstractPacket.TryConstructFrom(_buffer, out AbstractPacket? packet))
         {
-            if(AbstractPacket.TryConstructFrom(_buffer, out AbstractPacket? packet))
-            {
-                HandlePacket(peerId, packet);
-            }
+            HandlePacket(peerId, packet);
         }
     }
 
     public void OnWebSocketClientDisconnected(int peerId) => RemovePlayer(peerId, DisconnectReasonEnum.CONNECTION);
-
-    private void RemovePlayer(int peerId, DisconnectReasonEnum reason)
-    {
-        if(!_players.TryGetValue(peerId, out Player? player)) return;
-        _players.Remove(player.Id);
-        Lobby? lobby = player.Lobby;
-        if(lobby is null) return;
-        lobby.InGame = false;
-        lobby.Requester = null;
-
-        if(lobby.Players[0] == player)
-        {
-            lobby.Players[0] = lobby.Players[1];
-            lobby.Players[1] = null;
-        }
-        else
-        {
-            lobby.Players[1] = null;
-        }
-        Player? other = lobby.Players[0];
-        if(other is null) _lobbies.Remove(lobby.Id);
-        else SendPacket(other.Id, new Packet_LobbyDisconnectOther(reason));
-    }
-
-    private bool UpdateName(int peerId, string name, [NotNullWhen(true)] out Player? player)
-    {
-        if(_players.TryGetValue(peerId, out player))
-        {
-            if(player.Lobby is not null)
-            {
-                return false;
-            }
-            //update name
-            player.Name = name;
-        }
-        //new player
-        else
-        {
-            player = _players[peerId] = new Player(peerId, name);
-        }
-        return true;
-    }
 
     public void SendPacket(int peerId, AbstractPacket packet)
     {
@@ -323,5 +279,47 @@ public partial class GameServer : Node
                 break;
             }
         }
+    }
+
+    private void RemovePlayer(int peerId, DisconnectReasonEnum reason)
+    {
+        if(!_players.TryGetValue(peerId, out Player? player)) return;
+        _players.Remove(player.Id);
+        Lobby? lobby = player.Lobby;
+        if(lobby is null) return;
+        lobby.InGame = false;
+        lobby.Requester = null;
+
+        if(lobby.Players[0] == player)
+        {
+            lobby.Players[0] = lobby.Players[1];
+            lobby.Players[1] = null;
+        }
+        else
+        {
+            lobby.Players[1] = null;
+        }
+        Player? other = lobby.Players[0];
+        if(other is null) _lobbies.Remove(lobby.Id);
+        else SendPacket(other.Id, new Packet_LobbyDisconnectOther(reason));
+    }
+
+    private bool UpdateName(int peerId, string name, [NotNullWhen(true)] out Player? player)
+    {
+        if(_players.TryGetValue(peerId, out player))
+        {
+            if(player.Lobby is not null)
+            {
+                return false;
+            }
+            //update name
+            player.Name = name;
+        }
+        //new player
+        else
+        {
+            player = _players[peerId] = new Player(peerId, name);
+        }
+        return true;
     }
 }
