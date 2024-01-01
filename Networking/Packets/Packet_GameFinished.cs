@@ -23,10 +23,10 @@ public partial class Packet_GameFinished : AbstractPacket
     public override byte[] ToByteArray()
     {
         byte[] buffer = new byte[1 + 1 + 4 + 4];
-        Utils.StoreBigEndianU8((byte)PacketType, buffer, 0);
-        Utils.StoreBigEndianU8((byte)Result, buffer, 1);
-        Utils.StoreBigEndianU32((uint)Player1Score, buffer, 2);
-        Utils.StoreBigEndianU32((uint)Player2Score, buffer, 6);
+        buffer.StoreBigEndianU8((byte)PacketType, 0);
+        buffer.StoreBigEndianU8((byte)Result, 1);
+        buffer.StoreBigEndianU32((uint)Player1Score, 2);
+        buffer.StoreBigEndianU32((uint)Player2Score, 6);
         return buffer;
     }
 }

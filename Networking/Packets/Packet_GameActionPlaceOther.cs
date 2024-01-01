@@ -21,10 +21,10 @@ public partial class Packet_GameActionPlaceOther : AbstractPacket
     {
         byte[] stringBuffer = ScenePath.ToUtf8Buffer();
         byte[] buffer = new byte[1 + 1 + 4 + stringBuffer.Length];
-        Utils.StoreBigEndianU8((byte)PacketType, buffer, 0);
-        Utils.StoreBigEndianU8(Column, buffer, 1);
-        Utils.StoreBigEndianU32((uint)stringBuffer.Length, buffer, 2);
-        Utils.StoreBuffer(stringBuffer, buffer, 8);
+        buffer.StoreBigEndianU8((byte)PacketType, 0);
+        buffer.StoreBigEndianU8(Column, 1);
+        buffer.StoreBigEndianU32((uint)stringBuffer.Length, 2);
+        buffer.StoreBuffer(stringBuffer, 8);
         return buffer;
     }
 }

@@ -10,8 +10,8 @@ public partial class ObjectPool : Node
     //how many new objects to create if pool is empty
     public const int OBJECT_POOL_FACTOR = 3;
 
-    public Dictionary<PackedScene, Queue<Node>> ObjectPoolDictionary{get; protected set;} = new();
-    public Dictionary<PackedScene, Queue<Node>> ObjectPoolReturnQueue{get; protected set;} = new();
+    private readonly Dictionary<PackedScene, Queue<Node>> _objectPoolDict = new();
+    private readonly Dictionary<PackedScene, Queue<Node>> _objectPoolReturnQueue = new();
 
     public override void _Ready()
     {
@@ -38,8 +38,8 @@ public partial class ObjectPool : Node
 
     public Node GetObject(PackedScene scene)
     {
-        ObjectPoolDictionary.TryAdd(scene, new());
-        Queue<Node> objectQueue = ObjectPoolDictionary[scene];
+        _objectPoolDict.TryAdd(scene, new());
+        Queue<Node> objectQueue = _objectPoolDict[scene];
 
         //empty. pool new.
         if(objectQueue.Count == 0)
@@ -64,27 +64,27 @@ public partial class ObjectPool : Node
 
         n.GetParent()?.RemoveChild(n);
 
-        ObjectPoolReturnQueue.TryAdd(scene, new());
-        ObjectPoolReturnQueue[scene].Enqueue(n);
+        _objectPoolReturnQueue.TryAdd(scene, new());
+        _objectPoolReturnQueue[scene].Enqueue(n);
     }
 
     public void PoolNewObjects(PackedScene scene)
     {
-        ObjectPoolDictionary.TryAdd(scene, new());
-        Queue<Node> objectQueue = ObjectPoolDictionary[scene];
+        _objectPoolDict.TryAdd(scene, new());
+        Queue<Node> objectQueue = _objectPoolDict[scene];
         for(int i = 0; i < OBJECT_POOL_FACTOR; ++i)
             objectQueue.Enqueue(scene.Instantiate());
     }
 
     public void EmptyReturnQueue()
     {
-        List<PackedScene> keys = ObjectPoolReturnQueue.Keys.ToList();
+        List<PackedScene> keys = _objectPoolReturnQueue.Keys.ToList();
         foreach(PackedScene key in keys)
         {
-            ObjectPoolDictionary.TryAdd(key, new());
-            Queue<Node> poolQueue = ObjectPoolDictionary[key];
+            _objectPoolDict.TryAdd(key, new());
+            Queue<Node> poolQueue = _objectPoolDict[key];
 
-            Queue<Node> returnQueue = ObjectPoolReturnQueue[key];
+            Queue<Node> returnQueue = _objectPoolReturnQueue[key];
             foreach(Node n in returnQueue)
             {
                 if(n.IsInstanceValid())
@@ -104,29 +104,29 @@ public partial class ObjectPool : Node
     {
         List<PackedScene> keys;
         
-        keys = ObjectPoolDictionary.Keys.ToList();
+        keys = _objectPoolDict.Keys.ToList();
         foreach(PackedScene key in keys)
         {
-            Queue<Node> q = ObjectPoolDictionary[key];
+            Queue<Node> q = _objectPoolDict[key];
             foreach(Node n in q)
             {
                 n.QueueFree();
             }
             q.Clear();
         }
-        ObjectPoolDictionary.Clear();
+        _objectPoolDict.Clear();
         
         
-        keys = ObjectPoolReturnQueue.Keys.ToList();
+        keys = _objectPoolReturnQueue.Keys.ToList();
         foreach(PackedScene key in keys)
         {
-            Queue<Node> q = ObjectPoolReturnQueue[key];
+            Queue<Node> q = _objectPoolReturnQueue[key];
             foreach(Node n in q)
             {
                 n.QueueFree();
             }
             q.Clear();
         }
-        ObjectPoolDictionary.Clear();
+        _objectPoolDict.Clear();
     }
 }

@@ -17,8 +17,8 @@ public partial class Packet_NewGameCancelFail : AbstractPacket
     public override byte[] ToByteArray()
     {
         byte[] buffer = new byte[1 + 1];
-        Utils.StoreBigEndianU8((byte)PacketType, buffer, 0);
-        Utils.StoreBigEndianU8((byte)ErrorCode, buffer, 1);
+        buffer.StoreBigEndianU8((byte)PacketType, 0);
+        buffer.StoreBigEndianU8((byte)ErrorCode, 1);
         return buffer;
     }
 }

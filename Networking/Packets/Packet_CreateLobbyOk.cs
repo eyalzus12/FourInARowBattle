@@ -18,8 +18,8 @@ public partial class Packet_CreateLobbyOk : AbstractPacket
     public override byte[] ToByteArray()
     {
         byte[] buffer = new byte[1 + 4];
-        Utils.StoreBigEndianU8((byte)PacketType, buffer, 0);
-        Utils.StoreBigEndianU32(LobbyId, buffer, 1);
+        buffer.StoreBigEndianU8((byte)PacketType, 0);
+        buffer.StoreBigEndianU32(LobbyId, 1);
         return buffer;
     }
 }

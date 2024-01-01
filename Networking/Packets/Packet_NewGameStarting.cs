@@ -17,8 +17,8 @@ public partial class Packet_NewGameStarting : AbstractPacket
     public override byte[] ToByteArray()
     {
         byte[] buffer = new byte[1 + 1];
-        Utils.StoreBigEndianU8((byte)PacketType, buffer, 0);
-        Utils.StoreBigEndianU8((byte)GameTurn, buffer, 0);
+        buffer.StoreBigEndianU8((byte)PacketType, 0);
+        buffer.StoreBigEndianU8((byte)GameTurn, 0);
         return buffer;
     }
 }

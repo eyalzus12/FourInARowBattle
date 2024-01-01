@@ -42,48 +42,48 @@ public partial class AudioManager : Node
 
     public class Pool<T> where T : new()
     {
-        public int PoolFactor{get; set;}
-        public Action<T>? OnCreate{get; set;}
+        private readonly int _poolFactor;
+        private readonly Action<T>? _onCreate;
 
         public Pool(int factor, Action<T>? onCreate = null)
         {
-            PoolFactor = factor;
-            OnCreate = onCreate;
+            _poolFactor = factor;
+            _onCreate = onCreate;
         }
 
-        public Queue<T> PoolQueue{get; set;} = new();
-        public HashSet<T> PoolQueueSet{get; set;} = new();
-        public HashSet<T> PoolList{get; set;} = new();
+        private readonly Queue<T> _poolQueue = new();
+        public readonly HashSet<T> _poolQueueSet = new();
+        public readonly HashSet<T> _poolList = new();
 
         public T GetObject()
         {
-            if(PoolQueue.Count == 0)
+            if(_poolQueue.Count == 0)
             {
-                for(int i = 0; i < PoolFactor; ++i)
+                for(int i = 0; i < _poolFactor; ++i)
                 {
                     T newT = new();
-                    if(OnCreate is not null)
-                        OnCreate(newT);
-                    PoolQueue.Enqueue(newT);
-                    PoolQueueSet.Add(newT);
-                    PoolList.Add(newT);
+                    if(_onCreate is not null)
+                        _onCreate(newT);
+                    _poolQueue.Enqueue(newT);
+                    _poolQueueSet.Add(newT);
+                    _poolList.Add(newT);
                 }
             }
 
-            T resT = PoolQueue.Dequeue();
-            PoolQueueSet.Remove(resT);
+            T resT = _poolQueue.Dequeue();
+            _poolQueueSet.Remove(resT);
             return resT;
         }
 
         public void ReturnObject(T t)
         {
-            if(!PoolList.Contains(t))
+            if(!_poolList.Contains(t))
                 return;
-            if(PoolQueueSet.Contains(t))
+            if(_poolQueueSet.Contains(t))
                 return;
             
-            PoolQueue.Enqueue(t);
-            PoolQueueSet.Add(t);
+            _poolQueue.Enqueue(t);
+            _poolQueueSet.Add(t);
         }
     }
 }

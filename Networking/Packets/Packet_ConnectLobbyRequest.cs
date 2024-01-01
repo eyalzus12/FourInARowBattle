@@ -27,10 +27,10 @@ public partial class Packet_ConnectLobbyRequest : AbstractPacket
             stringBuffer = stringBuffer.Take(byte.MaxValue).ToArray();
         }
         byte[] buffer = new byte[1 + 4 + 1 + stringBuffer.Length];
-        Utils.StoreBigEndianU8((byte)PacketType, buffer, 0);
-        Utils.StoreBigEndianU32(LobbyId, buffer, 1);
-        Utils.StoreBigEndianU8((byte)stringBuffer.Length, buffer, 5);
-        Utils.StoreBuffer(stringBuffer, buffer, 6);
+        buffer.StoreBigEndianU8((byte)PacketType, 0);
+        buffer.StoreBigEndianU32(LobbyId, 1);
+        buffer.StoreBigEndianU8((byte)stringBuffer.Length, 5);
+        buffer.StoreBuffer(stringBuffer, 6);
         return buffer;
     }
 }

@@ -12,7 +12,7 @@ public partial class Packet_NewGameRequested : AbstractPacket
     public override byte[] ToByteArray()
     {
         byte[] buffer = new byte[1];
-        Utils.StoreBigEndianU8((byte)PacketType, buffer, 0);
+        buffer.StoreBigEndianU8((byte)PacketType, 0);
         return buffer;
     }
 }

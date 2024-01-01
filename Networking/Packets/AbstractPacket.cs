@@ -58,7 +58,7 @@ public abstract partial class AbstractPacket : Resource
             case PacketTypeEnum.CREATE_LOBBY_OK:
             {
                 if(buffer.Count < 5) return false;
-                uint lobbyId = Utils.LoadBigEndianU32(new[]{buffer[1], buffer[2], buffer[3], buffer[4]}, 0);
+                uint lobbyId = new[]{buffer[1], buffer[2], buffer[3], buffer[4]}.LoadBigEndianU32();
                 for(int i = 0; i < 5; ++i) buffer.PopLeft();
                 packet = new Packet_CreateLobbyOk(lobbyId);
                 return true;
@@ -75,7 +75,7 @@ public abstract partial class AbstractPacket : Resource
                 if(buffer.Count < 6) return false;
                 byte size = buffer[5];
                 if(buffer.Count < 6 + size) return false;
-                uint lobbyId = Utils.LoadBigEndianU32(new[]{buffer[1], buffer[2], buffer[3], buffer[4]}, 0);
+                uint lobbyId = new[]{buffer[1], buffer[2], buffer[3], buffer[4]}.LoadBigEndianU32();
                 for(int i = 0; i < 6; ++i) buffer.PopLeft();
                 byte[] name = new byte[size]; for(int i = 0; i < size; ++i) name[i] = buffer.PopLeft();
                 packet = new Packet_ConnectLobbyRequest(lobbyId, name.GetStringFromUtf8());
@@ -225,7 +225,7 @@ public abstract partial class AbstractPacket : Resource
             case PacketTypeEnum.LOBBY_TIMEOUT_WARNING:
             {
                 if(buffer.Count < 5) return false;
-                int secondsRemaining = (int)Utils.LoadBigEndianU32(new[]{buffer[1], buffer[2], buffer[3], buffer[4]}, 0);
+                int secondsRemaining = (int)new[]{buffer[1], buffer[2], buffer[3], buffer[4]}.LoadBigEndianU32();
                 for(int i = 0; i < 5; ++i) buffer.PopLeft();
                 packet = new Packet_LobbyTimeoutWarning(secondsRemaining);
                 return true;
@@ -246,7 +246,7 @@ public abstract partial class AbstractPacket : Resource
             case PacketTypeEnum.GAME_ACTION_PLACE:
             {
                 if(buffer.Count < 6) return false;
-                uint size = Utils.LoadBigEndianU32(new[]{buffer[2], buffer[3], buffer[4], buffer[5]}, 0);
+                uint size = new[]{buffer[2], buffer[3], buffer[4], buffer[5]}.LoadBigEndianU32();
                 if(buffer.Count < 6 + size) return false;
                 byte column = buffer[1];
                 for(int i = 0; i < 6; ++i) buffer.PopLeft();
@@ -270,7 +270,7 @@ public abstract partial class AbstractPacket : Resource
             case PacketTypeEnum.GAME_ACTION_PLACE_OTHER:
             {
                 if(buffer.Count < 6) return false;
-                uint size = Utils.LoadBigEndianU32(new[]{buffer[2], buffer[3], buffer[4], buffer[5]}, 0);
+                uint size = new[]{buffer[2], buffer[3], buffer[4], buffer[5]}.LoadBigEndianU32();
                 if(buffer.Count < 6 + size) return false;
                 byte column = buffer[1];
                 for(int i = 0; i < 6; ++i) buffer.PopLeft();
@@ -307,8 +307,8 @@ public abstract partial class AbstractPacket : Resource
             {
                 if(buffer.Count < 10) return false;
                 GameResultEnum result = (GameResultEnum)buffer[1];
-                int player1Score = (int)Utils.LoadBigEndianU32(new[]{buffer[2], buffer[3], buffer[4], buffer[5]}, 0);
-                int player2Score = (int)Utils.LoadBigEndianU32(new[]{buffer[6], buffer[7], buffer[8], buffer[9]}, 0);
+                int player1Score = (int)new[]{buffer[2], buffer[3], buffer[4], buffer[5]}.LoadBigEndianU32();
+                int player2Score = (int)new[]{buffer[6], buffer[7], buffer[8], buffer[9]}.LoadBigEndianU32();
                 for(int i = 0; i < 10; ++i) buffer.PopLeft();
                 packet = new Packet_GameFinished(result, player1Score, player2Score);
                 return true;
