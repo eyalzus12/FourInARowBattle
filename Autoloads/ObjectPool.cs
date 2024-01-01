@@ -34,7 +34,16 @@ public partial class ObjectPool : Node
 
         return t;
     }
-    public T GetObject<T>(PackedScene scene) where T : Node => GetObjectOrNull<T>(scene) ?? throw new InvalidCastException($"Given PackedScene {scene.ResourcePath} does not match with type {typeof(T).Name}");
+    public T GetObject<T>(PackedScene scene) where T : Node
+    {
+        T? @object = GetObjectOrNull<T>(scene);
+        if(@object is null)
+        {
+            GD.PushError($"Given PackedScene {scene.ResourcePath} does not match with type {typeof(T).Name}");
+            return null!;
+        }
+        return @object;
+    }
 
     public Node GetObject(PackedScene scene)
     {

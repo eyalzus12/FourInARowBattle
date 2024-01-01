@@ -74,9 +74,9 @@ public partial class WebSocketClient : Node
         {
             _lastState = state;
             if(state == WebSocketPeer.State.Open)
-                EmitSignal(WebSocketClient.SignalName.ConnectedToServer);
+                EmitSignal(SignalName.ConnectedToServer);
             else if(state == WebSocketPeer.State.Closed)
-                EmitSignal(WebSocketClient.SignalName.ConnectionClosed);
+                EmitSignal(SignalName.ConnectionClosed);
         }
         while(_socket.GetReadyState() == WebSocketPeer.State.Open && _socket.GetAvailablePacketCount() > 0)
         {
@@ -87,7 +87,7 @@ public partial class WebSocketClient : Node
                 break;
             }
             if(packet is not null)
-                EmitSignal(WebSocketClient.SignalName.PacketReceived, packet);
+                EmitSignal(SignalName.PacketReceived, packet);
         }
     }
 

@@ -1,61 +1,50 @@
 using System;
+using Godot;
 
 namespace FourInARowBattle;
 
 public partial class TokenAntiSpecial : TokenBase
 {
     public const float DEACTIVATED_DARKEN_AMOUNT = 0.5f;
-    private int? _activeCol;
+    private bool _active = false;
 
-    public override void OnPlace(Board board, int row, int col)
+    public override void TokenSpawn(Board board, int row, int col)
     {
-        _activeCol = col;
-        board.TokenPlaced += (Board where, TokenBase who, int _row, int _col) =>
-        {
-            //for some reason this signal still gets called
-            //even after the token is disposed
-            //so we do this check to prevent weird stuff happening
-            if(!IsInstanceValid(this)) return;
+        base.TokenSpawn(board, row, col);
 
-            //active, a token dropped on our same board
-            if(_activeCol is not null && board == where && this != who)
+        Board.TokenPlaced += (TokenBase who, int _row, int _col) =>
+        {
+            if(!this.IsInstanceValid() || this == who || !_active) return;
+            //token is also anti special
+            if(who is TokenAntiSpecial)
             {
-                //token is also anti special
-                if(who is TokenAntiSpecial)
+                if(SameAs(who))
                 {
-                    //same team. disable self.
-                    if(SameAs(who))
-                    {
-                        _activeCol = null;
-                        Modulate = Modulate.Darkened(DEACTIVATED_DARKEN_AMOUNT);
-                    }
+                    _active = false;
+                    Modulate = Modulate.Darkened(DEACTIVATED_DARKEN_AMOUNT);
                 }
-                //normal token. same column. disable it.
-                else if(_activeCol == _col)
-                    who.TweenFinishedAction = null;
+            }
+            else if(Col == _col)
+            {
+                who.ActivatedPower = true;
             }
         };
-    }
-
-    public override void OnLocationUpdate(Board board, int row, int col)
-    {
-        base.OnLocationUpdate(board, row, col);
-        if(_activeCol is not null)
-            _activeCol = col;
+        _active = true;
     }
 
     public override void DeserializeFrom(Board board, TokenData data)
     {
         if(data is not TokenDataAntiSpecial)
-            throw new ArgumentException("Anti special tokens require token data "+
-            $"of type {nameof(TokenDataAntiSpecial)}, "+
-            $"but there was an attempt to create one with type {data.GetType().Name}");
+        {
+            GD.PushError(
+                "Anti special tokens require token data "+
+                $"of type {nameof(TokenDataAntiSpecial)}, "+
+                $"but there was an attempt to create one with type {data.GetType().Name}"
+            );
+        }
         base.DeserializeFrom(board, data);
         TokenDataAntiSpecial adata = (TokenDataAntiSpecial)data;
-        _activeCol = adata.TokenEffectIsActive?adata.TokenColumn:null;
-        //if this token is still active, we need it to reconnect its signals
-        if(_activeCol is not null)
-            OnPlace(board, -1, (int)_activeCol);
+        _active = adata.TokenEffectIsActive;
     }
 
     public override TokenData SerializeTo() => new TokenDataAntiSpecial()
@@ -64,7 +53,6 @@ public partial class TokenAntiSpecial : TokenBase
         TokenColor = TokenColor,
         TokenModulate = Modulate,
         GlobalPosition = GlobalPosition,
-        TokenColumn = _activeCol??-1,
-        TokenEffectIsActive = _activeCol is not null
+        TokenEffectIsActive = _active
     };
 }

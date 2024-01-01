@@ -1,10 +1,10 @@
 namespace FourInARowBattle;
 
-public partial class TokenHorizontalFlip : TokenOnDropFinish
+public partial class TokenHorizontalFlip : TokenBase
 {
-    public override void OnDropFinish(Board board, int row, int col)
+    public override void OnDropFinished()
     {
-        board.FlipRow(row);
-        board.ApplyGravity();
+        base.OnDropFinished();
+        Board.FlipRow(Row);
     }
 }

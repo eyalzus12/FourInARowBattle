@@ -11,7 +11,8 @@ public partial class SaveGameButton : Button
 
     public override void _Ready()
     {
-        GameToSave.GameBoard.TweenedTokenCountChanged += (int to) => Disabled = to != 0;
+        GameToSave.GameBoard.TokenFinishedDrop += () => Disabled = false;
+        GameToSave.GameBoard.TokenStartedDrop += () => Disabled = true;
 
         SaveGamePopup.FileSelected += (string path) =>
         {

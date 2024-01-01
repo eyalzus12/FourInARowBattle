@@ -195,7 +195,7 @@ public partial class WebSocketServer : Node
                     break;
                 }
                 if(packet is not null)
-                    EmitSignal(WebSocketServer.SignalName.PacketReceived, packet);
+                    EmitSignal(SignalName.PacketReceived, packet);
             }
         }
     }
@@ -212,7 +212,7 @@ public partial class WebSocketServer : Node
                 int id;
                 do {id = GD.RandRange(2, 1 << 30);} while(!_peers.ContainsKey(id));
                 _peers.Add(id, peer.WebSocket);
-                EmitSignal(WebSocketServer.SignalName.ClientConnected, id);
+                EmitSignal(SignalName.ClientConnected, id);
                 return true; // Success
             }
             else if(state == WebSocketPeer.State.Connecting)

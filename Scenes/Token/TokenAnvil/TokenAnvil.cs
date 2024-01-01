@@ -1,18 +1,19 @@
 namespace FourInARowBattle;
 
-public partial class TokenAnvil : TokenOnDropFinish
+public partial class TokenAnvil : TokenBase
 {
-    public override void OnDropFinish(Board board, int row, int col)
+    public override void OnDropFinished()
     {
+        base.OnDropFinished();
         //bottom of column
-        if(row == board.Rows-1) return;
+        if(Row == Board.Rows-1) return;
         //get location to remove
-        int removeRow = (board.FindBottomSpot(col) ?? board.Rows)-1;
+        int removeRow = (Board.FindBottomSpot(Col) ?? Board.Rows)-1;
         //there are no tokens in the column
         //this can happen if we get a four-in-a-row while dropping this token
         if(removeRow == -1) return;
         //remove
-        board.RemoveToken(removeRow,col);
-        board.ApplyColGravity(col);
+        Board.RemoveToken(removeRow,Col);
+        Board.ApplyColGravity(Col);
     }
 }

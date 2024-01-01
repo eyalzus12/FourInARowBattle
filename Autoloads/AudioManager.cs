@@ -26,7 +26,7 @@ public partial class AudioManager : Node
         _players3DPool = new(PLAYER3D_POOL_FACTOR, OnCreate(() => _players3DPool));
     }
 
-    private static readonly StringName FinishedSignal = "finished";
+    private static readonly StringName FINISHED_SIGNAL = "finished";
 
     //hack: give a function that returns the pool to fetch the pool value later
     //instead of right now, when it is null
@@ -36,7 +36,7 @@ public partial class AudioManager : Node
             if(!t.IsInsideTree())
             {
                 AddChild(t);
-                t.Connect(FinishedSignal, Callable.From(() => pool().ReturnObject(t)));
+                t.Connect(FINISHED_SIGNAL, Callable.From(() => pool().ReturnObject(t)));
             }
         };
 

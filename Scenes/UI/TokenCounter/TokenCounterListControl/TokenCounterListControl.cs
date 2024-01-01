@@ -160,7 +160,10 @@ public partial class TokenCounterListControl : Control
         if(_refillUnlockedNextTurn) _refillLocked = true;
 
         if(data.Counters.Count != Counters.Count)
-            throw new ArgumentException($"Token counter list has {Counters.Count} counters, and there was an attempt to create it from data with {data.Counters.Count} counters");
+        {
+            GD.PushError($"Token counter list has {Counters.Count} counters, and there was an attempt to create it from data with {data.Counters.Count} counters");
+            return;
+        }
         for(int i = 0; i < Counters.Count; ++i)
             Counters[i].DeserializeFrom(data.Counters[i]);
     }

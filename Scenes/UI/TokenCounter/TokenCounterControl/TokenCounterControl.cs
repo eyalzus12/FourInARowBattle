@@ -4,7 +4,6 @@ namespace FourInARowBattle;
 
 public partial class TokenCounterControl : Control
 {
-    private Texture2D _texture = null!;
     private int _count = 0;
 
     [Export]

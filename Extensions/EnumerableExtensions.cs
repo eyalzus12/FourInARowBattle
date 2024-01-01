@@ -17,4 +17,5 @@ public static class EnumerableExtensions
     public static Deque<T> ToDeque<T>(this IEnumerable<T> e) => new(e);
 
     public static bool ContainsNotNull<T>(this IReadOnlySet<T> set, T? t) => t is not null && set.Contains(t);
+    public static bool ContainsKeyNotNull<K, V>(this IReadOnlyDictionary<K, V> dict, K? k) => k is not null && dict.ContainsKey(k);
 }

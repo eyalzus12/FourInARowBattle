@@ -12,4 +12,6 @@ public partial class TokenData : Resource
     public Color TokenModulate{get; set;}
     [Export]
     public Vector2 GlobalPosition{get; set;}
+    [Export]
+    public Vector2 DesiredPosition{get; set;}
 }
