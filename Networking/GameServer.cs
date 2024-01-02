@@ -381,6 +381,8 @@ public partial class GameServer : Node
                 TokenCounterControl? control = null;
                 foreach(TokenCounterListControl lc in game.CounterLists)
                 {
+                    if(lc.ActiveOnTurn != playerTurn)
+                        continue;
                     foreach(TokenCounterControl c in lc.Counters)
                     {
                         foreach(TokenCounterButton b in c.TokenButtons)
@@ -434,6 +436,60 @@ public partial class GameServer : Node
             case Packet_GameActionRefill:
             {
                 GD.Print($"{peerId} try refill");
+                if(!_players.TryGetValue(peerId, out Player? player) || player.Lobby is null)
+                {
+                    GD.Print($"{peerId} failed to refill because they are not in a game");
+                    SendPacket(peerId, new Packet_GameActionRefillFail(ErrorCodeEnum.CANNOT_REFILL_NOT_IN_GAME));
+                    break;
+                }
+                Lobby lobby = player.Lobby;
+                if(lobby.ActiveGame is null)
+                {
+                    GD.Print($"{peerId} failed to refill because they are not in a game");
+                    SendPacket(peerId, new Packet_GameActionRefillFail(ErrorCodeEnum.CANNOT_REFILL_NOT_IN_GAME));
+                    break;
+                }
+                Game game = lobby.ActiveGame;
+                GameTurnEnum playerTurn = (lobby.Players[0] == player)?lobby.Turns![0]:lobby.Turns![1];
+                if(game.Turn != playerTurn)
+                {
+                    GD.Print($"{peerId} failed to refill because it is not their turn");
+                    SendPacket(peerId, new Packet_GameActionRefillFail(ErrorCodeEnum.CANNOT_REFILL_NOT_YOUR_TURN));
+                    break;
+                }
+
+                bool didRefill = false;
+                bool anyCouldRefill = false;
+                foreach(TokenCounterListControl lc in game.CounterLists)
+                {
+                    if(lc.ActiveOnTurn != playerTurn)
+                        continue;
+                    if(lc.AnyCanAdd())
+                    {
+                        anyCouldRefill = true;
+                        if(lc.DoRefill())
+                            didRefill = true;
+                    }
+                }
+
+                if(!anyCouldRefill)
+                {
+                    GD.Print($"{peerId} failed to refill because all were filled");
+                    SendPacket(peerId, new Packet_GameActionRefillFail(ErrorCodeEnum.CANNOT_REFILL_ALL_FILLED));
+                }
+
+                if(!didRefill)
+                {
+                    GD.Print($"{peerId} failed to refill because refilling is locked");
+                    SendPacket(peerId, new Packet_GameActionRefillFail(ErrorCodeEnum.CANNOT_REFILL_TWO_TURN_STREAK));
+                }
+
+                Player other = lobby.Players[0] == player ? lobby.Players[1]! : lobby.Players[0]!;
+
+                GD.Print($"{peerId} did refill");
+                SendPacket(player.Id, new Packet_GameActionRefillOk());
+                SendPacket(other.Id, new Packet_GameActionRefillOther());
+
                 break;
             }
             default:

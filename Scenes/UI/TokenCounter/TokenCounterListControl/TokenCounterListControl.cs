@@ -79,7 +79,7 @@ public partial class TokenCounterListControl : Control
                 EmitSignal(SignalName.TokenButtonStoppedHover, (int)turn, description);
         }
 
-        RefillButton.Pressed += DoRefill;
+        RefillButton.Pressed += () => DoRefill();
         RefillButton.MouseEntered += () =>
             EmitSignal(
                 SignalName.TokenButtonHovered,
@@ -94,12 +94,13 @@ public partial class TokenCounterListControl : Control
             );
     }
 
-    public void DoRefill()
+    public bool DoRefill()
     {
-        if(!AnyCanAdd()) return;
+        if(_refillLocked || !AnyCanAdd()) return false;
         foreach(TokenCounterControl c in Counters) if(c.CanAdd()) c.Add(1);
         if(!_refillLocked) _refillLocked = true;
         EmitSignal(SignalName.RefilledTokens);
+        return true;
     }
 
     public void OnTurnChange(GameTurnEnum to)
