@@ -6,5 +6,6 @@ public partial class TokenHorizontalFlip : TokenBase
     {
         base.OnDropFinished();
         Board.FlipRow(Row);
+        Board.ApplyGravity();
     }
 }

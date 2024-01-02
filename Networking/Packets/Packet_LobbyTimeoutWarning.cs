@@ -2,7 +2,7 @@ using Godot;
 
 namespace FourInARowBattle;
 
-public class Packet_LobbyTimeoutWarning : AbstractPacket
+public partial class Packet_LobbyTimeoutWarning : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.LOBBY_TIMEOUT_WARNING;
 

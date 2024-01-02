@@ -182,7 +182,7 @@ public partial class WebSocketServer : Node
             ws.Poll();
             if(ws.GetReadyState() != WebSocketPeer.State.Open)
             {
-                EmitSignal(WebSocketServer.SignalName.ClientDisconnected, id);
+                EmitSignal(SignalName.ClientDisconnected, id);
                 _peers.Remove(id);
                 continue;
             }
@@ -209,8 +209,7 @@ public partial class WebSocketServer : Node
             if(state == WebSocketPeer.State.Open)
             {
                 //find unused id
-                int id;
-                do {id = GD.RandRange(2, 1 << 30);} while(!_peers.ContainsKey(id));
+                int id; do{id = GD.RandRange(2, 1 << 30);} while(!_peers.ContainsKey(id));
                 _peers.Add(id, peer.WebSocket);
                 EmitSignal(SignalName.ClientConnected, id);
                 return true; // Success

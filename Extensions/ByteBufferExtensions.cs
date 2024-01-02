@@ -1,3 +1,5 @@
+using System;
+
 namespace FourInARowBattle;
 
 public static class ByteBufferExtensions
@@ -6,77 +8,129 @@ public static class ByteBufferExtensions
 
     public static void StoreBigEndianU8(this byte[] array, byte x, int index = 0)
     {
-        array[index] = (byte)((x >> 0) & 0xFF);
+        array[index] = (byte)((x >> 0x00) & 0xFF);
     }
 
-    public static byte LoadBigEndianU8(this byte[] array, int index = 0)
+    public static void StoreLittleEndianU8(this byte[] array, byte x, int index = 0)
     {
-        byte x = 0;
-        for(int i = 0; i < 1; ++i)
-        {
-            x <<= 8;
-            x += array[index + i];
-        }
-        return x;
+        array[index] = (byte)((x >> 0x00) & 0xFF);
     }
+
+    public static byte LoadBigEndianU8(this byte[] array, int index = 0) =>
+        (byte)
+        (
+            array[index + 0] << 0x00
+        );
+
+    public static byte LoadLittleEndianU8(this byte[] array, int index = 0) =>
+        (byte)
+        (
+            array[index + 0] << 0x00
+        );
 
     public static void StoreBigEndianU16(this byte[] array, ushort x, int index = 0)
     {
-        array[index + 0] = (byte)((x >> 8) & 0xFF);
-        array[index + 1] = (byte)((x >> 0) & 0xFF);
+        array[index + 0] = (byte)((x >> 0x08) & 0xFF);
+        array[index + 1] = (byte)((x >> 0x00) & 0xFF);
     }
 
-    public static ushort LoadBigEndianU16(this byte[] array, int index = 0)
+    public static void StoreLittleEndianU16(this byte[] array, ushort x, int index = 0)
     {
-        ushort x = 0;
-        x <<= 8; x += array[index + 0];
-        x <<= 8; x += array[index + 1];
-        return x;
+        array[index + 0] = (byte)((x >> 0x00) & 0xFF);
+        array[index + 1] = (byte)((x >> 0x08) & 0xFF);
     }
+
+    public static ushort LoadBigEndianU16(this byte[] array, int index = 0) =>
+        (ushort)
+        (
+            (array[index + 0] << 0x08) +
+            (array[index + 1] << 0x00)
+        );
+
+    public static ushort LoadLittleEndianU16(this byte[] array, int index = 0) =>
+        (ushort)
+        (
+            (array[index + 0] << 0x00) +
+            (array[index + 1] << 0x08)
+        );
 
     public static void StoreBigEndianU32(this byte[] array, uint x, int index = 0)
     {
-        array[index + 0] = (byte)((x >> 24) & 0xFF);
-        array[index + 1] = (byte)((x >> 16) & 0xFF);
-        array[index + 2] = (byte)((x >> 08) & 0xFF);
-        array[index + 3] = (byte)((x >> 00) & 0xFF);
+        array[index + 0] = (byte)((x >> 0x18) & 0xFF);
+        array[index + 1] = (byte)((x >> 0x10) & 0xFF);
+        array[index + 2] = (byte)((x >> 0x08) & 0xFF);
+        array[index + 3] = (byte)((x >> 0x00) & 0xFF);
     }
 
-    public static uint LoadBigEndianU32(this byte[] array, int index = 0)
+    public static void StoreLittleEndianU32(this byte[] array, uint x, int index = 0)
     {
-        uint x = 0;
-        x <<= 8; x += array[index + 0];
-        x <<= 8; x += array[index + 1];
-        x <<= 8; x += array[index + 2];
-        x <<= 8; x += array[index + 3];
-        return x;
+        array[index + 0] = (byte)((x >> 0x00) & 0xFF);
+        array[index + 1] = (byte)((x >> 0x08) & 0xFF);
+        array[index + 2] = (byte)((x >> 0x10) & 0xFF);
+        array[index + 3] = (byte)((x >> 0x18) & 0xFF);
     }
+
+    public static uint LoadBigEndianU32(this byte[] array, int index = 0) =>
+        (uint)
+        (
+            (array[index + 0] << 0x18) +
+            (array[index + 1] << 0x10) +
+            (array[index + 2] << 0x08) +
+            (array[index + 3] << 0x00)
+        );
+    
+    public static uint LoadLittleEndianU32(this byte[] array, int index = 0) =>
+        (uint)
+        (
+            (array[index + 0] << 0x00) +
+            (array[index + 1] << 0x08) +
+            (array[index + 2] << 0x10) +
+            (array[index + 3] << 0x18)
+        );
 
     public static void StoreBigEndianU64(this byte[] array, ulong x, int index = 0)
     {
-        array[index + 0] = (byte)((x >> 56) & 0xFF);
-        array[index + 1] = (byte)((x >> 48) & 0xFF);
-        array[index + 2] = (byte)((x >> 40) & 0xFF);
-        array[index + 3] = (byte)((x >> 32) & 0xFF);
-        array[index + 4] = (byte)((x >> 24) & 0xFF);
-        array[index + 5] = (byte)((x >> 16) & 0xFF);
-        array[index + 6] = (byte)((x >> 08) & 0xFF);
-        array[index + 7] = (byte)((x >> 00) & 0xFF);
+        array[index + 0] = (byte)((x >> 0x38) & 0xFF);
+        array[index + 1] = (byte)((x >> 0x30) & 0xFF);
+        array[index + 2] = (byte)((x >> 0x28) & 0xFF);
+        array[index + 3] = (byte)((x >> 0x20) & 0xFF);
+        array[index + 4] = (byte)((x >> 0x18) & 0xFF);
+        array[index + 5] = (byte)((x >> 0x10) & 0xFF);
+        array[index + 6] = (byte)((x >> 0x08) & 0xFF);
+        array[index + 7] = (byte)((x >> 0x00) & 0xFF);
     }
 
-    public static ulong LoadBigEndianU64(this byte[] array, int index = 0)
+    public static void StoreLittleEndianU64(this byte[] array, ulong x, int index = 0)
     {
-        ulong x = 0;
-        x <<= 8; x += array[index + 0];
-        x <<= 8; x += array[index + 1];
-        x <<= 8; x += array[index + 2];
-        x <<= 8; x += array[index + 3];
-        x <<= 8; x += array[index + 4];
-        x <<= 8; x += array[index + 5];
-        x <<= 8; x += array[index + 6];
-        x <<= 8; x += array[index + 7];
-        return x;
+        array[index + 0] = (byte)((x >> 0x00) & 0xFF);
+        array[index + 1] = (byte)((x >> 0x08) & 0xFF);
+        array[index + 2] = (byte)((x >> 0x10) & 0xFF);
+        array[index + 3] = (byte)((x >> 0x18) & 0xFF);
+        array[index + 4] = (byte)((x >> 0x20) & 0xFF);
+        array[index + 5] = (byte)((x >> 0x28) & 0xFF);
+        array[index + 6] = (byte)((x >> 0x30) & 0xFF);
+        array[index + 7] = (byte)((x >> 0x38) & 0xFF);
     }
+
+    public static ulong LoadBigEndianU64(this byte[] array, int index = 0) =>
+        ((ulong)array[index + 0] << 0x38) +
+        ((ulong)array[index + 1] << 0x30) +
+        ((ulong)array[index + 2] << 0x28) +
+        ((ulong)array[index + 3] << 0x20) +
+        ((ulong)array[index + 4] << 0x18) +
+        ((ulong)array[index + 5] << 0x10) +
+        ((ulong)array[index + 6] << 0x08) +
+        ((ulong)array[index + 7] << 0x00);
+    
+    public static ulong LoadLittleEndianU64(this byte[] array, int index = 0) =>
+        ((ulong)array[index + 0] << 0x00) +
+        ((ulong)array[index + 1] << 0x08) +
+        ((ulong)array[index + 2] << 0x10) +
+        ((ulong)array[index + 3] << 0x18) +
+        ((ulong)array[index + 4] << 0x20) +
+        ((ulong)array[index + 5] << 0x28) +
+        ((ulong)array[index + 6] << 0x30) +
+        ((ulong)array[index + 7] << 0x38);
 
     public static void StoreBuffer(this byte[] array, byte[] buff, int index = 0)
     {
@@ -84,7 +138,7 @@ public static class ByteBufferExtensions
             array[i + index] = buff[i];
     }
 
-    public static byte[] LoadBuffer(this byte[] array, int index, int size = 0)
+    public static byte[] LoadBuffer(this byte[] array, int size, int index = 0)
     {
         byte[] buff = new byte[size];
         for(int i = 0; i < size; ++i)

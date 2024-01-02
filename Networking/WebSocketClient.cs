@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Godot;
 
 namespace FourInARowBattle;
@@ -78,6 +79,8 @@ public partial class WebSocketClient : Node
             else if(state == WebSocketPeer.State.Closed)
                 EmitSignal(SignalName.ConnectionClosed);
         }
+        
+        List<byte> batchedPackets = new();
         while(_socket.GetReadyState() == WebSocketPeer.State.Open && _socket.GetAvailablePacketCount() > 0)
         {
             Error err = TryGetPacket(out byte[]? packet);
@@ -87,8 +90,9 @@ public partial class WebSocketClient : Node
                 break;
             }
             if(packet is not null)
-                EmitSignal(SignalName.PacketReceived, packet);
+                batchedPackets.AddRange(packet);
         }
+        EmitSignal(SignalName.PacketReceived, batchedPackets.ToArray());
     }
 
     public override void _Process(double delta)

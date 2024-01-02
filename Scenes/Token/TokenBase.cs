@@ -11,9 +11,9 @@ public partial class TokenBase : Node2D
     [Export(PropertyHint.MultilineText)]
     public string TokenDescription{get; set;} = "NO DESCRIPTION SET FOR THIS TOKEN";
     [Export]
-    public float TokenSpeed{get; set;} = 60f;
+    public float TokenSpeed{get; set;} = 30f;
     [Export]
-    public float TokenAcceleration{get; set;} = 10f;
+    public float TokenAcceleration{get; set;} = 5f;
 
     private Color _tokenColor = Colors.White;
     public Color TokenColor
@@ -49,6 +49,7 @@ public partial class TokenBase : Node2D
     public override void _Ready()
     {
         _currentSpeed = 0;
+        ActivatedPower = false;
         //avoid overriding previous modulate
         if(Modulate == Colors.White)
             Modulate = TokenColor;
@@ -96,47 +97,28 @@ public partial class TokenBase : Node2D
         }
         else
         {
-            if(!ActivatedPower) OnDropFinished();
-            ActivatedPower = true;
-            EmitSignal(SignalName.TokenFinishedDrop);
+            //we null first because OnDropFinished and the four-in-a-row checks might change DesiredPosition
             DesiredPosition = null;
-            _currentSpeed = 0;
+            //we before OnDropFinished first in order to trigger the four-in-a-row check before OnDropFinished might cause changes
+            EmitSignal(SignalName.TokenFinishedDrop);
 
-            //sound
-            Autoloads.AudioManager.PlayersPool
-                .GetObject()
-                .Play(Autoloads.GlobalResources.TEST_LAND);
+            if(!ActivatedPower)
+            {
+                ActivatedPower = true;
+                OnDropFinished();
+            }
+
+            //sound. avoid playing if speed is 0, which can be caused if desired position and position are set to the same thing.
+            if(_currentSpeed != 0)
+            {
+                Autoloads.AudioManager.AudioPlayersPool
+                    .GetObject()
+                    .Play(Autoloads.GlobalResources.TEST_LAND);
+            }
+            
+            _currentSpeed = 0;
         }
     }
-
-    /*public Action? TweenFinishedAction{get; set;}
-    public void ConnectTweenFinished()
-    {
-        if(TweenFinishedAction is null) return;
-        if(!TokenTween.IsInstanceValid()) TokenTween = null;
-        if(TokenTween is not null)
-        {
-            //bind to current tween
-            Tween bind = TokenTween;
-
-            TokenTween.Finished += () =>
-            {
-                if(TweenFinishedAction is not null)
-                    TweenFinishedAction();
-                TweenFinishedAction = null;
-
-                //make sure old tween doesn't destroy new one
-                if(TokenTween == bind)
-                {
-                    TokenTween?.Kill();
-                    TokenTween?.Dispose();
-                    TokenTween = null;
-                }
-            };
-        }
-        else
-            TweenFinishedAction();
-    }*/
 
     public virtual void DeserializeFrom(Board board, TokenData data)
     {

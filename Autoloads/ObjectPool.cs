@@ -71,7 +71,7 @@ public partial class ObjectPool : Node
         }
         PackedScene scene = ResourceLoader.Load<PackedScene>(scenePath);
 
-        n.GetParent()?.RemoveChild(n);
+        n.GetParent()?.CallDeferred(Node.MethodName.RemoveChild, n);
 
         _objectPoolReturnQueue.TryAdd(scene, new());
         _objectPoolReturnQueue[scene].Enqueue(n);

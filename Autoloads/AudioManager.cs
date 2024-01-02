@@ -14,9 +14,9 @@ public partial class AudioManager : Node
     private Pool<AudioStreamPlayer2D> _players2DPool = null!;
     private Pool<AudioStreamPlayer3D> _players3DPool = null!;
 
-    public Pool<AudioStreamPlayer> PlayersPool => _playersPool;
-    public Pool<AudioStreamPlayer2D> Players2DPool => _players2DPool;
-    public Pool<AudioStreamPlayer3D> Players3DPool => _players3DPool;
+    public Pool<AudioStreamPlayer> AudioPlayersPool => _playersPool;
+    public Pool<AudioStreamPlayer2D> AudioPlayers2DPool => _players2DPool;
+    public Pool<AudioStreamPlayer3D> AudioPlayers3DPool => _players3DPool;
 
     public override void _Ready()
     {
@@ -26,7 +26,7 @@ public partial class AudioManager : Node
         _players3DPool = new(PLAYER3D_POOL_FACTOR, OnCreate(() => _players3DPool));
     }
 
-    private static readonly StringName FINISHED_SIGNAL = "finished";
+    private static readonly StringName FINISHED_SIGNAL = AudioStreamPlayer.SignalName.Finished;
 
     //hack: give a function that returns the pool to fetch the pool value later
     //instead of right now, when it is null
