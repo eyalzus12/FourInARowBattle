@@ -42,6 +42,7 @@ public partial class Game : Node2D
         private set
         {
             _dropDetectorIdx = value;
+            if(Autoloads.PersistentData.HeadlessMode) return;
             if(
                 value is not null &&
                 _selectedControl is not null &&
@@ -69,8 +70,11 @@ public partial class Game : Node2D
     public override void _Ready()
     {
         _droppingActive = true;
-        SetupDropDetectors();
-        SetDetectorsDisabled(false);
+        if(!Autoloads.PersistentData.HeadlessMode)
+        {
+            SetupDropDetectors();
+            SetDetectorsDisabled(false);
+        }
         foreach(TokenCounterListControl clist in CounterLists)
         {
             clist.TokenSelected += OnTokenSelected;
@@ -124,6 +128,7 @@ public partial class Game : Node2D
 
     public void SetupDropDetectors()
     {
+        if(Autoloads.PersistentData.HeadlessMode) return;
         DropDetectorIdx = null;
         foreach(Area2D area in _dropDetectors) area.QueueFree();
         _dropDetectors.Clear();
@@ -153,6 +158,7 @@ public partial class Game : Node2D
 
     public void SetDetectorsDisabled(bool disabled)
     {
+        if(Autoloads.PersistentData.HeadlessMode) return;
         DropDetectorIdx = null;
         foreach(CollisionShape2D col in _dropDetectorShapes)
             col.SetDeferredDisabled(disabled);
@@ -160,6 +166,8 @@ public partial class Game : Node2D
 
     public override void _UnhandledInput(InputEvent @event)
     {
+        if(Autoloads.PersistentData.HeadlessMode) return;
+
         if(
             @event.IsJustPressed() && 
             @event is InputEventMouseButton mb &&
@@ -172,7 +180,7 @@ public partial class Game : Node2D
         {
             if(mb.ButtonIndex == MouseButton.Left)
             {
-                TokenBase t = Autoloads.ObjectPool.GetObject<TokenBase>(_selectedButton.AssociatedScene);
+                TokenBase t = Autoloads.ScenePool.GetScene<TokenBase>(_selectedButton.AssociatedScene);
                 t.TokenColor = TurnColor;
                 if(GameBoard.AddToken((int)DropDetectorIdx, t))
                 {
@@ -212,7 +220,7 @@ public partial class Game : Node2D
                 //debug key
                 case Key.F3:
                 {
-                    Autoloads.ObjectPool.CleanPool();
+                    Autoloads.ScenePool.CleanPool();
                 }
                 break;
                 default:

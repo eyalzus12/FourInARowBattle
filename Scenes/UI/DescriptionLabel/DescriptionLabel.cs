@@ -59,9 +59,9 @@ public partial class DescriptionLabel : Label
         }
         else
         {
-            TokenBase token = Autoloads.ObjectPool.GetObject<TokenBase>(from);
+            TokenBase token = Autoloads.ScenePool.GetScene<TokenBase>(from);
             string result = DescriptionCache[from] = token.TokenDescription;
-            Autoloads.ObjectPool.ReturnObject(token);
+            Autoloads.ScenePool.ReturnScene(token);
             return result;
         }
     }

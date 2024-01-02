@@ -137,7 +137,7 @@ public partial class Board : Node2D
         int? _row = FindTopSpot(col);
         if(_row is null)
         {
-            Autoloads.ObjectPool.ReturnObject(t);
+            Autoloads.ScenePool.ReturnScene(t);
             return false;
         }
         int row = (int)_row;
@@ -212,7 +212,7 @@ public partial class Board : Node2D
         {
             if(t.IsInstanceValid())
             {
-                Autoloads.ObjectPool.ReturnObject(t);
+                Autoloads.ScenePool.ReturnScene(t);
             }
         }
         
@@ -533,7 +533,7 @@ public partial class Board : Node2D
         TokenGrid[row,col] = null;
         if(t.IsInstanceValid())
         {
-            Autoloads.ObjectPool.ReturnObject(t);
+            Autoloads.ScenePool.ReturnScene(t);
         }
     }
 
@@ -556,7 +556,7 @@ public partial class Board : Node2D
                 TokenBase? t = TokenGrid[row,col];
                 TokenGrid[row,col] = null;
                 if(t.IsInstanceValid())
-                    Autoloads.ObjectPool.ReturnObject(t);
+                    Autoloads.ScenePool.ReturnScene(t);
             }
         }
 
@@ -580,7 +580,7 @@ public partial class Board : Node2D
                 TokenData? tdata = data.Grid[row][col];
                 if(tdata is null) continue;
                 PackedScene scene = ResourceLoader.Load<PackedScene>(tdata.TokenScenePath);
-                TokenBase t = Autoloads.ObjectPool.GetObject<TokenBase>(scene);
+                TokenBase t = Autoloads.ScenePool.GetScene<TokenBase>(scene);
                 TokenGrid[row,col] = t;
                 t.Scale = TokenScale;
                 AddChild(t);

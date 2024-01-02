@@ -30,8 +30,8 @@ public static class Autoloads
     private static PersistentData? _persData = null;
     public static PersistentData PersistentData{get => GetAutoload(_persData); set => SetAutoload(ref _persData, value);}
     
-    private static ObjectPool? _objectPool = null;
-    public static ObjectPool ObjectPool{get => GetAutoload(_objectPool); set => SetAutoload(ref _objectPool, value);}
+    private static ScenePool? _objectPool = null;
+    public static ScenePool ScenePool{get => GetAutoload(_objectPool); set => SetAutoload(ref _objectPool, value);}
 
     private static GlobalResources? _globalRes = null;
     public static GlobalResources GlobalResources{get => GetAutoload(_globalRes); set => SetAutoload(ref _globalRes, value);}
