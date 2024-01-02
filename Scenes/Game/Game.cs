@@ -29,6 +29,8 @@ public partial class Game : Node2D
 
     [Export]
     public Godot.Collections.Array<TokenCounterListControl> CounterLists{get; set;} = new();
+    [Export]
+    public Godot.Collections.Array<DescriptionLabel> DescriptionLabels{get; set;} = new();
 
     private readonly List<Area2D> _dropDetectors = new();
     private readonly List<CollisionShape2D> _dropDetectorShapes = new();
@@ -69,20 +71,43 @@ public partial class Game : Node2D
         _droppingActive = true;
         SetupDropDetectors();
         SetDetectorsDisabled(false);
-        Autoloads.EventBus.TokenSelected += OnTokenSelected;
         foreach(TokenCounterListControl clist in CounterLists)
+        {
+            clist.TokenSelected += OnTokenSelected;
             clist.RefilledTokens += PassTurn;
+            clist.TokenButtonHovered += (GameTurnEnum turn, string description) =>
+            {
+                foreach(DescriptionLabel label in DescriptionLabels)
+                {
+                    label.OnTokenHover(turn, description);
+                }
+            };
+            clist.TokenButtonStoppedHover += (GameTurnEnum turn, string description) =>
+            {
+                foreach(DescriptionLabel label in DescriptionLabels)
+                {
+                    label.OnTokenStopHover(turn, description);
+                }
+            };
+        }
 
         //_Ready is called on children before the parent
         //so we can do this to signal the token counters
         //and update their disabled/enabled state
-        Autoloads.EventBus.EmitSignal(EventBus.SignalName.TurnChanged, (int)Turn, true);
+        foreach(TokenCounterListControl control in CounterLists)
+            control.OnTurnChange(Turn);
 
         if(Autoloads.PersistentData.ContinueFromState is not null)
         {
             DeserializeFrom(Autoloads.PersistentData.ContinueFromState);
             Autoloads.PersistentData.ContinueFromState = null;
         }
+
+        GameBoard.ScoreIncreased += (GameTurnEnum who, int amount) =>
+        {            
+            foreach(TokenCounterListControl counter in CounterLists)
+                counter.OnAddScore(who, amount);
+        };
 
         GameBoard.TokenStartedDrop += () =>
         {
@@ -217,7 +242,7 @@ public partial class Game : Node2D
         _selectedControl = null;
         //force redraw of ghost token
         DropDetectorIdx = _dropDetectorIdx;
-        Autoloads.EventBus.EmitSignal(EventBus.SignalName.TurnChanged, (int)Turn, false);
+        foreach(TokenCounterListControl counter in CounterLists) counter.OnTurnChange(Turn);
     }
 
     public void OnTokenSelected(TokenCounterControl what, TokenCounterButton who)
@@ -245,7 +270,7 @@ public partial class Game : Node2D
         for(int i = 0; i < CounterLists.Count; ++i)
             CounterLists[i].DeserializeFrom(data.Players[i]);
         //make sure stuff works correctly
-        Autoloads.EventBus.EmitSignal(EventBus.SignalName.TurnChanged, (int)Turn, true);
+        foreach(TokenCounterListControl counter in CounterLists) counter.OnTurnChange(Turn);
 
         SetupDropDetectors();
         SetDetectorsDisabled(false);

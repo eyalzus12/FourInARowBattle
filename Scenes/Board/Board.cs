@@ -8,6 +8,8 @@ namespace FourInARowBattle;
 public partial class Board : Node2D
 {
     [Signal]
+    public delegate void ScoreIncreasedEventHandler(GameTurnEnum who, int amount);
+    [Signal]
     public delegate void TokenPlacedEventHandler(TokenBase who, int row, int col);
     [Signal]
     public delegate void TokenStartedDropEventHandler();
@@ -191,7 +193,8 @@ public partial class Board : Node2D
                 //so we need to convert the result to the turn
                 //for non-player results we just give a nonexistent turn value
                 GameTurnEnum resultTurn = result.GameResultToGameTurn();
-                Autoloads.EventBus.EmitSignal(EventBus.SignalName.ScoreIncreased, (int)resultTurn, count);
+                //Autoloads.EventBus.EmitSignal(EventBus.SignalName.ScoreIncreased, (int)resultTurn, count);
+                EmitSignal(SignalName.ScoreIncreased, (int)resultTurn, count);
             }
         }
 

@@ -22,12 +22,9 @@ public partial class DescriptionLabel : Label
         LabelSettings ??= new();
 
         UpdateDescription(null);
-
-        Autoloads.EventBus.TokenButtonHovered += OnTokenHover;
-        Autoloads.EventBus.TokenButtonStoppedHover += OnTokenStopHover;
     }
 
-    private void OnTokenHover(GameTurnEnum turn, string description)
+    public void OnTokenHover(GameTurnEnum turn, string description)
     {
         if(turn != ActiveOnTurn) return;
 
@@ -35,7 +32,7 @@ public partial class DescriptionLabel : Label
         UpdateDescription(description);
     }
 
-    private void OnTokenStopHover(GameTurnEnum turn, string description)
+    public void OnTokenStopHover(GameTurnEnum turn, string description)
     {
         if(
             turn != ActiveOnTurn ||

@@ -4,6 +4,13 @@ namespace FourInARowBattle;
 
 public partial class TokenCounterControl : Control
 {
+    [Signal]
+    public delegate void TokenSelectedEventHandler(TokenCounterButton who);
+    [Signal]
+    public delegate void TokenButtonHoveredEventHandler(GameTurnEnum turn, string description);
+    [Signal]
+    public delegate void TokenButtonStoppedHoverEventHandler(GameTurnEnum turn, string description);
+
     private int _count = 0;
 
     [Export]
@@ -75,28 +82,26 @@ public partial class TokenCounterControl : Control
             button.Pressed += () =>
                 OnSelectButtonPressed(buttonBind);
             button.MouseEntered += () =>
-                Autoloads.EventBus.EmitSignal(
-                    EventBus.SignalName.TokenButtonHovered,
+                EmitSignal(
+                    SignalName.TokenButtonHovered,
                     (int)ActiveOnTurn,
                     DescriptionLabel.DescriptionFromScene(buttonBind.AssociatedScene)
                 );
             button.MouseExited += () =>
-                Autoloads.EventBus.EmitSignal(
-                    EventBus.SignalName.TokenButtonStoppedHover,
+                EmitSignal(
+                    SignalName.TokenButtonStoppedHover,
                     (int)ActiveOnTurn,
                     DescriptionLabel.DescriptionFromScene(buttonBind.AssociatedScene)
                 );
         }
-            
-        Autoloads.EventBus.TurnChanged += OnTurnChange;
     }
 
     public void OnSelectButtonPressed(TokenCounterButton who)
     {
-        Autoloads.EventBus.EmitSignal(EventBus.SignalName.TokenSelected, this, who);
+        EmitSignal(SignalName.TokenSelected, who);
     }
 
-    public void OnTurnChange(GameTurnEnum to, bool isStartupSignal)
+    public void OnTurnChange(GameTurnEnum to)
     {
         Disabled = to != ActiveOnTurn || !CanTake();
     }

@@ -9,6 +9,12 @@ public partial class TokenCounterListControl : Control
 {
     [Signal]
     public delegate void RefilledTokensEventHandler();
+    [Signal]
+    public delegate void TokenSelectedEventHandler(TokenCounterControl what, TokenCounterButton who);
+    [Signal]
+    public delegate void TokenButtonHoveredEventHandler(GameTurnEnum turn, string description);
+    [Signal]
+    public delegate void TokenButtonStoppedHoverEventHandler(GameTurnEnum turn, string description);
 
     private GameTurnEnum _activeOnTurn;
 
@@ -61,33 +67,31 @@ public partial class TokenCounterListControl : Control
         foreach(TokenCounterControl c in Counters)
         {
             TokenCounterControl cBind = c;
-            foreach(TokenCounterButton button in c.TokenButtons)
+            c.TokenSelected += (TokenCounterButton button) =>
             {
-                TokenCounterButton bBind = button;
-                button.Pressed += () =>
-                {
-                    _lastSelection = cBind;
-                    _lastSelectionButton = bBind;
-                };
-            }
+                _lastSelection = cBind;
+                _lastSelectionButton = button;
+                EmitSignal(SignalName.TokenSelected, cBind, button);
+            };
+            c.TokenButtonHovered += (GameTurnEnum turn, string description) =>
+                EmitSignal(SignalName.TokenButtonHovered, (int)turn, description);
+            c.TokenButtonStoppedHover += (GameTurnEnum turn, string description) =>
+                EmitSignal(SignalName.TokenButtonStoppedHover, (int)turn, description);
         }
 
         RefillButton.Pressed += DoRefill;
         RefillButton.MouseEntered += () =>
-            Autoloads.EventBus.EmitSignal(
-                EventBus.SignalName.TokenButtonHovered,
+            EmitSignal(
+                SignalName.TokenButtonHovered,
                 (int)ActiveOnTurn,
                 DescriptionLabel.REFILL_DESCRIPTION
             );
         RefillButton.MouseExited += () =>
-            Autoloads.EventBus.EmitSignal(
-                EventBus.SignalName.TokenButtonStoppedHover,
+            EmitSignal(
+                SignalName.TokenButtonStoppedHover,
                 (int)ActiveOnTurn,
                 DescriptionLabel.REFILL_DESCRIPTION
             );
-
-        Autoloads.EventBus.TurnChanged += OnTurnChange;
-        Autoloads.EventBus.ScoreIncreased += OnAddScore;
     }
 
     public void DoRefill()
@@ -98,7 +102,7 @@ public partial class TokenCounterListControl : Control
         EmitSignal(SignalName.RefilledTokens);
     }
 
-    public void OnTurnChange(GameTurnEnum to, bool isStartupSignal)
+    public void OnTurnChange(GameTurnEnum to)
     {
         //our turn
         if(to == ActiveOnTurn)
@@ -131,6 +135,11 @@ public partial class TokenCounterListControl : Control
         else
         {
             RefillButton.Disabled = true;
+        }
+
+        foreach(TokenCounterControl c in Counters)
+        {
+            c.OnTurnChange(to);
         }
     }
 
