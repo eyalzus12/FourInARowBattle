@@ -3,6 +3,7 @@ using Godot.Collections;
 
 namespace FourInARowBattle;
 
+[GlobalClass]
 public partial class TokenCounterListData : Resource
 {
     [Export]

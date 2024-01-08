@@ -1,5 +1,6 @@
-[gd_scene load_steps=3 format=3 uid="uid://d28qj6ph1beco"]
+[gd_scene load_steps=4 format=3 uid="uid://d28qj6ph1beco"]
 
+[ext_resource type="Script" path="res://Scenes/UI/Menus/MainMenu/MainMenu.cs" id="1_nxttb"]
 [ext_resource type="Script" path="res://Logic/Buttons/ChangeSceneOnPressButton.cs" id="1_w7sya"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_un1xh"]
@@ -10,7 +11,7 @@ outline_color = Color(0, 0, 0, 1)
 shadow_color = Color(0, 0, 0, 1)
 shadow_offset = Vector2(-10, 1)
 
-[node name="MainMenu" type="Control"]
+[node name="MainMenu" type="Control" node_paths=PackedStringArray("LocalPlayButton", "RemotePlayButton", "HostServerButton")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -18,6 +19,10 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+script = ExtResource("1_nxttb")
+LocalPlayButton = NodePath("ButtonsMarginContainer/ButtonsVBoxContainer/LocalPlayMarginContainer/LocalPlay")
+RemotePlayButton = NodePath("ButtonsMarginContainer/ButtonsVBoxContainer/RemotePlayMarginContainer/RemotePlay")
+HostServerButton = NodePath("ButtonsMarginContainer/ButtonsVBoxContainer/GameHostMarginContainer/GameHost")
 
 [node name="ButtonsMarginContainer" type="MarginContainer" parent="."]
 layout_mode = 0
@@ -34,7 +39,7 @@ layout_mode = 2
 mouse_filter = 2
 alignment = 1
 
-[node name="Label" type="Label" parent="ButtonsMarginContainer/ButtonsVBoxContainer"]
+[node name="TitleLabel" type="Label" parent="ButtonsMarginContainer/ButtonsVBoxContainer"]
 layout_mode = 2
 text = "FOUR IN A ROW
 BATTLE"
@@ -70,6 +75,7 @@ tooltip_text = "Play with someone else who is hosting a game"
 mouse_filter = 1
 text = "Remote Play"
 script = ExtResource("1_w7sya")
+ChangeTo = "res://Scenes/UI/Menus/GameClientMenu/GameClientMenu.tscn"
 
 [node name="GameHostMarginContainer" type="MarginContainer" parent="ButtonsMarginContainer/ButtonsVBoxContainer"]
 layout_mode = 2
@@ -82,5 +88,5 @@ theme_override_constants/margin_bottom = 10
 layout_mode = 2
 tooltip_text = "Host a game to be able to play remotely"
 mouse_filter = 1
-text = "Host a Game"
+text = "Host a Server"
 script = ExtResource("1_w7sya")

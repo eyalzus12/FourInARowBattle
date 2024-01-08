@@ -1,0 +1,13 @@
+[gd_scene load_steps=4 format=3 uid="uid://csurkx1cmp71c"]
+
+[ext_resource type="Script" path="res://Networking/GameServer.cs" id="1_00rql"]
+[ext_resource type="PackedScene" uid="uid://dyhkvrlph6p16" path="res://Scenes/Game/Game.tscn" id="2_njpxd"]
+[ext_resource type="Script" path="res://Networking/WebSocketServer.cs" id="3_8jstb"]
+
+[node name="GameServer" type="Node" node_paths=PackedStringArray("Server")]
+script = ExtResource("1_00rql")
+Server = NodePath("WebSocketServer")
+GameScene = ExtResource("2_njpxd")
+
+[node name="WebSocketServer" type="Node" parent="."]
+script = ExtResource("3_8jstb")

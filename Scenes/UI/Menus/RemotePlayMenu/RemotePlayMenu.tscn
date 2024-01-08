@@ -1,0 +1,122 @@
+[gd_scene load_steps=7 format=3 uid="uid://dceaof5l1mq5t"]
+
+[ext_resource type="Script" path="res://Scenes/UI/Menus/RemotePlayMenu/RemotePlayMenu.cs" id="1_dna4a"]
+[ext_resource type="Script" path="res://Logic/Buttons/GoBackButton.cs" id="1_pbaxe"]
+[ext_resource type="Script" path="res://Logic/Buttons/CreateLobbyButton.cs" id="1_xpr3j"]
+[ext_resource type="Script" path="res://Logic/Buttons/JoinLobbyButton.cs" id="2_s5kpe"]
+[ext_resource type="Script" path="res://Scenes/UI/Menus/RemotePlayMenu/LobbyIdField.cs" id="2_ss3jf"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_xtk36"]
+font_size = 56
+font_color = Color(0.827451, 0.827451, 0.827451, 1)
+outline_size = 9
+outline_color = Color(0, 0, 0, 1)
+shadow_color = Color(0, 0, 0, 1)
+shadow_offset = Vector2(-10, 1)
+
+[node name="RemotePlayScene" type="Control" node_paths=PackedStringArray("CreateLobby", "JoinLobby", "GoBack", "PlayerNameField")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_dna4a")
+CreateLobby = NodePath("ButtonsMarginContainer/ButtonsVBoxContainer/CreateLobbyMarginContainer/CreateLobbyButton")
+JoinLobby = NodePath("ButtonsMarginContainer/ButtonsVBoxContainer/JoinLobbyMarginContainer/JoinLobbyHBoxContainer/JoinLobbyButton")
+GoBack = NodePath("GoBack")
+PlayerNameField = NodePath("PlayerName")
+
+[node name="ButtonsMarginContainer" type="MarginContainer" parent="."]
+layout_mode = 0
+offset_right = 1152.0
+offset_bottom = 648.0
+mouse_filter = 2
+theme_override_constants/margin_left = 300
+theme_override_constants/margin_top = 100
+theme_override_constants/margin_right = 300
+theme_override_constants/margin_bottom = 100
+
+[node name="ButtonsVBoxContainer" type="VBoxContainer" parent="ButtonsMarginContainer"]
+layout_mode = 2
+mouse_filter = 2
+alignment = 1
+
+[node name="RemotePlayLabel" type="Label" parent="ButtonsMarginContainer/ButtonsVBoxContainer"]
+layout_mode = 2
+text = "Remote Play"
+label_settings = SubResource("LabelSettings_xtk36")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CreateLobbyMarginContainer" type="MarginContainer" parent="ButtonsMarginContainer/ButtonsVBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="CreateLobbyButton" type="Button" parent="ButtonsMarginContainer/ButtonsVBoxContainer/CreateLobbyMarginContainer"]
+layout_mode = 2
+tooltip_text = "Play locally on the same computer"
+mouse_filter = 1
+theme_override_font_sizes/font_size = 30
+text = "Create Lobby"
+script = ExtResource("1_xpr3j")
+
+[node name="JoinLobbyMarginContainer" type="MarginContainer" parent="ButtonsMarginContainer/ButtonsVBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="JoinLobbyPanel" type="Panel" parent="ButtonsMarginContainer/ButtonsVBoxContainer/JoinLobbyMarginContainer"]
+layout_mode = 2
+
+[node name="JoinLobbyHBoxContainer" type="VBoxContainer" parent="ButtonsMarginContainer/ButtonsVBoxContainer/JoinLobbyMarginContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="LobbyIdField" type="LineEdit" parent="ButtonsMarginContainer/ButtonsVBoxContainer/JoinLobbyMarginContainer/JoinLobbyHBoxContainer"]
+modulate = Color(0.454902, 1, 1, 1)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 44
+placeholder_text = "Enter Lobby Id"
+max_length = 10
+script = ExtResource("2_ss3jf")
+
+[node name="JoinLobbyButton" type="Button" parent="ButtonsMarginContainer/ButtonsVBoxContainer/JoinLobbyMarginContainer/JoinLobbyHBoxContainer" node_paths=PackedStringArray("Field")]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+tooltip_text = "Play locally on the same computer"
+mouse_filter = 1
+theme_override_font_sizes/font_size = 30
+text = "Join Lobby"
+script = ExtResource("2_s5kpe")
+Field = NodePath("../LobbyIdField")
+
+[node name="GoBack" type="Button" parent="."]
+modulate = Color(1, 0.156863, 0.403922, 1)
+layout_mode = 1
+offset_right = 168.0
+offset_bottom = 88.0
+text = "Back To Main Menu"
+script = ExtResource("1_pbaxe")
+ChangeTo = "res://Scenes/UI/Menus/MainMenu/MainMenu.tscn"
+
+[node name="PlayerName" type="LineEdit" parent="."]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -80.0
+offset_right = 232.0
+grow_vertical = 0
+theme_override_font_sizes/font_size = 24
+placeholder_text = "Enter player name"
+max_length = 32
+expand_to_text_length = true

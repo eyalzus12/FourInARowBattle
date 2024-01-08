@@ -36,7 +36,7 @@ project/assembly_name="FourInARowBattle"
 
 [gui]
 
-fonts/dynamic_fonts/use_oversampling=false
+theme/custom_font="res://Resources/Fonts/OpenSans-VariableFont_wdth,wght.ttf"
 theme/default_font_multichannel_signed_distance_field=true
 
 [rendering]

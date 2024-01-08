@@ -59,6 +59,15 @@ public partial class GameServer : Node
         }
     }
 
+    public override void _Notification(int what)
+    {
+        if(what == NotificationExitTree || what == NotificationCrash || what == NotificationWMCloseRequest)
+        {
+            Server?.Stop();
+            Autoloads.PersistentData.HeadlessMode = false;
+        }
+    }
+
     public void OnWebSocketServerPacketReceived(int peerId, byte[] packetBytes)
     {
         _buffer.PushRightRange(packetBytes);

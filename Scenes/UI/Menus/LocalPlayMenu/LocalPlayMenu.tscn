@@ -1,6 +1,7 @@
-[gd_scene load_steps=5 format=3 uid="uid://cwwejfivdwlu6"]
+[gd_scene load_steps=6 format=3 uid="uid://cwwejfivdwlu6"]
 
 [ext_resource type="Script" path="res://Logic/Buttons/ChangeSceneOnPressButton.cs" id="1_in5bj"]
+[ext_resource type="Script" path="res://Scenes/UI/Menus/LocalPlayMenu/LocalPlayMenu.cs" id="1_pstcd"]
 [ext_resource type="Script" path="res://Logic/Buttons/GoBackButton.cs" id="2_cu7f1"]
 [ext_resource type="Script" path="res://Logic/Buttons/ChangeSceneAndLoadGameButton.cs" id="2_gtos6"]
 
@@ -12,7 +13,7 @@ outline_color = Color(0, 0, 0, 1)
 shadow_color = Color(0, 0, 0, 1)
 shadow_offset = Vector2(-10, 1)
 
-[node name="LocalPlayScene" type="Control"]
+[node name="LocalPlayScene" type="Control" node_paths=PackedStringArray("CreateNewGame", "LoadGame", "GoBack")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -20,6 +21,10 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+script = ExtResource("1_pstcd")
+CreateNewGame = NodePath("ButtonsMarginContainer/ButtonsVBoxContainer/NewGameMarginContainer/NewGame")
+LoadGame = NodePath("ButtonsMarginContainer/ButtonsVBoxContainer/ContinueGameMarginContainer/ContinueGame")
+GoBack = NodePath("GoBack")
 
 [node name="ButtonsMarginContainer" type="MarginContainer" parent="."]
 layout_mode = 0

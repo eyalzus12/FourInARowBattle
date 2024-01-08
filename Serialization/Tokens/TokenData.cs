@@ -2,6 +2,7 @@ using Godot;
 
 namespace FourInARowBattle;
 
+[GlobalClass]
 public partial class TokenData : Resource
 {
     [Export]

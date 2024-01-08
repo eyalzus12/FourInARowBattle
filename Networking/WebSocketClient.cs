@@ -22,6 +22,8 @@ public partial class WebSocketClient : Node
     private WebSocketPeer _socket = new();
     private WebSocketPeer.State _lastState = WebSocketPeer.State.Closed;
 
+    public WebSocketPeer.State State => _socket.GetReadyState();
+
     public Error ConnectToUrl(string url)
     {
         _socket.HandshakeHeaders = HandshakeHeaders;

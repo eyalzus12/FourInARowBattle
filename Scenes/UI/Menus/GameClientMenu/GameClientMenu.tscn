@@ -1,0 +1,76 @@
+[gd_scene load_steps=9 format=3 uid="uid://ds8nrnr3kknpc"]
+
+[ext_resource type="Script" path="res://Scenes/UI/Menus/GameClientMenu/GameClientMenu.cs" id="1_shirc"]
+[ext_resource type="Resource" uid="uid://dyponttgtoqyl" path="res://Resources/GameData/InitialGameState.res" id="2_cm8wa"]
+[ext_resource type="Script" path="res://Networking/WebSocketClient.cs" id="2_n1vdk"]
+[ext_resource type="Script" path="res://Networking/GameClient.cs" id="2_qp1rk"]
+[ext_resource type="PackedScene" uid="uid://dyhkvrlph6p16" path="res://Scenes/Game/Game.tscn" id="3_eqh8t"]
+[ext_resource type="PackedScene" uid="uid://dceaof5l1mq5t" path="res://Scenes/UI/Menus/RemotePlayMenu/RemotePlayMenu.tscn" id="4_bd1wx"]
+[ext_resource type="PackedScene" uid="uid://dq62pcxpxm3pr" path="res://Scenes/UI/Menus/LobbyMenu/LobbyMenu.tscn" id="5_w2fpg"]
+[ext_resource type="Theme" uid="uid://qdeiddbstwpc" path="res://Resources/Themes/LabelWithOutlineTheme.tres" id="6_o8jko"]
+
+[node name="GameClientMenu" type="Node" node_paths=PackedStringArray("Client", "RemotePlayMenu", "LobbyMenu", "Game", "StatusLabel", "NoticePopup", "ErrorPopup")]
+script = ExtResource("1_shirc")
+Client = NodePath("GameClient")
+MainMenu = "res://Scenes/UI/Menus/MainMenu/MainMenu.tscn"
+RemotePlayMenu = NodePath("CanvasLayer/RemotePlayScene")
+LobbyMenu = NodePath("CanvasLayer/LobbyScene")
+Game = NodePath("Game")
+StatusLabel = NodePath("CanvasLayer/StatusLabel")
+NoticePopup = NodePath("NoticePopup")
+ErrorPopup = NodePath("ErrorPopup")
+InitialState = ExtResource("2_cm8wa")
+
+[node name="GameClient" type="Node" parent="." node_paths=PackedStringArray("Client")]
+script = ExtResource("2_qp1rk")
+Client = NodePath("WebSocketClient")
+
+[node name="WebSocketClient" type="Node" parent="GameClient"]
+script = ExtResource("2_n1vdk")
+
+[node name="Game" parent="." instance=ExtResource("3_eqh8t")]
+process_mode = 4
+visible = false
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="RemotePlayScene" parent="CanvasLayer" instance=ExtResource("4_bd1wx")]
+process_mode = 4
+visible = false
+
+[node name="LobbyScene" parent="CanvasLayer" instance=ExtResource("5_w2fpg")]
+process_mode = 4
+visible = false
+
+[node name="StatusLabel" type="Label" parent="CanvasLayer"]
+modulate = Color(1, 1, 1, 0.396078)
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -31.0
+offset_top = -17.0
+offset_right = 32.0
+grow_horizontal = 2
+grow_vertical = 0
+theme = ExtResource("6_o8jko")
+theme_override_font_sizes/font_size = 30
+horizontal_alignment = 1
+vertical_alignment = 2
+
+[node name="ErrorPopup" type="AcceptDialog" parent="."]
+snap_2d_transforms_to_pixel = true
+snap_2d_vertices_to_pixel = true
+title = "Error!"
+exclusive = false
+unresizable = true
+popup_window = true
+
+[node name="NoticePopup" type="AcceptDialog" parent="."]
+snap_2d_transforms_to_pixel = true
+snap_2d_vertices_to_pixel = true
+title = "Notice"
+exclusive = false
+unresizable = true
+popup_window = true

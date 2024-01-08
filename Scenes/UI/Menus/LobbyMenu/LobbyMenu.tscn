@@ -1,0 +1,156 @@
+[gd_scene load_steps=4 format=3 uid="uid://dq62pcxpxm3pr"]
+
+[ext_resource type="Script" path="res://Scenes/UI/Menus/LobbyMenu/LobbyMenu.cs" id="1_2xj2s"]
+[ext_resource type="Script" path="res://Logic/Buttons/GoBackButton.cs" id="2_ev8m8"]
+[ext_resource type="Theme" uid="uid://qdeiddbstwpc" path="res://Resources/Themes/LabelWithOutlineTheme.tres" id="3_5e4re"]
+
+[node name="LobbyScene" type="Control" node_paths=PackedStringArray("GoBack", "GoBackConfirmationDialog", "LobbyIdLabel", "Player1NameLabel", "Player2NameLabel")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_2xj2s")
+GoBack = NodePath("GoBack")
+GoBackConfirmationDialog = NodePath("ConfirmationDialog")
+LobbyIdLabel = NodePath("LobbyIdMarginContainer/LobbyIdVBoxContainer/LobbyIdLabel2")
+Player1NameLabel = NodePath("PlayerNamesMarginContainer/PlayerNamesVBoxContainer/PlayerName1HBoxContainer/PlayerName1Label2")
+Player2NameLabel = NodePath("PlayerNamesMarginContainer/PlayerNamesVBoxContainer/PlayerName2HBoxContainer/PlayerName2Label2")
+
+[node name="GoBack" type="Button" parent="."]
+modulate = Color(1, 0.156863, 0.403922, 1)
+layout_mode = 0
+offset_right = 168.0
+offset_bottom = 88.0
+text = "Exit Lobby"
+script = ExtResource("2_ev8m8")
+ChangeTo = "res://Scenes/UI/Menus/RemotePlayMenu/RemotePlayMenu.tscn"
+
+[node name="LobbyIdMarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -20.0
+offset_right = 20.0
+offset_bottom = 40.0
+grow_horizontal = 2
+
+[node name="LobbyIdVBoxContainer" type="VBoxContainer" parent="LobbyIdMarginContainer"]
+layout_mode = 2
+
+[node name="LobbyIdLabel1" type="Label" parent="LobbyIdMarginContainer/LobbyIdVBoxContainer"]
+layout_mode = 2
+theme = ExtResource("3_5e4re")
+text = "Lobby Id:"
+
+[node name="LobbyIdLabel2" type="Label" parent="LobbyIdMarginContainer/LobbyIdVBoxContainer"]
+layout_mode = 2
+theme = ExtResource("3_5e4re")
+
+[node name="PlayerNamesMarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_top = -20.0
+offset_right = 40.0
+offset_bottom = 20.0
+grow_vertical = 2
+
+[node name="PlayerNamesVBoxContainer" type="VBoxContainer" parent="PlayerNamesMarginContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="PlayerName1HBoxContainer" type="HBoxContainer" parent="PlayerNamesMarginContainer/PlayerNamesVBoxContainer"]
+layout_mode = 2
+
+[node name="PlayerName1Label1" type="Label" parent="PlayerNamesMarginContainer/PlayerNamesVBoxContainer/PlayerName1HBoxContainer"]
+layout_mode = 2
+theme = ExtResource("3_5e4re")
+text = "Player 1: "
+
+[node name="PlayerName1Label2" type="Label" parent="PlayerNamesMarginContainer/PlayerNamesVBoxContainer/PlayerName1HBoxContainer"]
+layout_mode = 2
+theme = ExtResource("3_5e4re")
+
+[node name="PlayerName2HBoxContainer" type="HBoxContainer" parent="PlayerNamesMarginContainer/PlayerNamesVBoxContainer"]
+layout_mode = 2
+
+[node name="PlayerName2Label1" type="Label" parent="PlayerNamesMarginContainer/PlayerNamesVBoxContainer/PlayerName2HBoxContainer"]
+layout_mode = 2
+theme = ExtResource("3_5e4re")
+text = "Player 2: "
+
+[node name="PlayerName2Label2" type="Label" parent="PlayerNamesMarginContainer/PlayerNamesVBoxContainer/PlayerName2HBoxContainer"]
+layout_mode = 2
+theme = ExtResource("3_5e4re")
+
+[node name="ConfirmationDialog" type="ConfirmationDialog" parent="."]
+snap_2d_transforms_to_pixel = true
+snap_2d_vertices_to_pixel = true
+initial_position = 4
+size = Vector2i(327, 100)
+exclusive = false
+unresizable = true
+always_on_top = true
+popup_window = true
+dialog_text = "Are you sure you want to exit the lobby?"
+
+[node name="ConfirmExitMarginContainer" type="MarginContainer" parent="."]
+process_mode = 4
+visible = false
+top_level = true
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -192.0
+offset_top = -132.0
+offset_right = 96.0
+offset_bottom = 156.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ConfirmExitPanel" type="Panel" parent="ConfirmExitMarginContainer"]
+self_modulate = Color(0, 0, 1, 1)
+layout_mode = 2
+
+[node name="ConfirmExitInternalMarginContainer" type="MarginContainer" parent="ConfirmExitMarginContainer/ConfirmExitPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 7
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 7
+theme_override_constants/margin_bottom = 6
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ConfirmExitMarginContainer/ConfirmExitPanel/ConfirmExitInternalMarginContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="ConfirmExitLabel" type="Label" parent="ConfirmExitMarginContainer/ConfirmExitPanel/ConfirmExitInternalMarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+text = "Are you sure you want to exit the lobby?"
+horizontal_alignment = 3
+vertical_alignment = 1
+autowrap_mode = 2
+
+[node name="ConfirmExitYesButton" type="Button" parent="ConfirmExitMarginContainer/ConfirmExitPanel/ConfirmExitInternalMarginContainer/VBoxContainer"]
+modulate = Color(0, 1, 0, 1)
+layout_mode = 2
+size_flags_vertical = 3
+text = "Yes"
+
+[node name="ConfirmExitNoButton" type="Button" parent="ConfirmExitMarginContainer/ConfirmExitPanel/ConfirmExitInternalMarginContainer/VBoxContainer"]
+modulate = Color(1, 0, 0, 1)
+layout_mode = 2
+size_flags_vertical = 3
+text = "No"
