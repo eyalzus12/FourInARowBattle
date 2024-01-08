@@ -38,11 +38,8 @@ public partial class GameClientMenu : Node
     private bool _kickingToRemotePlayMenu = false;
     private bool _kickingToLobby = false;
 
-    public override void _Ready()
+    private void VerifyExports()
     {
-        #region Editor Errors
-
-        //error for failure to set nodes in editor
         if(Client is null) { GD.PushError($"No {nameof(Client)} set"); return;}
         if(RemotePlayMenu is null) { GD.PushError($"No {nameof(RemotePlayMenu)} set"); return; }
         if(LobbyMenu is null) { GD.PushError($"No {nameof(LobbyMenu)} set"); return; }
@@ -51,15 +48,11 @@ public partial class GameClientMenu : Node
         if(ErrorPopup is null) { GD.PushError($"No {nameof(ErrorPopup)} set"); return; }
         if(NoticePopup is null) { GD.PushError($"No {nameof(NoticePopup)} set"); return; }
         if(InitialState is null) { GD.PushError($"No {nameof(InitialState)} set"); return; }
+    }
 
-        #endregion
-
-        StatusLabel.Text = CONNECTING_STATUS;
-
-        #region Signal Connecting
-
+    private void ConnectSignals()
+    {
         GetWindow().SizeChanged += OnWindowSizeChanged;
-        //VisiblityChanged is the only signal which handles all cases of closing the window
         ErrorPopup.VisibilityChanged += OnErrorPopupClosed;
         NoticePopup.VisibilityChanged += OnNoticePopupClosed;
         Client.Connected += OnClientConnected;
@@ -84,8 +77,17 @@ public partial class GameClientMenu : Node
         RemotePlayMenu.JoinLobbyRequested += OnRemotePlayMenuJoinLobbyRequested;
         RemotePlayMenu.GoBackRequested += OnRemotePlayMenuGoBackRequested;
         LobbyMenu.ExitLobbyRequested += OnLobbyMenuExitLobbyRequested;
+        LobbyMenu.ChallengeSent += OnLobbyMenuChallengeSent;
+        LobbyMenu.ChallengeCanceled += OnLobbyMenuChallengeCanceled;
+        LobbyMenu.ChallengeAccepted += OnLobbyMenuChallengeAccepted;
+        LobbyMenu.ChallengeRejected += OnLobbyMenuChallengeRejected;
+    }
 
-        #endregion
+    public override void _Ready()
+    {
+        VerifyExports();
+        ConnectSignals();
+        StatusLabel.Text = CONNECTING_STATUS;
     }
 
     #region Signal Handling
@@ -175,52 +177,52 @@ public partial class GameClientMenu : Node
 
     private void OnClientNewGameRequestSent()
     {
-
+        LobbyMenu.SetChallengeState_SentChallenge();
     }
 
     private void OnClientNewGameRequestReceived()
     {
-
+        LobbyMenu.SetChallengeState_GotChallenge();
     }
 
     private void OnClientNewGameAcceptSent()
     {
-
+        LobbyMenu.SetChallengeState_ChallengeAccepted();
     }
 
     private void OnClientNewGameAcceptReceived()
     {
-
+        LobbyMenu.SetChallengeState_ChallengeAccepted();
     }
 
     private void OnClientNewGameRejectSent()
     {
-
+        LobbyMenu.SetChallengeState_NoChallenge();
     }
 
     private void OnClientNewGameRejectReceived()
     {
-
+        LobbyMenu.SetChallengeState_NoChallenge();
     }
 
     private void OnClientNewGameCancelSent()
     {
-
+        LobbyMenu.SetChallengeState_NoChallenge();
     }
 
     private void OnClientNewGameCancelReceived()
     {
-
+        LobbyMenu.SetChallengeState_NoChallenge();
     }
 
-    private void OnClientGameStarted()
+    private void OnClientGameStarted(GameTurnEnum turn)
     {
-
+        SwitchToGame();
     }
 
     private void OnClientGameFinished()
     {
-
+        SwitchToLobbyMenu();
     }
 
     private void OnRemotePlayMenuCreateLobbyRequested(string playerName)
@@ -251,6 +253,27 @@ public partial class GameClientMenu : Node
         SwitchToRemotePlayMenu();
     }
 
+    private void OnLobbyMenuChallengeSent()
+    {
+        Client.RequestNewGame();
+    }
+
+    private void OnLobbyMenuChallengeCanceled()
+    {
+        Client.CancelNewGame();
+    }
+
+    private void OnLobbyMenuChallengeAccepted()
+    {
+        Client.AcceptNewGame();
+    }
+
+    private void OnLobbyMenuChallengeRejected()
+    {
+        Client.RejectNewGame();
+    }
+
+
     #endregion
     
     #region Menu Operations
@@ -273,9 +296,6 @@ public partial class GameClientMenu : Node
 
     private void SwitchToLobbyMenu()
     {
-        if(!_inLobby)
-            return;
-        
         RemotePlayMenu.ProcessMode = ProcessModeEnum.Disabled;
         RemotePlayMenu.Visible = false;
         
@@ -300,6 +320,8 @@ public partial class GameClientMenu : Node
         Game.Visible = true;
 
         Game.DeserializeFrom(InitialState);
+
+        _inGame = true;
     }
 
     public void DisplayError(string error)

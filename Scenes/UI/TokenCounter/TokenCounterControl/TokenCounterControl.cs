@@ -71,34 +71,46 @@ public partial class TokenCounterControl : Control
         }
     }
 
-    public override void _Ready()
+    private void ConnectSignals()
     {
-        TokenCount = _count;
-        ActiveOnTurn = _activeOnTurn;
-
         foreach(TokenCounterButton button in TokenButtons)
         {
             TokenCounterButton buttonBind = button;
-            button.Pressed += () =>
-                OnSelectButtonPressed(buttonBind);
-            button.MouseEntered += () =>
-                EmitSignal(
-                    SignalName.TokenButtonHovered,
-                    (int)ActiveOnTurn,
-                    DescriptionLabel.DescriptionFromScene(buttonBind.AssociatedScene)
-                );
-            button.MouseExited += () =>
-                EmitSignal(
-                    SignalName.TokenButtonStoppedHover,
-                    (int)ActiveOnTurn,
-                    DescriptionLabel.DescriptionFromScene(buttonBind.AssociatedScene)
-                );
+            button.Pressed += () => OnSelectButtonPressed(buttonBind);
+            button.MouseEntered += () => OnTokenCounterButtonMouseEntered(buttonBind);
+            button.MouseExited += () => OnTokenCounterButtonMouseExited(buttonBind);
         }
     }
 
+    public override void _Ready()
+    {
+        ConnectSignals();
+
+        TokenCount = _count;
+        ActiveOnTurn = _activeOnTurn;
+    }
+    
     public void OnSelectButtonPressed(TokenCounterButton who)
     {
         EmitSignal(SignalName.TokenSelected, who);
+    }
+
+    private void OnTokenCounterButtonMouseEntered(TokenCounterButton who)
+    {
+        EmitSignal(
+            SignalName.TokenButtonHovered,
+            (int)ActiveOnTurn,
+            DescriptionLabel.DescriptionFromScene(who.AssociatedScene)
+        );
+    }
+
+    private void OnTokenCounterButtonMouseExited(TokenCounterButton who)
+    {
+        EmitSignal(
+            SignalName.TokenButtonStoppedHover,
+            (int)ActiveOnTurn,
+            DescriptionLabel.DescriptionFromScene(who.AssociatedScene)
+        );
     }
 
     public void OnTurnChange(GameTurnEnum to)

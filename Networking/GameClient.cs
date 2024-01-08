@@ -40,7 +40,7 @@ public partial class GameClient : Node
     [Signal]
     public delegate void NewGameCancelReceivedEventHandler();
     [Signal]
-    public delegate void GameStartedEventHandler();
+    public delegate void GameStartedEventHandler(GameTurnEnum turn);
     [Signal]
     public delegate void GameFinishedEventHandler();
     
@@ -48,7 +48,7 @@ public partial class GameClient : Node
 
 
     [Export]
-    public WebSocketClient? Client{get; set;}
+    public WebSocketClient Client{get; set;} = null!;
 
     private readonly Deque<byte> _buffer = new();
 
@@ -79,14 +79,22 @@ public partial class GameClient : Node
 
     #endregion
 
-    public override void _Ready()
+    private void VerifyExports()
     {
         if(Client is null) { GD.PushError($"No {nameof(Client)} set"); return;}
+    }
 
+    private void ConnectSignals()
+    {
         Client.PacketReceived += OnWebSocketClientPacketReceived;
         Client.ConnectedToServer += OnWebSocketClientConnected;
         Client.ConnectionClosed += OnWebSocketClientConnectionClosed;
+    }
 
+    public override void _Ready()
+    {
+        VerifyExports();
+        ConnectSignals();
         Client.ConnectToUrl("127.0.0.1");
     }
 
@@ -488,7 +496,7 @@ public partial class GameClient : Node
                 }
                 _gameShouldStart = false;
                 _inGame = true;
-                EmitSignal(SignalName.GameStarted);
+                EmitSignal(SignalName.GameStarted, (int)_packet.GameTurn);
                 break;
             }
             case Packet_GameActionPlaceOk:

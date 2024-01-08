@@ -13,36 +13,44 @@ public partial class MainMenu : Control
     public delegate void HostServerRequestedEventHandler(string path);
 
     [Export]
-    public ChangeSceneOnPressButton? LocalPlayButton{get; set;}
+    public ChangeSceneOnPressButton LocalPlayButton{get; set;} = null!;
     [Export]
-    public ChangeSceneOnPressButton? RemotePlayButton{get; set;}
+    public ChangeSceneOnPressButton RemotePlayButton{get; set;} = null!;
     [Export]
-    public ChangeSceneOnPressButton? HostServerButton{get; set;}
+    public ChangeSceneOnPressButton HostServerButton{get; set;} = null!;
+
+    private void VerifyExports()
+    {
+        if(LocalPlayButton is null) { GD.PushError($"No {nameof(LocalPlayButton)} set"); return; }
+        if(RemotePlayButton is null) { GD.PushError($"No {nameof(RemotePlayButton)} set"); return; }
+        if(HostServerButton is null) { GD.PushError($"No {nameof(HostServerButton)} set"); return; }
+    }
+
+    private void ConnectSignals()
+    {
+        LocalPlayButton.ChangeSceneRequested += OnLocalPlayButtonChangeSceneRequested;
+        RemotePlayButton.ChangeSceneRequested += OnRemotePlayButtonChangeSceneRequested;
+        HostServerButton.ChangeSceneRequested += OnHostServerButtonChangeSceneRequested;
+    }
 
     public override void _Ready()
     {
-        if(LocalPlayButton is not null)
-        {
-            LocalPlayButton.ChangeSceneRequested += (string path) =>
-            {
-                GetTree().CallDeferred(SceneTree.MethodName.ChangeSceneToFile, path);
-            };
-        }
+        VerifyExports();
+        ConnectSignals();
+    }
 
-        if(RemotePlayButton is not null)
-        {
-            RemotePlayButton.ChangeSceneRequested += (string path) =>
-            {
-                GetTree().CallDeferred(SceneTree.MethodName.ChangeSceneToFile, path);
-            };
-        }
+    private void OnLocalPlayButtonChangeSceneRequested(string path)
+    {
+        GetTree().CallDeferred(SceneTree.MethodName.ChangeSceneToFile, path);
+    }
 
-        if(HostServerButton is not null)
-        {
-            HostServerButton.ChangeSceneRequested += (string path) =>
-            {
-                GetTree().CallDeferred(SceneTree.MethodName.ChangeSceneToFile, path);
-            };
-        }
+    private void OnRemotePlayButtonChangeSceneRequested(string path)
+    {
+        GetTree().CallDeferred(SceneTree.MethodName.ChangeSceneToFile, path);
+    }
+
+    private void OnHostServerButtonChangeSceneRequested(string path)
+    {
+        GetTree().CallDeferred(SceneTree.MethodName.ChangeSceneToFile, path);
     }
 }

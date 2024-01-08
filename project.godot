@@ -28,7 +28,6 @@ AudioManager="*res://Autoloads/AudioManager.cs"
 
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
-window/stretch/scale_mode="integer"
 window/size/always_on_top.editor=false
 
 [dotnet]

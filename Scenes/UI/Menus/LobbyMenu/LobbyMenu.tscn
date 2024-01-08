@@ -1,28 +1,32 @@
-[gd_scene load_steps=4 format=3 uid="uid://dq62pcxpxm3pr"]
+[gd_scene load_steps=5 format=3 uid="uid://dq62pcxpxm3pr"]
 
 [ext_resource type="Script" path="res://Scenes/UI/Menus/LobbyMenu/LobbyMenu.cs" id="1_2xj2s"]
 [ext_resource type="Script" path="res://Logic/Buttons/GoBackButton.cs" id="2_ev8m8"]
 [ext_resource type="Theme" uid="uid://qdeiddbstwpc" path="res://Resources/Themes/LabelWithOutlineTheme.tres" id="3_5e4re"]
+[ext_resource type="Script" path="res://Scenes/UI/Menus/LobbyMenu/LobbyGameChallengeMenu.cs" id="4_v82b4"]
 
-[node name="LobbyScene" type="Control" node_paths=PackedStringArray("GoBack", "GoBackConfirmationDialog", "LobbyIdLabel", "Player1NameLabel", "Player2NameLabel")]
+[node name="LobbyScene" type="Control" node_paths=PackedStringArray("GoBack", "GoBackConfirmationDialog", "LobbyIdLabel", "Player1NameLabel", "Player2NameLabel", "GameChallengeSubMenu")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 script = ExtResource("1_2xj2s")
 GoBack = NodePath("GoBack")
 GoBackConfirmationDialog = NodePath("ConfirmationDialog")
 LobbyIdLabel = NodePath("LobbyIdMarginContainer/LobbyIdVBoxContainer/LobbyIdLabel2")
 Player1NameLabel = NodePath("PlayerNamesMarginContainer/PlayerNamesVBoxContainer/PlayerName1HBoxContainer/PlayerName1Label2")
 Player2NameLabel = NodePath("PlayerNamesMarginContainer/PlayerNamesVBoxContainer/PlayerName2HBoxContainer/PlayerName2Label2")
+GameChallengeSubMenu = NodePath("GameChallengeMarginContainer")
 
 [node name="GoBack" type="Button" parent="."]
 modulate = Color(1, 0.156863, 0.403922, 1)
 layout_mode = 0
 offset_right = 168.0
 offset_bottom = 88.0
+mouse_filter = 1
 text = "Exit Lobby"
 script = ExtResource("2_ev8m8")
 ChangeTo = "res://Scenes/UI/Menus/RemotePlayMenu/RemotePlayMenu.tscn"
@@ -36,9 +40,11 @@ offset_left = -20.0
 offset_right = 20.0
 offset_bottom = 40.0
 grow_horizontal = 2
+mouse_filter = 2
 
 [node name="LobbyIdVBoxContainer" type="VBoxContainer" parent="LobbyIdMarginContainer"]
 layout_mode = 2
+mouse_filter = 2
 
 [node name="LobbyIdLabel1" type="Label" parent="LobbyIdMarginContainer/LobbyIdVBoxContainer"]
 layout_mode = 2
@@ -58,13 +64,16 @@ offset_top = -20.0
 offset_right = 40.0
 offset_bottom = 20.0
 grow_vertical = 2
+mouse_filter = 2
 
 [node name="PlayerNamesVBoxContainer" type="VBoxContainer" parent="PlayerNamesMarginContainer"]
 layout_mode = 2
+mouse_filter = 2
 alignment = 1
 
 [node name="PlayerName1HBoxContainer" type="HBoxContainer" parent="PlayerNamesMarginContainer/PlayerNamesVBoxContainer"]
 layout_mode = 2
+mouse_filter = 2
 
 [node name="PlayerName1Label1" type="Label" parent="PlayerNamesMarginContainer/PlayerNamesVBoxContainer/PlayerName1HBoxContainer"]
 layout_mode = 2
@@ -77,6 +86,7 @@ theme = ExtResource("3_5e4re")
 
 [node name="PlayerName2HBoxContainer" type="HBoxContainer" parent="PlayerNamesMarginContainer/PlayerNamesVBoxContainer"]
 layout_mode = 2
+mouse_filter = 2
 
 [node name="PlayerName2Label1" type="Label" parent="PlayerNamesMarginContainer/PlayerNamesVBoxContainer/PlayerName2HBoxContainer"]
 layout_mode = 2
@@ -86,6 +96,60 @@ text = "Player 2: "
 [node name="PlayerName2Label2" type="Label" parent="PlayerNamesMarginContainer/PlayerNamesVBoxContainer/PlayerName2HBoxContainer"]
 layout_mode = 2
 theme = ExtResource("3_5e4re")
+
+[node name="GameChallengeMarginContainer" type="MarginContainer" parent="." node_paths=PackedStringArray("ChallengeStatusLabel", "SendChallengeButton", "CancelChallengeButton", "AcceptChallengeButton", "RejectChallengeButton")]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -93.0
+offset_right = 312.0
+grow_vertical = 0
+script = ExtResource("4_v82b4")
+ChallengeStatusLabel = NodePath("GameChallengeVBoxContainer/GameChallengeLabel")
+SendChallengeButton = NodePath("GameChallengeVBoxContainer/GameChallengeHBoxContainer/GameChallengeRequestVBoxContainer/ChallengeToGame")
+CancelChallengeButton = NodePath("GameChallengeVBoxContainer/GameChallengeHBoxContainer/GameChallengeRequestVBoxContainer/CancelGameChallenge")
+AcceptChallengeButton = NodePath("GameChallengeVBoxContainer/GameChallengeHBoxContainer/GameChallengeResponseVBoxContainer/AcceptGameChallenge")
+RejectChallengeButton = NodePath("GameChallengeVBoxContainer/GameChallengeHBoxContainer/GameChallengeResponseVBoxContainer/RejectGameChallenge")
+
+[node name="GameChallengeVBoxContainer" type="VBoxContainer" parent="GameChallengeMarginContainer"]
+layout_mode = 2
+
+[node name="GameChallengeLabel" type="Label" parent="GameChallengeMarginContainer/GameChallengeVBoxContainer"]
+visible = false
+layout_mode = 2
+text = "Challenge sent"
+
+[node name="GameChallengeHBoxContainer" type="HBoxContainer" parent="GameChallengeMarginContainer/GameChallengeVBoxContainer"]
+layout_mode = 2
+
+[node name="GameChallengeRequestVBoxContainer" type="VBoxContainer" parent="GameChallengeMarginContainer/GameChallengeVBoxContainer/GameChallengeHBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ChallengeToGame" type="Button" parent="GameChallengeMarginContainer/GameChallengeVBoxContainer/GameChallengeHBoxContainer/GameChallengeRequestVBoxContainer"]
+visible = false
+layout_mode = 2
+text = "Challenge to a game"
+
+[node name="CancelGameChallenge" type="Button" parent="GameChallengeMarginContainer/GameChallengeVBoxContainer/GameChallengeHBoxContainer/GameChallengeRequestVBoxContainer"]
+visible = false
+layout_mode = 2
+text = "Cancel game challenge"
+
+[node name="GameChallengeResponseVBoxContainer" type="VBoxContainer" parent="GameChallengeMarginContainer/GameChallengeVBoxContainer/GameChallengeHBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="AcceptGameChallenge" type="Button" parent="GameChallengeMarginContainer/GameChallengeVBoxContainer/GameChallengeHBoxContainer/GameChallengeResponseVBoxContainer"]
+visible = false
+layout_mode = 2
+text = "Accept game challenge"
+
+[node name="RejectGameChallenge" type="Button" parent="GameChallengeMarginContainer/GameChallengeVBoxContainer/GameChallengeHBoxContainer/GameChallengeResponseVBoxContainer"]
+visible = false
+layout_mode = 2
+text = "Reject game challenge"
 
 [node name="ConfirmationDialog" type="ConfirmationDialog" parent="."]
 snap_2d_transforms_to_pixel = true
@@ -154,3 +218,45 @@ modulate = Color(1, 0, 0, 1)
 layout_mode = 2
 size_flags_vertical = 3
 text = "No"
+
+[node name="ChatMarginContainer" type="MarginContainer" parent="."]
+process_mode = 4
+visible = false
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -272.0
+grow_horizontal = 0
+grow_vertical = 2
+
+[node name="ChatPanel" type="Panel" parent="ChatMarginContainer"]
+layout_mode = 2
+
+[node name="ChatVBoxContainer" type="VBoxContainer" parent="ChatMarginContainer/ChatPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ChatLabel" type="Label" parent="ChatMarginContainer/ChatPanel/ChatVBoxContainer"]
+layout_mode = 2
+theme = ExtResource("3_5e4re")
+text = "Lobby Chat"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ChatRichTextLabelMarginContainer" type="MarginContainer" parent="ChatMarginContainer/ChatPanel/ChatVBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/margin_left = 15
+
+[node name="ChatRichTextLabel" type="RichTextLabel" parent="ChatMarginContainer/ChatPanel/ChatVBoxContainer/ChatRichTextLabelMarginContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/normal_font_size = 20
+text = "a"
+scroll_following = true

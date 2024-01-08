@@ -7,15 +7,33 @@ public partial class ChangeSceneAndLoadGameButton : ChangeSceneOnPressButton
     [Export]
     public FileDialog FileSelectDialog{get; set;} = null!;
 
+    private void VerifyExports()
+    {
+        if(FileSelectDialog is null) { GD.PushError($"No {nameof(FileSelectDialog)} set"); return; }
+    }
+
+    private void ConnectSignals()
+    {
+        FileSelectDialog.FileSelected += OnFileSelectDialogFileSelected;
+        GetWindow().SizeChanged += OnWindowSizeChanged;
+    }
+
     public override void _Ready()
     {
-        FileSelectDialog.FileSelected += (string path) =>
-        {
-            Autoloads.PersistentData.ContinueFromState = ResourceLoader.Load<GameData>(path, cacheMode: ResourceLoader.CacheMode.Replace);
-            base._Pressed();
-        };
-        
-        GetWindow().SizeChanged += _Pressed;
+        VerifyExports();
+        ConnectSignals();
+    }
+
+    private void OnFileSelectDialogFileSelected(string path)
+    {
+        Autoloads.PersistentData.ContinueFromState = ResourceLoader.Load<GameData>(path, cacheMode: ResourceLoader.CacheMode.Replace);
+        base._Pressed();
+    }
+
+    private void OnWindowSizeChanged()
+    {
+        if(FileSelectDialog.Visible)
+            _Pressed();
     }
 
     public override void _Pressed()

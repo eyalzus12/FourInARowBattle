@@ -9,11 +9,20 @@ public partial class JoinLobbyButton : Button
     public delegate void JoinLobbyButtonPressedEventHandler(uint with);
 
     [Export]
-    public LobbyIdField? Field{get; set;} = null;
+    public LobbyIdField Field{get; set;} = null!;
+
+    private void VerifyExports()
+    {
+        if(Field is null) { GD.PushError($"No {nameof(Field)} set"); return; }
+    }
+
+    public override void _Ready()
+    {
+        VerifyExports();
+    }
 
     public override void _Pressed()
     {
-        if(Field is null) return;
         if(uint.TryParse(Field.Text, out uint result))
             EmitSignal(SignalName.JoinLobbyButtonPressed, result);
         else

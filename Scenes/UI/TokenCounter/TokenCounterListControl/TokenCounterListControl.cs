@@ -60,38 +60,73 @@ public partial class TokenCounterListControl : Control
     private TokenCounterControl? _lastSelection = null;
     private TokenCounterButton? _lastSelectionButton = null;
 
-    public override void _Ready()
+    private void VerifyExports()
     {
-        ActiveOnTurn = _activeOnTurn;
-        CurrentScore = 0;
+        if(ScoreLabel is null) { GD.PushError($"No {nameof(ScoreLabel)} set"); return; }
+        if(RefillButton is null) { GD.PushError($"No {nameof(RefillButton)} set"); return; }
+    }
+
+    private void ConnectSignals()
+    {
         foreach(TokenCounterControl c in Counters)
         {
             TokenCounterControl cBind = c;
-            c.TokenSelected += (TokenCounterButton button) =>
-            {
-                _lastSelection = cBind;
-                _lastSelectionButton = button;
-                EmitSignal(SignalName.TokenSelected, cBind, button);
-            };
-            c.TokenButtonHovered += (GameTurnEnum turn, string description) =>
-                EmitSignal(SignalName.TokenButtonHovered, (int)turn, description);
-            c.TokenButtonStoppedHover += (GameTurnEnum turn, string description) =>
-                EmitSignal(SignalName.TokenButtonStoppedHover, (int)turn, description);
+            c.TokenSelected += (TokenCounterButton button) => OnTokenSelected(cBind, button);
+            c.TokenButtonHovered += OnTokenButtonHovered;
+            c.TokenButtonStoppedHover += OnTokenButtonStoppedHover;
         }
 
-        RefillButton.Pressed += () => DoRefill();
-        RefillButton.MouseEntered += () =>
-            EmitSignal(
-                SignalName.TokenButtonHovered,
-                (int)ActiveOnTurn,
-                DescriptionLabel.REFILL_DESCRIPTION
-            );
-        RefillButton.MouseExited += () =>
-            EmitSignal(
-                SignalName.TokenButtonStoppedHover,
-                (int)ActiveOnTurn,
-                DescriptionLabel.REFILL_DESCRIPTION
-            );
+        RefillButton.Pressed += OnRefillButtonPressed;
+        RefillButton.MouseEntered += OnRefillButtonMouseEntered;
+        RefillButton.MouseExited += OnRefillButtonMouseExited;
+    }
+
+    public override void _Ready()
+    {
+        VerifyExports();
+        ConnectSignals();
+        ActiveOnTurn = _activeOnTurn;
+        CurrentScore = 0;
+    }
+
+    private void OnTokenSelected(TokenCounterControl control, TokenCounterButton button)
+    {
+        _lastSelection = control;
+        _lastSelectionButton = button;
+        EmitSignal(SignalName.TokenSelected, control, button);
+    }
+
+    private void OnTokenButtonHovered(GameTurnEnum turn, string description)
+    {
+        EmitSignal(SignalName.TokenButtonHovered, (int)turn, description);
+    }
+
+    private void OnTokenButtonStoppedHover(GameTurnEnum turn, string description)
+    {
+        EmitSignal(SignalName.TokenButtonStoppedHover, (int)turn, description);
+    }
+
+    private void OnRefillButtonPressed()
+    {
+        DoRefill();
+    }
+
+    private void OnRefillButtonMouseEntered()
+    {
+        EmitSignal(
+            SignalName.TokenButtonHovered,
+            (int)ActiveOnTurn,
+            DescriptionLabel.REFILL_DESCRIPTION
+        );
+    }
+
+    private void OnRefillButtonMouseExited()
+    {
+        EmitSignal(
+            SignalName.TokenButtonStoppedHover, 
+            (int)ActiveOnTurn,
+            DescriptionLabel.REFILL_DESCRIPTION
+        );
     }
 
     public bool DoRefill()

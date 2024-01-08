@@ -21,6 +21,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 script = ExtResource("1_dna4a")
 CreateLobby = NodePath("ButtonsMarginContainer/ButtonsVBoxContainer/CreateLobbyMarginContainer/CreateLobbyButton")
 JoinLobby = NodePath("ButtonsMarginContainer/ButtonsVBoxContainer/JoinLobbyMarginContainer/JoinLobbyHBoxContainer/JoinLobbyButton")
@@ -73,9 +74,11 @@ theme_override_constants/margin_bottom = 10
 
 [node name="JoinLobbyPanel" type="Panel" parent="ButtonsMarginContainer/ButtonsVBoxContainer/JoinLobbyMarginContainer"]
 layout_mode = 2
+mouse_filter = 2
 
 [node name="JoinLobbyHBoxContainer" type="VBoxContainer" parent="ButtonsMarginContainer/ButtonsVBoxContainer/JoinLobbyMarginContainer"]
 layout_mode = 2
+mouse_filter = 2
 alignment = 1
 
 [node name="LobbyIdField" type="LineEdit" parent="ButtonsMarginContainer/ButtonsVBoxContainer/JoinLobbyMarginContainer/JoinLobbyHBoxContainer"]
@@ -83,6 +86,7 @@ modulate = Color(0.454902, 1, 1, 1)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+mouse_filter = 1
 theme_override_font_sizes/font_size = 44
 placeholder_text = "Enter Lobby Id"
 max_length = 10
@@ -104,6 +108,7 @@ modulate = Color(1, 0.156863, 0.403922, 1)
 layout_mode = 1
 offset_right = 168.0
 offset_bottom = 88.0
+mouse_filter = 1
 text = "Back To Main Menu"
 script = ExtResource("1_pbaxe")
 ChangeTo = "res://Scenes/UI/Menus/MainMenu/MainMenu.tscn"
