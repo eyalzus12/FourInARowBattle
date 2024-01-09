@@ -316,6 +316,12 @@ public abstract partial class AbstractPacket : Resource
                 packet = new Packet_GameFinished(result, player1Score, player2Score);
                 return true;
             }
+            case PacketTypeEnum.SERVER_CLOSING:
+            {
+                buffer.PopLeft();
+                packet = new Packet_ServerClosing();
+                return true;
+            }
             default:
             {
                 GD.PushError($"Unknown packet type {type}");

@@ -45,7 +45,7 @@ public partial class LobbyMenu : Control
 
     private void ConnectSignals()
     {
-        GoBackConfirmationDialog.Confirmed += GoBackConfirmationDialogConfirmed;
+        GoBackConfirmationDialog.Confirmed += OnGoBackConfirmationDialogConfirmed;
         GetWindow().SizeChanged += OnWindowSizeChanged;
         GoBack.ChangeSceneRequested += OnGoBackButtonChangeSceneRequested;
         GameChallengeSubMenu.ChallengeSent += OnChallengeSubMenuChallengeSent;
@@ -63,7 +63,7 @@ public partial class LobbyMenu : Control
     public bool LobbyFull() => Player1NameLabel.Text != "" && Player2NameLabel.Text != "";
 
     #region Signal Handling
-    private void GoBackConfirmationDialogConfirmed()
+    private void OnGoBackConfirmationDialogConfirmed()
     {
         if(_goBackRequestPath is null) return;
         EmitSignal(SignalName.ExitLobbyRequested, _goBackRequestPath);
@@ -81,7 +81,7 @@ public partial class LobbyMenu : Control
         _goBackRequestPath = path;
 
         //Vector2I decorations = GetWindow().GetSizeOfDecorations();
-        GoBackConfirmationDialog?.PopupCentered(/*GetWindow().GetVisibleSize() - new Vector2I(0,decorations.Y)*/);
+        GoBackConfirmationDialog.PopupCentered(/*GetWindow().GetVisibleSize() - new Vector2I(0,decorations.Y)*/);
     }
 
     private void OnChallengeSubMenuChallengeSent()

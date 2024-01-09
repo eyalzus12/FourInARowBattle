@@ -1,0 +1,126 @@
+[gd_scene load_steps=6 format=3 uid="uid://debclaru4ujol"]
+
+[ext_resource type="Script" path="res://Scenes/UI/Menus/GameServerMenu/GameServerMenu.cs" id="1_f0143"]
+[ext_resource type="Script" path="res://Networking/GameServer.cs" id="2_0s4yf"]
+[ext_resource type="PackedScene" uid="uid://dyhkvrlph6p16" path="res://Scenes/Game/Game.tscn" id="3_sa8hx"]
+[ext_resource type="Script" path="res://Networking/WebSocketServer.cs" id="4_wyd18"]
+[ext_resource type="Script" path="res://Logic/Buttons/GoBackButton.cs" id="5_uk11p"]
+
+[node name="GameServerMenu" type="Node" node_paths=PackedStringArray("Server", "Port", "StartServer", "StopServer", "RefuseNewConnections", "ErrorPopup", "GoBack", "GoBackConfirmationDialog")]
+script = ExtResource("1_f0143")
+Server = NodePath("GameServer")
+Port = NodePath("CanvasLayer/ServerControlsMarginContainer/ServerControlsVBoxContainer/PortPanelContainer/PortMarginContainer/PortHBoxContainer/PortLineEdit")
+StartServer = NodePath("CanvasLayer/ServerControlsMarginContainer/ServerControlsVBoxContainer/ButtonsHBoxContainer/StartServerButton")
+StopServer = NodePath("CanvasLayer/ServerControlsMarginContainer/ServerControlsVBoxContainer/ButtonsHBoxContainer/StopServerButton")
+RefuseNewConnections = NodePath("CanvasLayer/ServerControlsMarginContainer/ServerControlsVBoxContainer/RefuseNewPanelContainer/RefuseNewMarginContainer/RefuseNewCheckButton")
+ErrorPopup = NodePath("ErrorPopup")
+GoBack = NodePath("GoBack")
+GoBackConfirmationDialog = NodePath("ConfirmationDialog")
+
+[node name="GameServer" type="Node" parent="." node_paths=PackedStringArray("Server")]
+script = ExtResource("2_0s4yf")
+Server = NodePath("WebSocketServer")
+GameScene = ExtResource("3_sa8hx")
+
+[node name="WebSocketServer" type="Node" parent="GameServer"]
+script = ExtResource("4_wyd18")
+SupportedProtocols = PackedStringArray("test")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="ServerControlsMarginContainer" type="MarginContainer" parent="CanvasLayer"]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -99.0
+offset_right = 95.0
+offset_bottom = 101.0
+grow_horizontal = 2
+
+[node name="ServerControlsVBoxContainer" type="VBoxContainer" parent="CanvasLayer/ServerControlsMarginContainer"]
+layout_mode = 2
+
+[node name="PortPanelContainer" type="PanelContainer" parent="CanvasLayer/ServerControlsMarginContainer/ServerControlsVBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="PortMarginContainer" type="MarginContainer" parent="CanvasLayer/ServerControlsMarginContainer/ServerControlsVBoxContainer/PortPanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 3
+theme_override_constants/margin_top = 3
+theme_override_constants/margin_right = 3
+theme_override_constants/margin_bottom = 3
+
+[node name="PortHBoxContainer" type="HBoxContainer" parent="CanvasLayer/ServerControlsMarginContainer/ServerControlsVBoxContainer/PortPanelContainer/PortMarginContainer"]
+layout_mode = 2
+
+[node name="PortLabel" type="Label" parent="CanvasLayer/ServerControlsMarginContainer/ServerControlsVBoxContainer/PortPanelContainer/PortMarginContainer/PortHBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 0
+text = "Port: "
+horizontal_alignment = 1
+
+[node name="PortLineEdit" type="LineEdit" parent="CanvasLayer/ServerControlsMarginContainer/ServerControlsVBoxContainer/PortPanelContainer/PortMarginContainer/PortHBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Insert Port"
+max_length = 5
+
+[node name="ButtonsHBoxContainer" type="HBoxContainer" parent="CanvasLayer/ServerControlsMarginContainer/ServerControlsVBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="StartServerButton" type="Button" parent="CanvasLayer/ServerControlsMarginContainer/ServerControlsVBoxContainer/ButtonsHBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Start Server"
+
+[node name="StopServerButton" type="Button" parent="CanvasLayer/ServerControlsMarginContainer/ServerControlsVBoxContainer/ButtonsHBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+disabled = true
+text = "Stop Server"
+
+[node name="RefuseNewPanelContainer" type="PanelContainer" parent="CanvasLayer/ServerControlsMarginContainer/ServerControlsVBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="RefuseNewMarginContainer" type="MarginContainer" parent="CanvasLayer/ServerControlsMarginContainer/ServerControlsVBoxContainer/RefuseNewPanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 3
+theme_override_constants/margin_top = 3
+theme_override_constants/margin_right = 3
+theme_override_constants/margin_bottom = 3
+
+[node name="RefuseNewCheckButton" type="CheckButton" parent="CanvasLayer/ServerControlsMarginContainer/ServerControlsVBoxContainer/RefuseNewPanelContainer/RefuseNewMarginContainer"]
+layout_mode = 2
+text = "Refuse New Connections"
+
+[node name="ErrorPopup" type="AcceptDialog" parent="."]
+snap_2d_transforms_to_pixel = true
+snap_2d_vertices_to_pixel = true
+title = "Error!"
+exclusive = false
+unresizable = true
+popup_window = true
+
+[node name="GoBack" type="Button" parent="."]
+modulate = Color(1, 0.156863, 0.403922, 1)
+offset_right = 168.0
+offset_bottom = 88.0
+mouse_filter = 1
+text = "Back To Main Menu"
+script = ExtResource("5_uk11p")
+ChangeTo = "res://Scenes/UI/Menus/MainMenu/MainMenu.tscn"
+
+[node name="ConfirmationDialog" type="ConfirmationDialog" parent="."]
+snap_2d_transforms_to_pixel = true
+snap_2d_vertices_to_pixel = true
+initial_position = 4
+size = Vector2i(327, 100)
+exclusive = false
+unresizable = true
+always_on_top = true
+popup_window = true
+dialog_text = "Are you sure you want to exit the server hosting menu?"

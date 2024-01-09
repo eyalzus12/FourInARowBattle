@@ -90,3 +90,4 @@ tooltip_text = "Host a game to be able to play remotely"
 mouse_filter = 1
 text = "Host a Server"
 script = ExtResource("1_w7sya")
+ChangeTo = "res://Scenes/UI/Menus/GameServerMenu/GameServerMenu.tscn"

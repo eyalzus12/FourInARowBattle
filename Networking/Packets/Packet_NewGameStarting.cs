@@ -18,7 +18,7 @@ public partial class Packet_NewGameStarting : AbstractPacket
     {
         byte[] buffer = new byte[1 + 1];
         buffer.StoreBigEndianU8((byte)PacketType, 0);
-        buffer.StoreBigEndianU8((byte)GameTurn, 0);
+        buffer.StoreBigEndianU8((byte)GameTurn, 1);
         return buffer;
     }
 }

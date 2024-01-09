@@ -171,7 +171,7 @@ public partial class WebSocketServer : Node
         List<PendingPeer> pendingPeersCopy = _pendingPeers.ToList();
         foreach(PendingPeer peer in pendingPeersCopy)
         {
-            if(ConnectPending(peer) && peer.ConnectTime + HandshakeTimeout < Time.GetTicksMsec())
+            if(ConnectPending(peer) || peer.ConnectTime + HandshakeTimeout < Time.GetTicksMsec())
             {
                 _pendingPeers.Remove(peer);
             }
@@ -212,7 +212,7 @@ public partial class WebSocketServer : Node
             if(state == WebSocketPeer.State.Open)
             {
                 //find unused id
-                int id; do{id = GD.RandRange(2, 1 << 30);} while(!_peers.ContainsKey(id));
+                int id; do{id = GD.RandRange(2, 1 << 30);} while(_peers.ContainsKey(id));
                 _peers.Add(id, peer.WebSocket);
                 EmitSignal(SignalName.ClientConnected, id);
                 return true; // Success

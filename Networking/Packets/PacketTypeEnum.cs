@@ -123,4 +123,7 @@ public enum PacketTypeEnum : byte
     //game finished
     //data: result(8b), player 1 points(32b), player 2 points(32b)
     GAME_FINISHED,
+    //server is closing
+    //data: none
+    SERVER_CLOSING,
 }

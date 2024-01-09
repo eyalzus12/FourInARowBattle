@@ -58,6 +58,7 @@ public partial class GameClientMenu : Node
         NoticePopup.VisibilityChanged += OnNoticePopupClosed;
         Client.Connected += OnClientConnected;
         Client.Disconnected += OnClientDisconnected;
+        Client.ServerClosed += OnClientServerClosed;
         Client.ErrorOccured += OnClientErrorOccured;
         Client.LobbyEntered += OnClientLobbyEntered;
         Client.LobbyStateUpdated += OnClientLobbyStateUpdated;
@@ -107,10 +108,28 @@ public partial class GameClientMenu : Node
             GetTree().CallDeferred(SceneTree.MethodName.ChangeSceneToFile, MainMenu);
             _kickingToMainMenu = false;
         }
+
+        if(_kickingToRemotePlayMenu)
+        {
+            SwitchToRemotePlayMenu();
+            _kickingToRemotePlayMenu = false;
+        }
+
+        if(_kickingToLobby)
+        {
+            SwitchToLobbyMenu();
+            _kickingToLobby = false;
+        }
     }
 
     private void OnNoticePopupClosed()
     {
+        if(_kickingToMainMenu)
+        {
+            GetTree().CallDeferred(SceneTree.MethodName.ChangeSceneToFile, MainMenu);
+            _kickingToMainMenu = false;
+        }
+
         if(_kickingToRemotePlayMenu)
         {
             SwitchToRemotePlayMenu();
@@ -137,6 +156,16 @@ public partial class GameClientMenu : Node
         GD.Print("Connection closed");
         DisplayError("Connection failed");
         _kickingToMainMenu = true;
+
+        StatusLabel.Text = DISCONNECTED_STATUS;
+    }
+
+    private void OnClientServerClosed()
+    {
+        GD.Print("Server closed");
+        _kickingToMainMenu = true;
+        DisplayNotice("Server Closed!");
+        Client.CloseConnection();
 
         StatusLabel.Text = DISCONNECTED_STATUS;
     }
@@ -348,7 +377,7 @@ public partial class GameClientMenu : Node
         _inGame = true;
     }
 
-    public void DisplayError(string error)
+    private void DisplayError(string error)
     {
         ArgumentNullException.ThrowIfNull(error);
         if(!ErrorPopup.Visible)
@@ -358,7 +387,7 @@ public partial class GameClientMenu : Node
         }
     }
 
-    public void DisplayNotice(string notice)
+    private void DisplayNotice(string notice)
     {
         ArgumentNullException.ThrowIfNull(notice);
         if(!NoticePopup.Visible)

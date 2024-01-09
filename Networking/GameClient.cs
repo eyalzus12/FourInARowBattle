@@ -13,6 +13,8 @@ public partial class GameClient : Node
     [Signal]
     public delegate void DisconnectedEventHandler();
     [Signal]
+    public delegate void ServerClosedEventHandler();
+    [Signal]
     public delegate void ErrorOccuredEventHandler(string description);
     [Signal]
     public delegate void LobbyEnteredEventHandler(uint lobbyId, string? player1Name, string? player2Name, bool isPlayer1);
@@ -44,7 +46,7 @@ public partial class GameClient : Node
     public delegate void GameStartedEventHandler(GameTurnEnum turn);
     [Signal]
     public delegate void GameFinishedEventHandler();
-    
+
     #endregion
 
 
@@ -82,7 +84,7 @@ public partial class GameClient : Node
 
     private void VerifyExports()
     {
-        if(Client is null) { GD.PushError($"No {nameof(Client)} set"); return;}
+        ArgumentNullException.ThrowIfNull(Client);
     }
 
     private void ConnectSignals()
@@ -96,14 +98,18 @@ public partial class GameClient : Node
     {
         VerifyExports();
         ConnectSignals();
-        Client.ConnectToUrl("127.0.0.1");
+        Error err = Client.ConnectToUrl("127.0.0.1:1234");
+        if(err != Error.Ok)
+        {
+            DisplayError($"Error while trying to connect: {err}");
+        }
     }
 
     public override void _Notification(int what)
     {
         if(what == NotificationExitTree || what == NotificationCrash || what == NotificationWMCloseRequest)
         {
-            Client?.Close();
+            Client.Close();
         }
     }
 
@@ -138,7 +144,8 @@ public partial class GameClient : Node
     public void SendPacket(AbstractPacket packet)
     {
         ArgumentNullException.ThrowIfNull(packet);
-        if(Client is null) return;
+
+        GD.Print("sending packet");
 
         if(Client.State != WebSocketPeer.State.Open)
         {
@@ -147,466 +154,593 @@ public partial class GameClient : Node
         }
 
         Error err = Client.SendPacket(packet.ToByteArray());
-        DisplayError($"Error {err} while trying to communicate with server");
+        if(err != Error.Ok)
+            DisplayError($"Error {err} while trying to communicate with server");
     }
 
     public void HandlePacket(AbstractPacket packet)
     {
         ArgumentNullException.ThrowIfNull(packet);
+        //giant switch statement to handle all packets
+        //can't use polymorphism since that would require to expose the GameClient privates to the packets.
         switch(packet)
         {
-            case Packet_Dummy:
-            {
-                GD.Print("Got dummy packet");
+            case Packet_Dummy _packet:
+                HandlePacket_Dummy(_packet);
                 break;
-            }
             case Packet_InvalidPacket _packet:
-            {
-                GD.Print($"Got invalid packet: {_packet.GivenPacketType}");
-                DisplayError("Bad packet from server");
-                Desync();
+                HandlePacket_InvalidPacket(_packet);
                 break;
-            }
             case Packet_InvalidPacketInform _packet:
-            {
-                GD.Print($"Server informed about invalid packet: {_packet.GivenPacketType}");
-                DisplayError("Something went wrong while communicating with the server");
-                Desync();
+                HandlePacket_InvalidPacketInform(_packet);
                 break;
-            }
             case Packet_CreateLobbyOk _packet:
-            {
-                GD.Print($"Server created lobby: {_packet.LobbyId}");
-                if(_lobby is not null)
-                {
-                    GD.Print("But I am already in a lobby??");
-                    Desync();
-                    break;
-                }
-                if(_lobbyConnectionRequest is not null)
-                {
-                    GD.Print("But I didn't request that??");
-                    Desync();
-                    break;
-                }
-
-                _lobby = _packet.LobbyId;
-                _isPlayer1 = true;
-                _lobbyConnectionRequest = null;
-                _otherPlayer = null;
-                EmitSignal(SignalName.LobbyEntered, _packet.LobbyId, ClientName!, _otherPlayer!, (bool)_isPlayer1);
+                HandlePacket_CreateLobbyOk(_packet);
                 break;
-            }
             case Packet_CreateLobbyFail _packet:
-            {
-                GD.Print($"Creating lobby failed with error: {_packet.ErrorCode}");
-                if(_lobbyConnectionRequest is not null)
-                {
-                    GD.Print("But I didn't request that??");
-                    Desync();
-                    break;
-                }
-                _lobbyConnectionRequest = null;
-                DisplayError($"Creating lobby failed with error: {_packet.ErrorCode}");
+                HandlePacket_CreateLobbyFail(_packet);
                 break;
-            }
             case Packet_ConnectLobbyOk _packet:
-            {
-                ArgumentNullException.ThrowIfNull(_packet.OtherPlayerName);
-                GD.Print($"Connected to lobby! Other player: {_packet.OtherPlayerName}");
-                if(_lobbyConnectionRequest is null)
-                {
-                    GD.Print("But I didn't ask to connect??");
-                    Desync();
-                    break;
-                }
-                _lobby = _lobbyConnectionRequest;
-                //empty string means only us are in the lobby
-                _otherPlayer = (_packet.OtherPlayerName == "")?null:_packet.OtherPlayerName;
-                _isPlayer1 = _otherPlayer is null;
-
-                EmitSignal(SignalName.LobbyEntered, (uint)_lobbyConnectionRequest, _otherPlayer ?? ClientName!, _otherPlayer!, _otherPlayer is null);
-                _lobbyConnectionRequest = null;
+                HandlePacket_ConnectLobbyOk(_packet);
                 break;
-            }
             case Packet_ConnectLobbyFail _packet:
-            {
-                GD.Print($"Connecting to lobby failed with error: {_packet.ErrorCode}");
-                if(_lobbyConnectionRequest is null)
-                {
-                    GD.Print("But I didn't ask to connect??");
-                    Desync();
-                    break;
-                }
-
-                DisplayError($"Connecting to lobby failed with error: {_packet.ErrorCode}");
-
-                _lobby = null;
-                _isPlayer1 = null;
-                _lobbyConnectionRequest = null;
-                _otherPlayer = null;
+                HandlePacket_ConnectLobbyFail(_packet);
                 break;
-            }
             case Packet_LobbyNewPlayer _packet:
-            {
-                ArgumentNullException.ThrowIfNull(_packet.OtherPlayerName);
-                GD.Print($"New player joined lobby: {_packet.OtherPlayerName}");
-                if(_lobby is null)
-                {
-                    GD.Print("But I am not in a lobby??");
-                    Desync();
-                    break;
-                }
-                _otherPlayer = _packet.OtherPlayerName;
-
-                EmitSignal(SignalName.LobbyStateUpdated, ClientName!, _otherPlayer, true);
+                HandlePacket_LobbyNewPlayer(_packet);
                 break;
-            }
-            case Packet_NewGameRequestOk:
-            {
-                GD.Print("Sending new game request was succesful");
-                if(!_sentRequest)
-                {
-                    GD.Print("But I don't have a request??");
-                    Desync();
-                    break;
-                }
-                _sentRequest = false;
-                EmitSignal(SignalName.NewGameRequestSent);
+            case Packet_NewGameRequestOk _packet:
+                HandlePacket_NewGameRequestOk(_packet);
                 break;
-            }
             case Packet_NewGameRequestFail _packet:
-            {
-                GD.Print($"Sending new game request failed with error: {_packet.ErrorCode}");
-                if(!_sentRequest)
-                {
-                    GD.Print("But I don't have a request??");
-                    Desync();
-                    break;
-                }
-                _sentRequest = false;
-                DisplayError($"Sending game request failed with error: {_packet.ErrorCode}");
+                HandlePacket_NewGameRequestFail(_packet);
                 break;
-            }
-            case Packet_NewGameRequested:
-            {
-                GD.Print("Other player wants to start a game");
-                if(_lobby is null)
-                {
-                    GD.Print("But I'm not in a lobby??");
-                    Desync();
-                    break;
-                }
-                if(_sentRequest || _otherPlayerSentRequest)
-                {
-                    GD.Print("But there's already a request??");
-                    Desync();
-                    break;
-                }
-                _otherPlayerSentRequest = true;
-                EmitSignal(SignalName.NewGameRequestReceived);
+            case Packet_NewGameRequested _packet:
+                HandlePacket_NewGameRequested(_packet);
                 break;
-            }
-            case Packet_NewGameAcceptOk:
-            {
-                GD.Print("Accepting new game request was succesful");
-                if(!_sentAccept)
-                {
-                    GD.Print("But I didn't answer??");
-                    Desync();
-                    break;
-                }
-                _sentAccept = false;
-                _otherPlayerSentRequest = false;
-                _gameShouldStart = true;
-                EmitSignal(SignalName.NewGameAcceptSent);
+            case Packet_NewGameAcceptOk _packet:
+                HandlePacket_NewGameAcceptOk(_packet);
                 break;
-            }
             case Packet_NewGameAcceptFail _packet:
-            {
-                GD.Print($"Accepting a new game request failed with error: {_packet.ErrorCode}");
-                if(!_sentAccept)
-                {
-                    GD.Print("But I didn't answer??");
-                    Desync();
-                    break;
-                }
-                _sentAccept = false;
-                DisplayError($"Accepting game request failed with error: {_packet.ErrorCode}");
+                HandlePacket_NewGameAcceptFail(_packet);
                 break;
-            }
-            case Packet_NewGameAccepted:
-            {
-                GD.Print("New game request was accepted!");
-                if(!_sentRequest)
-                {
-                    GD.Print("But I don't have a request??");
-                    Desync();
-                    break;
-                }
-                _sentRequest = false;
-                _gameShouldStart = true;
-                EmitSignal(SignalName.NewGameAcceptReceived);
+            case Packet_NewGameAccepted _packet:
+                HandlePacket_NewGameAccepted(_packet);
                 break;
-            }
-            case Packet_NewGameRejectOk:
-            {
-                GD.PushError("Rejecting new game request was succesful");
-                if(!_sentReject)
-                {
-                    GD.Print("But I didn't answer??");
-                    Desync();
-                    break;
-                }
-                _sentReject = false;
-                _otherPlayerSentRequest = false;
-                EmitSignal(SignalName.NewGameRejectSent);
+            case Packet_NewGameRejectOk _packet:
+                HandlePacket_NewGameRejectOk(_packet);
                 break;
-            }
             case Packet_NewGameRejectFail _packet:
-            {
-                GD.Print($"Rejecting a new game request failed with error: {_packet.ErrorCode}");
-                if(!_sentReject)
-                {
-                    GD.Print("But I didn't answer??");
-                    Desync();
-                    break;
-                }
-                _sentReject = false;
-                DisplayError($"Rejecting game request failed with error: {_packet.ErrorCode}");
+                HandlePacket_NewGameRejectFail(_packet);
                 break;
-            }
-            case Packet_NewGameRejected:
-            {
-                GD.Print("New game request was rejected :(");
-                if(!_sentRequest)
-                {
-                    GD.Print("But I don't have a request??");
-                    Desync();
-                    break;
-                }
-                _sentRequest = true;
-                EmitSignal(SignalName.NewGameRejectReceived);
+            case Packet_NewGameRejected _packet:
+                HandlePacket_NewGameRejected(_packet);
                 break;
-            }
-            case Packet_NewGameCancelOk:
-            {
-                GD.Print("Canceling a new game request was succesful");
-                if(!_sentCancel)
-                {
-                    GD.Print("But I didn't cancel??");
-                    Desync();
-                    break;
-                }
-                _sentCancel = false;
-                _sentRequest = false;
-                EmitSignal(SignalName.NewGameCancelSent);
+            case Packet_NewGameCancelOk _packet:
+                HandlePacket_NewGameCancelOk(_packet);
                 break;
-            }
             case Packet_NewGameCancelFail _packet:
-            {
-                GD.Print($"Canceling a new game request failed with error: {_packet.ErrorCode}");
-                if(!_sentCancel)
-                {
-                    GD.Print("But I didn't cancel??");
-                    Desync();
-                    break;
-                }
-                _sentCancel = false;
-                DisplayError($"Canceling game request failed with error: {_packet.ErrorCode}");
+                HandlePacket_NewGameCancelFail(_packet);
                 break;
-            }
-            case Packet_NewGameCanceled:
-            {
-                GD.Print("New game request was canceled");
-                if(!_otherPlayerSentRequest)
-                {
-                    GD.Print("But there's no request??");
-                    Desync();
-                    break;
-                }
-                _otherPlayerSentRequest = false;
-                EmitSignal(SignalName.NewGameCancelReceived);
+            case Packet_NewGameCanceled _packet:
+                HandlePacket_NewGameCanceled(_packet);
                 break;
-            }
             case Packet_LobbyDisconnectOther _packet:
-            {
-                GD.Print($"Other player disconnected: {_packet.Reason}");
-                if(_lobby is null)
-                {
-                    GD.Print("But I am not in a lobby??");
-                    Desync();
-                    break;
-                }
-
-                if(_inGame)
-                {
-                    _inGame = false;
-                    EmitSignal(SignalName.GameEjected);
-                }
-
-                if(!(bool)_isPlayer1!) _isPlayer1 = true;
-
-                EmitSignal(SignalName.LobbyStateUpdated, ClientName!, "", true);
-
-                _otherPlayer = null;
-                _sentRequest = false;
-                _sentAccept = false;
-                _sentReject = false;
-                _otherPlayerSentRequest = false;
-                _gameShouldStart = false;
+                HandlePacket_LobbyDisconnectOther(_packet);
                 break;
-            }
             case Packet_LobbyTimeoutWarning _packet:
-            {
-                GD.Print($"Lobby will timeout in {_packet.SecondsRemaining}");
-                if(_lobby is null)
-                {
-                    GD.Print("But I am not in a lobby??");
-                    Desync();
-                    break;
-                }
-                EmitSignal(SignalName.LobbyTimeoutWarned, _packet.SecondsRemaining);
+                HandlePacket_LobbyTimeoutWarning(_packet);
                 break;
-            }
-            case Packet_LobbyTimeout:
-            {
-                GD.Print("Lobby timed out");
-                if(_lobby is null)
-                {
-                    GD.Print("But I am not in a lobby??");
-                    Desync();
-                    break;
-                }
-                EmitSignal(SignalName.LobbyTimedOut);
-                _lobby = null;
-                _lobbyConnectionRequest = null;
-                _otherPlayer = null;
-                _sentRequest = false;
-                _sentAccept = false;
-                _sentReject = false;
-                _otherPlayerSentRequest = false;
-                _gameShouldStart = false;
-                _inGame = false;
-                _isPlayer1 = false;
+            case Packet_LobbyTimeout _packet:
+                HandlePacket_LobbyTimeout(_packet);
                 break;
-            }
             case Packet_NewGameStarting _packet:
-            {
-                GD.Print($"New game is starting! My color: {_packet.GameTurn}");
-                if(!_gameShouldStart)
-                {
-                    GD.Print("But I was not aware of that??");
-                    Desync();
-                    break;
-                }
-                _gameShouldStart = false;
-                _inGame = true;
-                EmitSignal(SignalName.GameStarted, (int)_packet.GameTurn);
+                HandlePacket_NewGameStarting(_packet);
                 break;
-            }
-            case Packet_GameActionPlaceOk:
-            {
-                GD.Print("Placing was succesful");
-                if(!_sentPlace)
-                {
-                    GD.Print("But I didn't send a place request??");
-                    Desync();
-                    break;
-                }
-                _sentPlace = false;
-                //do place:
-
+            case Packet_GameActionPlaceOk _packet:
+                HandlePacket_GameActionPlaceOk(_packet);
                 break;
-            }
             case Packet_GameActionPlaceFail _packet:
-            {
-                GD.Print($"Placing failed with error: {_packet.ErrorCode}");
-                if(!_sentPlace)
-                {
-                    GD.Print("But I didn't send a place request??");
-                    Desync();
-                    break;
-                }
-                _sentPlace = false;
-                //desync if that's illogical:
-
+                HandlePacket_GameActionPlaceFail(_packet);
                 break;
-            }
             case Packet_GameActionPlaceOther _packet:
-            {
-                ArgumentNullException.ThrowIfNull(_packet.ScenePath);
-                GD.Print($"Other player is placing token at {_packet.Column}. Token type: {_packet.ScenePath}");
-                if(!_inGame)
-                {
-                    GD.Print("But I'm not in a game??");
-                    Desync();
-                    break;
-                }
-                //handle place:
-                
+                HandlePacket_GameActionPlaceOther(_packet);
                 break;
-            }
-            case Packet_GameActionRefillOk:
-            {
-                GD.Print("Refill was succesful");
-                if(!_sentRefill)
-                {
-                    GD.Print("But I didn't send a refill??");
-                    Desync();
-                    break;
-                }
-                //do refill:
-
+            case Packet_GameActionRefillOk _packet:
+                HandlePacket_GameActionRefillOk(_packet);
                 break;
-            }
             case Packet_GameActionRefillFail _packet:
-            {
-                GD.Print($"Refilling failed with error: {_packet.ErrorCode}");
-                if(!_sentRefill)
-                {
-                    GD.Print("But I didn't send a refill??");
-                    Desync();
-                    break;
-                }
-                //desync if illogical:
-
+                HandlePacket_GameActionRefillFail(_packet);
                 break;
-            }
-            case Packet_GameActionRefillOther:
-            {
-                GD.Print("Other player is refilling");
-                if(!_inGame)
-                {
-                    GD.Print("But I'm not in a game??");
-                    Desync();
-                    break;
-                }
-                //handle refill:
-
+            case Packet_GameActionRefillOther _packet:
+                HandlePacket_GameActionRefillOther(_packet);
                 break;
-            }
             case Packet_GameFinished _packet:
-            {
-                GD.Print($"Game finished! Result: {_packet.Result}. Player 1 score: {_packet.Player1Score}. Player 2 score: {_packet.Player2Score}");
-                if(!_inGame)
-                {
-                    GD.Print("But I'm not in a game??");
-                    Desync();
-                    break;
-                }
-                _inGame = false;
-                EmitSignal(SignalName.GameFinished);
-
+                HandlePacket_GameFinished(_packet);
                 break;
-            }
+            case Packet_ServerClosing _packet:
+                HandlePacket_ServerClosing(_packet);
+                break;
             default:
-            {
                 GD.Print($"Client did not expect to get packet of type {packet.GetType().Name}");
                 Desync();
                 break;
-            }
         }
+    }
+
+    private void HandlePacket_Dummy(Packet_Dummy packet)
+    {
+        ArgumentNullException.ThrowIfNull(packet);
+        GD.Print("Got dummy packet");
+    }
+
+    private void HandlePacket_InvalidPacket(Packet_InvalidPacket packet)
+    {
+        ArgumentNullException.ThrowIfNull(packet);
+        GD.Print($"Got invalid _packet: {packet.GivenPacketType}");
+        DisplayError("Bad packet from server");
+        Desync();
+    }
+
+    private void HandlePacket_InvalidPacketInform(Packet_InvalidPacketInform packet)
+    {
+        ArgumentNullException.ThrowIfNull(packet);
+        GD.Print($"Server informed about invalid _packet: {packet.GivenPacketType}");
+        DisplayError("Something went wrong while communicating with the server");
+        Desync();
+    }
+
+    private void HandlePacket_CreateLobbyOk(Packet_CreateLobbyOk packet)
+    {
+        ArgumentNullException.ThrowIfNull(packet);
+        GD.Print($"Server created lobby: {packet.LobbyId}");
+        if(_lobby is not null)
+        {
+            GD.Print("But I am already in a lobby??");
+            Desync();
+            return;
+        }
+        if(_lobbyConnectionRequest is not null)
+        {
+            GD.Print("But I didn't request that??");
+            Desync();
+            return;
+        }
+
+        _lobby = packet.LobbyId;
+        _isPlayer1 = true;
+        _lobbyConnectionRequest = null;
+        _otherPlayer = null;
+        EmitSignal(SignalName.LobbyEntered, packet.LobbyId, ClientName!, _otherPlayer!, (bool)_isPlayer1);
+    }
+
+    private void HandlePacket_CreateLobbyFail(Packet_CreateLobbyFail packet)
+    {
+        ArgumentNullException.ThrowIfNull(packet);
+        GD.Print($"Creating lobby failed with error: {packet.ErrorCode}");
+        if(_lobbyConnectionRequest is not null)
+        {
+            GD.Print("But I didn't request that??");
+            Desync();
+            return;
+        }
+        _lobbyConnectionRequest = null;
+        DisplayError($"Creating lobby failed with error: {packet.ErrorCode}");
+    }
+
+    private void HandlePacket_ConnectLobbyOk(Packet_ConnectLobbyOk packet)
+    {
+        ArgumentNullException.ThrowIfNull(packet);
+        ArgumentNullException.ThrowIfNull(packet.OtherPlayerName);
+        GD.Print($"Connected to lobby! Other player: {packet.OtherPlayerName}");
+        if(_lobbyConnectionRequest is null)
+        {
+            GD.Print("But I didn't ask to connect??");
+            Desync();
+            return;
+        }
+        _lobby = _lobbyConnectionRequest;
+        //empty string means only us are in the lobby
+        _otherPlayer = (packet.OtherPlayerName == "")?null:packet.OtherPlayerName;
+        _isPlayer1 = _otherPlayer is null;
+
+        EmitSignal(SignalName.LobbyEntered, (uint)_lobbyConnectionRequest, _otherPlayer ?? ClientName!, _otherPlayer!, _otherPlayer is null);
+        _lobbyConnectionRequest = null;
+    }
+
+    private void HandlePacket_ConnectLobbyFail(Packet_ConnectLobbyFail packet)
+    {
+        ArgumentNullException.ThrowIfNull(packet);
+        GD.Print($"Connecting to lobby failed with error: {packet.ErrorCode}");
+        if(_lobbyConnectionRequest is null)
+        {
+            GD.Print("But I didn't ask to connect??");
+            Desync();
+            return;
+        }
+
+        DisplayError($"Connecting to lobby failed with error: {packet.ErrorCode}");
+
+        _lobby = null;
+        _isPlayer1 = null;
+        _lobbyConnectionRequest = null;
+        _otherPlayer = null;
+    }
+
+    private void HandlePacket_LobbyNewPlayer(Packet_LobbyNewPlayer packet)
+    {
+        ArgumentNullException.ThrowIfNull(packet);
+        ArgumentNullException.ThrowIfNull(packet.OtherPlayerName);
+        GD.Print($"New player joined lobby: {packet.OtherPlayerName}");
+        if(_lobby is null)
+        {
+            GD.Print("But I am not in a lobby??");
+            Desync();
+            return;
+        }
+        _otherPlayer = packet.OtherPlayerName;
+
+        EmitSignal(SignalName.LobbyStateUpdated, ClientName!, _otherPlayer, true);
+    }
+
+    private void HandlePacket_NewGameRequestOk(Packet_NewGameRequestOk packet)
+    {
+        ArgumentNullException.ThrowIfNull(packet);
+        GD.Print("Sending new game request was succesful");
+        if(!_sentRequest)
+        {
+            GD.Print("But I don't have a request??");
+            Desync();
+            return;
+        }
+        _sentRequest = false;
+        EmitSignal(SignalName.NewGameRequestSent);
+    }
+
+    private void HandlePacket_NewGameRequestFail(Packet_NewGameRequestFail packet)
+    {
+        ArgumentNullException.ThrowIfNull(packet);
+        GD.Print($"Sending new game request failed with error: {packet.ErrorCode}");
+        if(!_sentRequest)
+        {
+            GD.Print("But I don't have a request??");
+            Desync();
+            return;
+        }
+        _sentRequest = false;
+        DisplayError($"Sending game request failed with error: {packet.ErrorCode}");
+    }
+
+    private void HandlePacket_NewGameRequested(Packet_NewGameRequested packet)
+    {
+        ArgumentNullException.ThrowIfNull(packet);
+        GD.Print("Other player wants to start a game");
+        if(_lobby is null)
+        {
+            GD.Print("But I'm not in a lobby??");
+            Desync();
+            return;
+        }
+        if(_sentRequest || _otherPlayerSentRequest)
+        {
+            GD.Print("But there's already a request??");
+            Desync();
+            return;
+        }
+        _otherPlayerSentRequest = true;
+        EmitSignal(SignalName.NewGameRequestReceived);
+    }
+
+    private void HandlePacket_NewGameAcceptOk(Packet_NewGameAcceptOk packet)
+    {
+        ArgumentNullException.ThrowIfNull(packet);
+        GD.Print("Accepting new game request was succesful");
+        if(!_sentAccept)
+        {
+            GD.Print("But I didn't answer??");
+            Desync();
+            return;
+        }
+        _sentAccept = false;
+        _otherPlayerSentRequest = false;
+        _gameShouldStart = true;
+        EmitSignal(SignalName.NewGameAcceptSent);
+    }
+
+    private void HandlePacket_NewGameAcceptFail(Packet_NewGameAcceptFail packet)
+    {
+        ArgumentNullException.ThrowIfNull(packet);
+        GD.Print($"Accepting a new game request failed with error: {packet.ErrorCode}");
+        if(!_sentAccept)
+        {
+            GD.Print("But I didn't answer??");
+            Desync();
+            return;
+        }
+        _sentAccept = false;
+        DisplayError($"Accepting game request failed with error: {packet.ErrorCode}");
+    }
+
+    private void HandlePacket_NewGameAccepted(Packet_NewGameAccepted packet)
+    {
+        ArgumentNullException.ThrowIfNull(packet);
+        GD.Print("New game request was accepted!");
+        if(!_sentRequest)
+        {
+            GD.Print("But I don't have a request??");
+            Desync();
+            return;
+        }
+        _sentRequest = false;
+        _gameShouldStart = true;
+        EmitSignal(SignalName.NewGameAcceptReceived);
+    }
+
+    private void HandlePacket_NewGameRejectOk(Packet_NewGameRejectOk packet)
+    {
+        ArgumentNullException.ThrowIfNull(packet);
+        GD.PushError("Rejecting new game request was succesful");
+        if(!_sentReject)
+        {
+            GD.Print("But I didn't answer??");
+            Desync();
+            return;
+        }
+        _sentReject = false;
+        _otherPlayerSentRequest = false;
+        EmitSignal(SignalName.NewGameRejectSent);
+    }
+
+    private void HandlePacket_NewGameRejectFail(Packet_NewGameRejectFail packet)
+    {
+        ArgumentNullException.ThrowIfNull(packet);
+        GD.Print($"Rejecting a new game request failed with error: {packet.ErrorCode}");
+        if(!_sentReject)
+        {
+            GD.Print("But I didn't answer??");
+            Desync();
+            return;
+        }
+        _sentReject = false;
+        DisplayError($"Rejecting game request failed with error: {packet.ErrorCode}");
+    }
+
+    private void HandlePacket_NewGameRejected(Packet_NewGameRejected packet)
+    {
+        ArgumentNullException.ThrowIfNull(packet);
+        GD.Print("New game request was rejected :(");
+        if(!_sentRequest)
+        {
+            GD.Print("But I don't have a request??");
+            Desync();
+            return;
+        }
+        _sentRequest = true;
+        EmitSignal(SignalName.NewGameRejectReceived);
+    }
+
+    private void HandlePacket_NewGameCancelOk(Packet_NewGameCancelOk packet)
+    {
+        ArgumentNullException.ThrowIfNull(packet);
+        GD.Print("Canceling a new game request was succesful");
+        if(!_sentCancel)
+        {
+            GD.Print("But I didn't cancel??");
+            Desync();
+            return;
+        }
+        _sentCancel = false;
+        _sentRequest = false;
+        EmitSignal(SignalName.NewGameCancelSent);
+    }
+
+    private void HandlePacket_NewGameCancelFail(Packet_NewGameCancelFail packet)
+    {
+        ArgumentNullException.ThrowIfNull(packet);
+        GD.Print($"Canceling a new game request failed with error: {packet.ErrorCode}");
+        if(!_sentCancel)
+        {
+            GD.Print("But I didn't cancel??");
+            Desync();
+            return;
+        }
+        _sentCancel = false;
+        DisplayError($"Canceling game request failed with error: {packet.ErrorCode}");
+    }
+
+    private void HandlePacket_NewGameCanceled(Packet_NewGameCanceled packet)
+    {
+        ArgumentNullException.ThrowIfNull(packet);
+        GD.Print("New game request was canceled");
+        if(!_otherPlayerSentRequest)
+        {
+            GD.Print("But there's no request??");
+            Desync();
+            return;
+        }
+        _otherPlayerSentRequest = false;
+        EmitSignal(SignalName.NewGameCancelReceived);
+    }
+
+    private void HandlePacket_LobbyDisconnectOther(Packet_LobbyDisconnectOther packet)
+    {
+        ArgumentNullException.ThrowIfNull(packet);
+        GD.Print($"Other player disconnected: {packet.Reason}");
+        if(_lobby is null)
+        {
+            GD.Print("But I am not in a lobby??");
+            Desync();
+            return;
+        }
+
+        if(_inGame)
+        {
+            _inGame = false;
+            EmitSignal(SignalName.GameEjected);
+        }
+
+        if(!(bool)_isPlayer1!) _isPlayer1 = true;
+
+        EmitSignal(SignalName.LobbyStateUpdated, ClientName!, "", true);
+
+        _otherPlayer = null;
+        _sentRequest = false;
+        _sentAccept = false;
+        _sentReject = false;
+        _otherPlayerSentRequest = false;
+        _gameShouldStart = false;
+    }
+    private void HandlePacket_LobbyTimeoutWarning(Packet_LobbyTimeoutWarning packet)
+    {
+        ArgumentNullException.ThrowIfNull(packet);
+        GD.Print($"Lobby will timeout in {packet.SecondsRemaining}");
+        if(_lobby is null)
+        {
+            GD.Print("But I am not in a lobby??");
+            Desync();
+            return;
+        }
+        EmitSignal(SignalName.LobbyTimeoutWarned, packet.SecondsRemaining);
+    }
+
+    private void HandlePacket_LobbyTimeout(Packet_LobbyTimeout packet)
+    {
+        ArgumentNullException.ThrowIfNull(packet);
+        GD.Print("Lobby timed out");
+        if(_lobby is null)
+        {
+            GD.Print("But I am not in a lobby??");
+            Desync();
+            return;
+        }
+        EmitSignal(SignalName.LobbyTimedOut);
+        _lobby = null;
+        _lobbyConnectionRequest = null;
+        _otherPlayer = null;
+        _sentRequest = false;
+        _sentAccept = false;
+        _sentReject = false;
+        _otherPlayerSentRequest = false;
+        _gameShouldStart = false;
+        _inGame = false;
+        _isPlayer1 = false;
+    }
+
+    private void HandlePacket_NewGameStarting(Packet_NewGameStarting packet)
+    {
+        ArgumentNullException.ThrowIfNull(packet);
+        GD.Print($"New game is starting! My color: {packet.GameTurn}");
+        if(!_gameShouldStart)
+        {
+            GD.Print("But I was not aware of that??");
+            Desync();
+            return;
+        }
+        _gameShouldStart = false;
+        _inGame = true;
+        EmitSignal(SignalName.GameStarted, (int)packet.GameTurn);
+    }
+
+    private void HandlePacket_GameActionPlaceOk(Packet_GameActionPlaceOk packet)
+    {
+        ArgumentNullException.ThrowIfNull(packet);
+        GD.Print("Placing was succesful");
+        if(!_sentPlace)
+        {
+            GD.Print("But I didn't send a place request??");
+            Desync();
+            return;
+        }
+        _sentPlace = false;
+        //do place:
+    }
+
+    private void HandlePacket_GameActionPlaceFail(Packet_GameActionPlaceFail packet)
+    {
+        ArgumentNullException.ThrowIfNull(packet);
+        GD.Print($"Placing failed with error: {packet.ErrorCode}");
+        if(!_sentPlace)
+        {
+            GD.Print("But I didn't send a place request??");
+            Desync();
+            return;
+        }
+        _sentPlace = false;
+        //desync if that's illogical:
+    }
+
+    private void HandlePacket_GameActionPlaceOther(Packet_GameActionPlaceOther packet)
+    {
+        ArgumentNullException.ThrowIfNull(packet);
+        ArgumentNullException.ThrowIfNull(packet.ScenePath);
+        GD.Print($"Other player is placing token at {packet.Column}. Token type: {packet.ScenePath}");
+        if(!_inGame)
+        {
+            GD.Print("But I'm not in a game??");
+            Desync();
+            return;
+        }
+        //handle place:
+    }
+
+    private void HandlePacket_GameActionRefillOk(Packet_GameActionRefillOk packet)
+    {
+        ArgumentNullException.ThrowIfNull(packet);
+        GD.Print("Refill was succesful");
+        if(!_sentRefill)
+        {
+            GD.Print("But I didn't send a refill??");
+            Desync();
+            return;
+        }
+        //do refill:
+    }
+
+    private void HandlePacket_GameActionRefillFail(Packet_GameActionRefillFail packet)
+    {
+        ArgumentNullException.ThrowIfNull(packet);
+        GD.Print($"Refilling failed with error: {packet.ErrorCode}");
+        if(!_sentRefill)
+        {
+            GD.Print("But I didn't send a refill??");
+            Desync();
+            return;
+        }
+        //desync if illogical:
+    }
+
+    private void HandlePacket_GameActionRefillOther(Packet_GameActionRefillOther packet)
+    {
+        ArgumentNullException.ThrowIfNull(packet);
+        GD.Print("Other player is refilling");
+        if(!_inGame)
+        {
+            GD.Print("But I'm not in a game??");
+            Desync();
+            return;
+        }
+        //handle refill:
+    }
+
+    private void HandlePacket_GameFinished(Packet_GameFinished packet)
+    {
+        ArgumentNullException.ThrowIfNull(packet);
+        GD.Print($"Game finished! Result: {packet.Result}. Player 1 score: {packet.Player1Score}. Player 2 score: {packet.Player2Score}");
+        if(!_inGame)
+        {
+            GD.Print("But I'm not in a game??");
+            Desync();
+            return;
+        }
+        _inGame = false;
+        EmitSignal(SignalName.GameFinished);
+    }
+
+    private void HandlePacket_ServerClosing(Packet_ServerClosing packet)
+    {
+        ArgumentNullException.ThrowIfNull(packet);
+        GD.Print("Server closing!");
+        EmitSignal(SignalName.ServerClosed);
     }
 
     #endregion
@@ -703,7 +837,7 @@ public partial class GameClient : Node
         _inGame = false;
     }
 
-    public void DisplayError(string error)
+    private void DisplayError(string error)
     {
         ArgumentNullException.ThrowIfNull(error);
         EmitSignal(SignalName.ErrorOccured, error);
