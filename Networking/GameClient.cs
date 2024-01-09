@@ -1,5 +1,6 @@
 using Godot;
 using DequeNet;
+using System;
 
 namespace FourInARowBattle;
 
@@ -110,6 +111,7 @@ public partial class GameClient : Node
 
     private void OnWebSocketClientPacketReceived(byte[] packetBytes)
     {
+        ArgumentNullException.ThrowIfNull(packetBytes);
         _buffer.PushRightRange(packetBytes);
 
         while(_buffer.Count > 0 && AbstractPacket.TryConstructFrom(_buffer, out AbstractPacket? packet))
@@ -135,6 +137,7 @@ public partial class GameClient : Node
 
     public void SendPacket(AbstractPacket packet)
     {
+        ArgumentNullException.ThrowIfNull(packet);
         if(Client is null) return;
 
         if(Client.State != WebSocketPeer.State.Open)
@@ -149,6 +152,7 @@ public partial class GameClient : Node
 
     public void HandlePacket(AbstractPacket packet)
     {
+        ArgumentNullException.ThrowIfNull(packet);
         switch(packet)
         {
             case Packet_Dummy:
@@ -208,6 +212,7 @@ public partial class GameClient : Node
             }
             case Packet_ConnectLobbyOk _packet:
             {
+                ArgumentNullException.ThrowIfNull(_packet.OtherPlayerName);
                 GD.Print($"Connected to lobby! Other player: {_packet.OtherPlayerName}");
                 if(_lobbyConnectionRequest is null)
                 {
@@ -244,6 +249,7 @@ public partial class GameClient : Node
             }
             case Packet_LobbyNewPlayer _packet:
             {
+                ArgumentNullException.ThrowIfNull(_packet.OtherPlayerName);
                 GD.Print($"New player joined lobby: {_packet.OtherPlayerName}");
                 if(_lobby is null)
                 {
@@ -529,6 +535,7 @@ public partial class GameClient : Node
             }
             case Packet_GameActionPlaceOther _packet:
             {
+                ArgumentNullException.ThrowIfNull(_packet.ScenePath);
                 GD.Print($"Other player is placing token at {_packet.Column}. Token type: {_packet.ScenePath}");
                 if(!_inGame)
                 {
@@ -664,7 +671,12 @@ public partial class GameClient : Node
             SendPacket(new Packet_NewGameCancel());
         }
     }
-    public void PlaceToken(byte column, string path) => SendPacket(new Packet_GameActionPlace(column, path));
+    public void PlaceToken(byte column, string path)
+    {
+        ArgumentNullException.ThrowIfNull(path);
+        SendPacket(new Packet_GameActionPlace(column, path));
+    }
+
     public void Refill() => SendPacket(new Packet_GameActionRefill());
 
     public void Desync()
@@ -693,6 +705,7 @@ public partial class GameClient : Node
 
     public void DisplayError(string error)
     {
+        ArgumentNullException.ThrowIfNull(error);
         EmitSignal(SignalName.ErrorOccured, error);
     }
 }

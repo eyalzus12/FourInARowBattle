@@ -17,6 +17,7 @@ public partial class WebSocketServer : Node
 
         public PendingPeer(StreamPeerTcp tcp)
         {
+            ArgumentNullException.ThrowIfNull(tcp);
             Tcp = tcp;
             Connection = tcp;
             ConnectTime = Time.GetTicksMsec();
@@ -77,6 +78,7 @@ public partial class WebSocketServer : Node
 
     public Error SendPacket(int peerId, byte[] packet)
     {
+        ArgumentNullException.ThrowIfNull(packet);
         // peerId > 0 -> Send one
         // peerId == 0 -> Send all (Broadcast)
         // peerId < 0 -> Send all excluding one
@@ -202,6 +204,7 @@ public partial class WebSocketServer : Node
 
     private bool ConnectPending(PendingPeer peer)
     {
+        ArgumentNullException.ThrowIfNull(peer);
         if(peer.WebSocket is not null)
         {
             peer.WebSocket.Poll();

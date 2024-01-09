@@ -1,4 +1,5 @@
 using Godot;
+using System;
 
 namespace FourInARowBattle;
 
@@ -13,6 +14,7 @@ public static class AudioStreamPlayerExtensions
         float volumeDb = 0
     )
     {
+        ArgumentNullException.ThrowIfNull(player);
         player.Stream = stream;
 
         player.Bus = bus;
@@ -36,6 +38,7 @@ public static class AudioStreamPlayerExtensions
         float volumeDb = 0
     )
     {
+        ArgumentNullException.ThrowIfNull(player);
         player.Stream = stream;
         player.GlobalPosition = position;
 
@@ -71,6 +74,7 @@ public static class AudioStreamPlayerExtensions
         float volumeDb = 1
     )
     {
+        ArgumentNullException.ThrowIfNull(player);
         player.Stream = stream;
         player.GlobalPosition = position;
 

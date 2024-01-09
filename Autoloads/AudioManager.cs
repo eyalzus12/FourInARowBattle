@@ -77,6 +77,8 @@ public partial class AudioManager : Node
 
         public void ReturnObject(T t)
         {
+            if(t is null)
+                return;
             if(!_poolList.Contains(t))
                 return;
             if(_poolQueueSet.Contains(t))

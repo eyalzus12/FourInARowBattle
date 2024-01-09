@@ -37,8 +37,7 @@ public partial class TokenCounterListControl : Control
         set
         {
             _currentScore = value;
-            if(ScoreLabel is not null)
-                ScoreLabel.Text = $"Score: {_currentScore}";
+            ScoreLabel.Text = $"Score: {_currentScore}";
         }
     }
 
@@ -62,8 +61,8 @@ public partial class TokenCounterListControl : Control
 
     private void VerifyExports()
     {
-        if(ScoreLabel is null) { GD.PushError($"No {nameof(ScoreLabel)} set"); return; }
-        if(RefillButton is null) { GD.PushError($"No {nameof(RefillButton)} set"); return; }
+        ArgumentNullException.ThrowIfNull(ScoreLabel);
+        ArgumentNullException.ThrowIfNull(RefillButton);
     }
 
     private void ConnectSignals()
@@ -91,6 +90,8 @@ public partial class TokenCounterListControl : Control
 
     private void OnTokenSelected(TokenCounterControl control, TokenCounterButton button)
     {
+        ArgumentNullException.ThrowIfNull(control);
+        ArgumentNullException.ThrowIfNull(button);
         _lastSelection = control;
         _lastSelectionButton = button;
         EmitSignal(SignalName.TokenSelected, control, button);
@@ -98,11 +99,13 @@ public partial class TokenCounterListControl : Control
 
     private void OnTokenButtonHovered(GameTurnEnum turn, string description)
     {
+        ArgumentNullException.ThrowIfNull(description);
         EmitSignal(SignalName.TokenButtonHovered, (int)turn, description);
     }
 
     private void OnTokenButtonStoppedHover(GameTurnEnum turn, string description)
     {
+        ArgumentNullException.ThrowIfNull(description);
         EmitSignal(SignalName.TokenButtonStoppedHover, (int)turn, description);
     }
 
@@ -193,6 +196,7 @@ public partial class TokenCounterListControl : Control
 
     public void DeserializeFrom(TokenCounterListData data)
     {
+        ArgumentNullException.ThrowIfNull(data);
         _lastSelection = null;
         _lastSelectionButton = null;
         

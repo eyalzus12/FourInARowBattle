@@ -83,6 +83,11 @@ public partial class Board : Node2D
         }
     }
 
+    private void VerifyExports()
+    {
+        ArgumentNullException.ThrowIfNull(BoardBase);
+    }
+
     public override void _Ready()
     {
         TokenGrid = new TokenBase?[Rows,Columns];
@@ -158,6 +163,7 @@ public partial class Board : Node2D
 
     public void RenderGhostToken(Texture2D texture, Color color, int col)
     {
+        ArgumentNullException.ThrowIfNull(texture);
         _ghostToken = new(texture,color,col);
         QueueRedraw();
     }
@@ -230,6 +236,9 @@ public partial class Board : Node2D
 
     private void CheckSpotWin(int row, int col, Dictionary<GameResultEnum, int> resultCounts, List<(int,int)> toRemove)
     {
+        ArgumentNullException.ThrowIfNull(resultCounts);
+        ArgumentNullException.ThrowIfNull(toRemove);
+
         TokenBase? token = TokenGrid[row,col];
         if(!token.IsInstanceValid()) TokenGrid[row,col] = token = null;
         if(token is null || token.Result == GameResultEnum.None) return;
@@ -539,6 +548,8 @@ public partial class Board : Node2D
 
     public virtual void DeserializeFrom(BoardData data)
     {
+        ArgumentNullException.ThrowIfNull(data);
+        
         if(data.Grid.Count != data.Rows)
         {
             GD.PushError($"Board data has row count of {data.Rows}, but its grid has {data.Grid.Count} rows");

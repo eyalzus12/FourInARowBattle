@@ -1,4 +1,5 @@
 using Godot;
+using System;
 
 namespace FourInARowBattle;
 
@@ -9,7 +10,7 @@ public partial class ChangeSceneAndLoadGameButton : ChangeSceneOnPressButton
 
     private void VerifyExports()
     {
-        if(FileSelectDialog is null) { GD.PushError($"No {nameof(FileSelectDialog)} set"); return; }
+        ArgumentNullException.ThrowIfNull(FileSelectDialog);
     }
 
     private void ConnectSignals()

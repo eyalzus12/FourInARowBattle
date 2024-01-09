@@ -4,7 +4,7 @@ namespace FourInARowBattle;
 
 public static class ByteBufferExtensions
 {
-    //NOTE: these functions do not do bound checking
+    //NOTE: these functions do not do bound or null checking
 
     public static void StoreBigEndianU8(this byte[] array, byte x, int index = 0)
     {

@@ -26,6 +26,8 @@ public partial class WebSocketClient : Node
 
     public Error ConnectToUrl(string url)
     {
+        ArgumentNullException.ThrowIfNull(url);
+
         _socket.HandshakeHeaders = HandshakeHeaders;
         _socket.SupportedProtocols = SupportedProtocols;
         Error err = _socket.ConnectToUrl(url, TlsOptions);
@@ -40,6 +42,8 @@ public partial class WebSocketClient : Node
 
     public Error SendPacket(byte[] packet)
     {
+        ArgumentNullException.ThrowIfNull(packet);
+
         return _socket.PutPacket(packet);
     }
 
@@ -59,7 +63,7 @@ public partial class WebSocketClient : Node
 
     public void Close(int code = 1000, string reason = "")
     {
-        _socket.Close(code, reason);
+        _socket.Close(code, reason ?? "");
     }
 
     public void Clear()

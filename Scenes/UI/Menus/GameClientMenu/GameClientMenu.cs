@@ -1,3 +1,4 @@
+using System;
 using Godot;
 
 namespace FourInARowBattle;
@@ -40,14 +41,14 @@ public partial class GameClientMenu : Node
 
     private void VerifyExports()
     {
-        if(Client is null) { GD.PushError($"No {nameof(Client)} set"); return;}
-        if(RemotePlayMenu is null) { GD.PushError($"No {nameof(RemotePlayMenu)} set"); return; }
-        if(LobbyMenu is null) { GD.PushError($"No {nameof(LobbyMenu)} set"); return; }
-        if(Game is null) { GD.PushError($"No {nameof(Game)} set"); return; }
-        if(StatusLabel is null) { GD.PushError($"No {nameof(StatusLabel)} set"); return; }
-        if(ErrorPopup is null) { GD.PushError($"No {nameof(ErrorPopup)} set"); return; }
-        if(NoticePopup is null) { GD.PushError($"No {nameof(NoticePopup)} set"); return; }
-        if(InitialState is null) { GD.PushError($"No {nameof(InitialState)} set"); return; }
+        ArgumentNullException.ThrowIfNull(Client);
+        ArgumentNullException.ThrowIfNull(RemotePlayMenu);
+        ArgumentNullException.ThrowIfNull(LobbyMenu);
+        ArgumentNullException.ThrowIfNull(Game);
+        ArgumentNullException.ThrowIfNull(StatusLabel);
+        ArgumentNullException.ThrowIfNull(ErrorPopup);
+        ArgumentNullException.ThrowIfNull(NoticePopup);
+        ArgumentNullException.ThrowIfNull(InitialState);
     }
 
     private void ConnectSignals()
@@ -89,6 +90,7 @@ public partial class GameClientMenu : Node
         ConnectSignals();
         StatusLabel.Text = CONNECTING_STATUS;
     }
+
 
     #region Signal Handling
 
@@ -141,6 +143,7 @@ public partial class GameClientMenu : Node
 
     private void OnClientErrorOccured(string description)
     {
+        ArgumentNullException.ThrowIfNull(description);
         DisplayError(description);
     }
 
@@ -150,12 +153,29 @@ public partial class GameClientMenu : Node
         LobbyMenu.SetLobbyId(lobbyId);
         LobbyMenu.SetPlayer1Name(player1Name ?? "");
         LobbyMenu.SetPlayer2Name(player2Name ?? "");
+
+        if(LobbyMenu.LobbyFull())
+            LobbyMenu.SetChallengeState_NoChallenge();
+        else
+            LobbyMenu.SetChallengeState_CannotChallenge();
     }
 
     private void OnClientLobbyStateUpdated(string? player1Name, string? player2Name, bool isPlayer1)
     {
+        bool lobbyPreviouslyEmpty = !LobbyMenu.LobbyFull();
         LobbyMenu.SetPlayer1Name(player1Name ?? "");
         LobbyMenu.SetPlayer2Name(player2Name ?? "");
+        if(LobbyMenu.LobbyFull())
+        {
+            //lobby just filled up. you can now challenge.
+            if(lobbyPreviouslyEmpty)
+                LobbyMenu.SetChallengeState_NoChallenge();
+        }
+        //not enough players to challenge
+        else
+        {
+            LobbyMenu.SetChallengeState_CannotChallenge();
+        }
     }
 
     private void OnClientLobbyTimeoutWarned(int secondsRemaining)
@@ -187,12 +207,12 @@ public partial class GameClientMenu : Node
 
     private void OnClientNewGameAcceptSent()
     {
-        LobbyMenu.SetChallengeState_ChallengeAccepted();
+        LobbyMenu.SetChallengeState_CannotChallenge();
     }
 
     private void OnClientNewGameAcceptReceived()
     {
-        LobbyMenu.SetChallengeState_ChallengeAccepted();
+        LobbyMenu.SetChallengeState_CannotChallenge();
     }
 
     private void OnClientNewGameRejectSent()
@@ -227,24 +247,28 @@ public partial class GameClientMenu : Node
 
     private void OnRemotePlayMenuCreateLobbyRequested(string playerName)
     {
+        ArgumentNullException.ThrowIfNull(playerName);
         Client.ClientName = playerName;
         Client.CreateLobby();
     }
 
     private void OnRemotePlayMenuJoinLobbyRequested(uint id, string playerName)
     {
+        ArgumentNullException.ThrowIfNull(playerName);
         Client.ClientName = playerName;
         Client.JoinLobby(id);
     }
 
     private void OnRemotePlayMenuGoBackRequested(string path)
     {
+        ArgumentNullException.ThrowIfNull(path);
         GetTree().CallDeferred(SceneTree.MethodName.ChangeSceneToFile, path);
     }
 
     private void OnLobbyMenuExitLobbyRequested(string path)
     {
-        if(path != RemotePlayMenu?.SceneFilePath)
+        ArgumentNullException.ThrowIfNull(path);
+        if(path != RemotePlayMenu.SceneFilePath)
         {
             GD.PushError($"Attempt to exit lobby into wrong scene {path}");
             return;
@@ -272,7 +296,6 @@ public partial class GameClientMenu : Node
     {
         Client.RejectNewGame();
     }
-
 
     #endregion
     
@@ -306,6 +329,7 @@ public partial class GameClientMenu : Node
         LobbyMenu.Visible = true;
 
         _inLobby = true;
+        LobbyMenu.SetChallengeState_CannotChallenge();
     }
 
     private void SwitchToGame()
@@ -326,6 +350,7 @@ public partial class GameClientMenu : Node
 
     public void DisplayError(string error)
     {
+        ArgumentNullException.ThrowIfNull(error);
         if(!ErrorPopup.Visible)
         {
             ErrorPopup.DialogText = error;
@@ -335,6 +360,7 @@ public partial class GameClientMenu : Node
 
     public void DisplayNotice(string notice)
     {
+        ArgumentNullException.ThrowIfNull(notice);
         if(!NoticePopup.Visible)
         {
             NoticePopup.DialogText = notice;

@@ -57,6 +57,7 @@ public partial class TokenBase : Node2D
 
     public virtual void TokenSpawn(Board board, int row, int col)
     {
+        ArgumentNullException.ThrowIfNull(board);
         Row = row;
         Col = col;
         Board = board;
@@ -122,6 +123,8 @@ public partial class TokenBase : Node2D
 
     public virtual void DeserializeFrom(Board board, TokenData data)
     {
+        ArgumentNullException.ThrowIfNull(board);
+        ArgumentNullException.ThrowIfNull(data);
         TokenColor = data.TokenColor;
         Modulate = data.TokenModulate;
         GlobalPosition = data.GlobalPosition;

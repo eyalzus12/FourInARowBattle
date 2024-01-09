@@ -1,6 +1,7 @@
 using DequeNet;
 using Godot;
 using System.Diagnostics.CodeAnalysis;
+using System;
 
 namespace FourInARowBattle;
 
@@ -15,6 +16,8 @@ public abstract partial class AbstractPacket : Resource
     //If there isn't a full valid packet, false is returned and packet is null
     public static bool TryConstructFrom(Deque<byte> buffer, [NotNullWhen(true)] out AbstractPacket? packet)
     {
+        ArgumentNullException.ThrowIfNull(buffer);
+
         packet = null;
         if(buffer.Count < 1) return false;
 

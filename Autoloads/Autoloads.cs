@@ -16,11 +16,18 @@ public static class Autoloads
     }
     private static void SetAutoload<T>(ref T? _t, T value)
     {
+        if(value is null)
+        {
+            GD.PushError($"Attempt to set {typeof(T).Name} autoload to null");
+            return;
+        }
+
         if(_t is not null)
         {
             GD.PushError($"Attempt to set {typeof(T).Name} autoload when it is already set");
             return;
         }
+        
         _t = value;
     }
 

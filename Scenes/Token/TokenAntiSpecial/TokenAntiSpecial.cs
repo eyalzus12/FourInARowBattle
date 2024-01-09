@@ -34,6 +34,7 @@ public partial class TokenAntiSpecial : TokenBase
 
     public override void DeserializeFrom(Board board, TokenData data)
     {
+        base.DeserializeFrom(board, data);
         if(data is not TokenDataAntiSpecial)
         {
             GD.PushError(
@@ -41,8 +42,8 @@ public partial class TokenAntiSpecial : TokenBase
                 $"of type {nameof(TokenDataAntiSpecial)}, "+
                 $"but there was an attempt to create one with type {data.GetType().Name}"
             );
+            return;
         }
-        base.DeserializeFrom(board, data);
         TokenDataAntiSpecial adata = (TokenDataAntiSpecial)data;
         _active = adata.TokenEffectIsActive;
     }

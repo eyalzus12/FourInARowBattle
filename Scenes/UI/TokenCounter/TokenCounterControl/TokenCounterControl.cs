@@ -1,3 +1,4 @@
+using System;
 using Godot;
 
 namespace FourInARowBattle;
@@ -71,6 +72,11 @@ public partial class TokenCounterControl : Control
         }
     }
 
+    private void VerifyExports()
+    {
+        ArgumentNullException.ThrowIfNull(TokenCountLabel);
+    }
+
     private void ConnectSignals()
     {
         foreach(TokenCounterButton button in TokenButtons)
@@ -84,6 +90,7 @@ public partial class TokenCounterControl : Control
 
     public override void _Ready()
     {
+        VerifyExports();
         ConnectSignals();
 
         TokenCount = _count;
@@ -92,11 +99,13 @@ public partial class TokenCounterControl : Control
     
     public void OnSelectButtonPressed(TokenCounterButton who)
     {
+        ArgumentNullException.ThrowIfNull(who);
         EmitSignal(SignalName.TokenSelected, who);
     }
 
     private void OnTokenCounterButtonMouseEntered(TokenCounterButton who)
     {
+        ArgumentNullException.ThrowIfNull(who);
         EmitSignal(
             SignalName.TokenButtonHovered,
             (int)ActiveOnTurn,
@@ -106,6 +115,7 @@ public partial class TokenCounterControl : Control
 
     private void OnTokenCounterButtonMouseExited(TokenCounterButton who)
     {
+        ArgumentNullException.ThrowIfNull(who);
         EmitSignal(
             SignalName.TokenButtonStoppedHover,
             (int)ActiveOnTurn,
@@ -125,6 +135,7 @@ public partial class TokenCounterControl : Control
 
     public void DeserializeFrom(TokenCounterData data)
     {
+        ArgumentNullException.ThrowIfNull(data);
         TokenCount = data.TokenCount;
     }
 

@@ -13,7 +13,7 @@ public partial class JoinLobbyButton : Button
 
     private void VerifyExports()
     {
-        if(Field is null) { GD.PushError($"No {nameof(Field)} set"); return; }
+        ArgumentNullException.ThrowIfNull(Field);
     }
 
     public override void _Ready()

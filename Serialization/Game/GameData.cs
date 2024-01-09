@@ -11,5 +11,5 @@ public partial class GameData : Resource
     [Export]
     public Array<TokenCounterListData> Players{get; set;} = new();
     [Export]
-    public BoardData? Board{get; set;}
+    public BoardData Board{get; set;} = null!;
 }

@@ -25,6 +25,7 @@ public partial class ScenePool : Node
 
     public T? GetSceneOrNull<T>(PackedScene scene) where T : Node
     {
+        ArgumentNullException.ThrowIfNull(scene);
         Node n = GetScene(scene);
         if(n is not T t)
         {
@@ -36,6 +37,7 @@ public partial class ScenePool : Node
     }
     public T GetScene<T>(PackedScene scene) where T : Node
     {
+        ArgumentNullException.ThrowIfNull(scene);
         T? sceneNode = GetSceneOrNull<T>(scene);
         if(sceneNode is null)
         {
@@ -47,6 +49,7 @@ public partial class ScenePool : Node
 
     public Node GetScene(PackedScene scene)
     {
+        ArgumentNullException.ThrowIfNull(scene);
         _scenePoolDict.TryAdd(scene, new());
         Queue<Node> sceneQueue = _scenePoolDict[scene];
 
@@ -79,6 +82,7 @@ public partial class ScenePool : Node
 
     public void PoolNewScenes(PackedScene scene)
     {
+        ArgumentNullException.ThrowIfNull(scene);
         _scenePoolDict.TryAdd(scene, new());
         Queue<Node> sceneQueue = _scenePoolDict[scene];
         for(int i = 0; i < SCENE_POOL_FACTOR; ++i)

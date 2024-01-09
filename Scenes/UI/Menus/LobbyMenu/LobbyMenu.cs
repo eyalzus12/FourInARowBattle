@@ -35,12 +35,12 @@ public partial class LobbyMenu : Control
 
     private void VerifyExports()
     {
-        if(GoBack is null) { GD.PushError($"No {nameof(GoBack)} set"); return; }
-        if(GoBackConfirmationDialog is null) { GD.PushError($"No {nameof(GoBackConfirmationDialog)} set"); return; }
-        if(LobbyIdLabel is null) { GD.PushError($"No {nameof(LobbyIdLabel)} set"); return; }
-        if(Player1NameLabel is null) { GD.PushError($"No {nameof(Player1NameLabel)} set"); return; }
-        if(Player2NameLabel is null) { GD.PushError($"No {nameof(Player2NameLabel)} set"); return; }
-        if(GameChallengeSubMenu is null) { GD.PushError($"No {nameof(GameChallengeSubMenu)} set"); return; }
+        ArgumentNullException.ThrowIfNull(GoBack);
+        ArgumentNullException.ThrowIfNull(GoBackConfirmationDialog);
+        ArgumentNullException.ThrowIfNull(LobbyIdLabel);
+        ArgumentNullException.ThrowIfNull(Player1NameLabel);
+        ArgumentNullException.ThrowIfNull(Player2NameLabel);
+        ArgumentNullException.ThrowIfNull(GameChallengeSubMenu);
     }
 
     private void ConnectSignals()
@@ -60,6 +60,8 @@ public partial class LobbyMenu : Control
         ConnectSignals();
     }
 
+    public bool LobbyFull() => Player1NameLabel.Text != "" && Player2NameLabel.Text != "";
+
     #region Signal Handling
     private void GoBackConfirmationDialogConfirmed()
     {
@@ -75,6 +77,7 @@ public partial class LobbyMenu : Control
 
     private void OnGoBackButtonChangeSceneRequested(string path)
     {
+        ArgumentNullException.ThrowIfNull(path);
         _goBackRequestPath = path;
 
         //Vector2I decorations = GetWindow().GetSizeOfDecorations();
@@ -113,6 +116,7 @@ public partial class LobbyMenu : Control
 
     public void SetPlayer1Name(string name)
     {
+        ArgumentNullException.ThrowIfNull(name);
         if(name.Length > Globals.NAME_LENGTH_LIMIT) name = name[..Globals.NAME_LENGTH_LIMIT];
         if(Player1NameLabel is not null)
         {
@@ -122,6 +126,7 @@ public partial class LobbyMenu : Control
 
     public void SetPlayer2Name(string name)
     {
+        ArgumentNullException.ThrowIfNull(name);
         if(name.Length > Globals.NAME_LENGTH_LIMIT) name = name[..Globals.NAME_LENGTH_LIMIT];
         if(Player2NameLabel is not null)
         {
@@ -144,8 +149,8 @@ public partial class LobbyMenu : Control
         GameChallengeSubMenu.SetState_GotChallenge();
     }
 
-    public void SetChallengeState_ChallengeAccepted()
+    public void SetChallengeState_CannotChallenge()
     {
-        GameChallengeSubMenu.SetState_ChallengeAccepted();
+        GameChallengeSubMenu.SetState_CannotChallenge();
     }
 }

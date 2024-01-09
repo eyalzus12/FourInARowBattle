@@ -21,9 +21,9 @@ public partial class MainMenu : Control
 
     private void VerifyExports()
     {
-        if(LocalPlayButton is null) { GD.PushError($"No {nameof(LocalPlayButton)} set"); return; }
-        if(RemotePlayButton is null) { GD.PushError($"No {nameof(RemotePlayButton)} set"); return; }
-        if(HostServerButton is null) { GD.PushError($"No {nameof(HostServerButton)} set"); return; }
+        ArgumentNullException.ThrowIfNull(LocalPlayButton);
+        ArgumentNullException.ThrowIfNull(RemotePlayButton);
+        ArgumentNullException.ThrowIfNull(HostServerButton);
     }
 
     private void ConnectSignals()
@@ -41,16 +41,19 @@ public partial class MainMenu : Control
 
     private void OnLocalPlayButtonChangeSceneRequested(string path)
     {
+        ArgumentNullException.ThrowIfNull(path);
         GetTree().CallDeferred(SceneTree.MethodName.ChangeSceneToFile, path);
     }
 
     private void OnRemotePlayButtonChangeSceneRequested(string path)
     {
+        ArgumentNullException.ThrowIfNull(path);
         GetTree().CallDeferred(SceneTree.MethodName.ChangeSceneToFile, path);
     }
 
     private void OnHostServerButtonChangeSceneRequested(string path)
     {
+        ArgumentNullException.ThrowIfNull(path);
         GetTree().CallDeferred(SceneTree.MethodName.ChangeSceneToFile, path);
     }
 }

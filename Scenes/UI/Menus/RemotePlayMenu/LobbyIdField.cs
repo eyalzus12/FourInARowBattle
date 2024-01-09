@@ -12,7 +12,8 @@ public partial class LobbyIdField : LineEdit
     }
 
     public void OnTextChanged(string newText)
-    {   
+    {
+        ArgumentNullException.ThrowIfNull(newText);
         int caretIndex = CaretColumn;
         //remove non-numeric from text
         StringBuilder removeBad = new();
@@ -24,7 +25,7 @@ public partial class LobbyIdField : LineEdit
                 removeBad.Append(c);
             }
             else
-            {   
+            {
                 //we are removing a character before the caret.
                 if(i < caretIndex-1)
                 {

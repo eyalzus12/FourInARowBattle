@@ -21,9 +21,9 @@ public partial class LocalPlayMenu : Control
 
     private void VerifyExports()
     {
-        if(CreateNewGame is null) { GD.PushError($"No {nameof(CreateNewGame)} set"); return; }
-        if(LoadGame is null) { GD.PushError($"No {nameof(LoadGame)} set"); return; }
-        if(GoBack is null) { GD.PushError($"No {nameof(GoBack)} set"); return; }
+        ArgumentNullException.ThrowIfNull(CreateNewGame);
+        ArgumentNullException.ThrowIfNull(LoadGame);
+        ArgumentNullException.ThrowIfNull(GoBack);
     }
 
     private void ConnectSignals()
@@ -41,18 +41,21 @@ public partial class LocalPlayMenu : Control
 
     private void OnCreateNewGameChangeSceneRequested(string path)
     {
+        ArgumentNullException.ThrowIfNull(path);
         EmitSignal(SignalName.CreateNewGameRequested, path);
         GetTree().CallDeferred(SceneTree.MethodName.ChangeSceneToFile, path);
     }
 
     private void OnLoadGameChangeSceneRequested(string path)
     {
+        ArgumentNullException.ThrowIfNull(path);
         EmitSignal(SignalName.LoadGameRequested, path);
         GetTree().CallDeferred(SceneTree.MethodName.ChangeSceneToFile, path);
     }
 
     private void OnGoBackChangeSceneRequested(string path)
     {
+        ArgumentNullException.ThrowIfNull(path);
         EmitSignal(SignalName.GoBackRequested, path);
         GetTree().CallDeferred(SceneTree.MethodName.ChangeSceneToFile, path);
     }

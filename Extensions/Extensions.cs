@@ -10,6 +10,7 @@ public static class Extensions
         GameTurnEnum.Player2 => Colors.Blue,
         _ => Colors.White
     };
+
     public static GameTurnEnum GameResultToGameTurn(this GameResultEnum g) => g switch
     {
         GameResultEnum.Player1Win => GameTurnEnum.Player1,

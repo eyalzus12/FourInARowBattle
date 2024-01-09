@@ -29,11 +29,11 @@ public partial class LobbyGameChallengeMenu : Control
 
     private void VerifyExports()
     {
-        if(ChallengeStatusLabel is null) { GD.PushError($"No {nameof(ChallengeStatusLabel)} set"); return; }
-        if(SendChallengeButton is null) { GD.PushError($"No {nameof(SendChallengeButton)} set"); return; }
-        if(CancelChallengeButton is null) { GD.PushError($"No {nameof(CancelChallengeButton)} set"); return; }
-        if(AcceptChallengeButton is null) { GD.PushError($"No {nameof(AcceptChallengeButton)} set"); return; }
-        if(RejectChallengeButton is null) { GD.PushError($"No {nameof(RejectChallengeButton)} set"); return; }
+        ArgumentNullException.ThrowIfNull(ChallengeStatusLabel);
+        ArgumentNullException.ThrowIfNull(SendChallengeButton);
+        ArgumentNullException.ThrowIfNull(CancelChallengeButton);
+        ArgumentNullException.ThrowIfNull(AcceptChallengeButton);
+        ArgumentNullException.ThrowIfNull(RejectChallengeButton);
     }
 
     private void ConnectSignals()
@@ -96,7 +96,7 @@ public partial class LobbyGameChallengeMenu : Control
         RejectChallengeButton.Visible = true;
     }
 
-    public void SetState_ChallengeAccepted()
+    public void SetState_CannotChallenge()
     {
         SendChallengeButton.Visible = false;
         CancelChallengeButton.Visible = false;

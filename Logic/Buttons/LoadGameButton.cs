@@ -1,4 +1,5 @@
 using Godot;
+using System;
 
 namespace FourInARowBattle;
 
@@ -11,8 +12,8 @@ public partial class LoadGameButton : Button
 
     private void VerifyExports()
     {
-        if(GameToLoadTo is null) { GD.PushError($"No {nameof(GameToLoadTo)} set"); return; }
-        if(LoadGamePopup is null) { GD.PushError($"No {nameof(LoadGamePopup)} set"); return; }
+        ArgumentNullException.ThrowIfNull(GameToLoadTo);
+        ArgumentNullException.ThrowIfNull(LoadGamePopup);
     }
 
     private void ConnectSignals()
@@ -29,6 +30,7 @@ public partial class LoadGameButton : Button
 
     private void OnLoadGamePopupFileSelected(string path)
     {
+        ArgumentNullException.ThrowIfNull(path);
         GameData saveData = ResourceLoader.Load<GameData>(path, cacheMode: ResourceLoader.CacheMode.Replace);
         GameToLoadTo.DeserializeFrom(saveData);
     }

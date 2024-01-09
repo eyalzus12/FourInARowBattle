@@ -23,10 +23,10 @@ public partial class RemotePlayMenu : Control
 
     private void VerifyExports()
     {
-        if(CreateLobby is null) { GD.PushError($"No {nameof(CreateLobby)} set"); return; }
-        if(JoinLobby is null) { GD.PushError($"No {nameof(JoinLobby)} set"); return; }
-        if(GoBack is null) { GD.PushError($"No {nameof(GoBack)} set"); return; }
-        if(PlayerNameField is null) { GD.PushError($"No {nameof(PlayerNameField)} set"); return; }
+        ArgumentNullException.ThrowIfNull(CreateLobby);
+        ArgumentNullException.ThrowIfNull(JoinLobby);
+        ArgumentNullException.ThrowIfNull(GoBack);
+        ArgumentNullException.ThrowIfNull(PlayerNameField);
     }
 
     private void ConnectSignals()
@@ -54,6 +54,7 @@ public partial class RemotePlayMenu : Control
 
     private void OnGoBackChangeSceneRequested(string path)
     {
+        ArgumentNullException.ThrowIfNull(path);
         EmitSignal(SignalName.GoBackRequested, path);
     }
 }

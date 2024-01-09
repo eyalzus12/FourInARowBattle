@@ -67,14 +67,24 @@ public partial class Game : Node2D
 
     private bool _droppingActive = false;
 
+    private void VerifyExports()
+    {
+        ArgumentNullException.ThrowIfNull(GameBoard);
+        foreach(TokenCounterListControl clist in CounterLists) ArgumentNullException.ThrowIfNull(clist);
+        foreach(DescriptionLabel label in DescriptionLabels) ArgumentNullException.ThrowIfNull(label);
+    }
+
     public override void _Ready()
     {
+        VerifyExports();
+
         _droppingActive = true;
         if(!Autoloads.PersistentData.HeadlessMode)
         {
             SetupDropDetectors();
             SetDetectorsDisabled(false);
         }
+        
         foreach(TokenCounterListControl clist in CounterLists)
         {
             clist.TokenSelected += OnTokenSelected;
@@ -166,6 +176,7 @@ public partial class Game : Node2D
 
     public override void _UnhandledInput(InputEvent @event)
     {
+        ArgumentNullException.ThrowIfNull(@event);
         if(Autoloads.PersistentData.HeadlessMode) return;
 
         if(
@@ -255,6 +266,8 @@ public partial class Game : Node2D
 
     public void OnTokenSelected(TokenCounterControl what, TokenCounterButton who)
     {
+        ArgumentNullException.ThrowIfNull(what);
+        ArgumentNullException.ThrowIfNull(who);
         if(what.ActiveOnTurn != Turn || !what.CanTake()) return;
         _selectedControl = what;
         _selectedButton = who;
@@ -265,6 +278,9 @@ public partial class Game : Node2D
 
     public void DeserializeFrom(GameData data)
     {
+        ArgumentNullException.ThrowIfNull(data);
+        ArgumentNullException.ThrowIfNull(data.Board);
+
         _selectedControl = null;
         DropDetectorIdx = null;
         Turn = data.Turn;
@@ -273,10 +289,13 @@ public partial class Game : Node2D
             GD.PushError($"Cannot deserialize game data with {data.Players.Count} players into game with {CounterLists.Count} players");
             return;
         }
-        if(data.Board is not null)
-            GameBoard.DeserializeFrom(data.Board);
+        
+        GameBoard.DeserializeFrom(data.Board);
         for(int i = 0; i < CounterLists.Count; ++i)
+        {
+            ArgumentNullException.ThrowIfNull(data.Players[i]);
             CounterLists[i].DeserializeFrom(data.Players[i]);
+        }
         //make sure stuff works correctly
         foreach(TokenCounterListControl counter in CounterLists) counter.OnTurnChange(Turn);
 

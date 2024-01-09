@@ -70,6 +70,7 @@ public partial class GameServer : Node
 
     public void OnWebSocketServerPacketReceived(int peerId, byte[] packetBytes)
     {
+        ArgumentNullException.ThrowIfNull(packetBytes);
         _buffer.PushRightRange(packetBytes);
         
         while(_buffer.Count > 0 && AbstractPacket.TryConstructFrom(_buffer, out AbstractPacket? packet))
@@ -91,11 +92,13 @@ public partial class GameServer : Node
 
     public void SendPacket(int peerId, AbstractPacket packet)
     {
+        ArgumentNullException.ThrowIfNull(packet);
         Server?.SendPacket(peerId, packet.ToByteArray());
     }
 
     public void HandlePacket(int peerId, AbstractPacket packet)
     {
+        ArgumentNullException.ThrowIfNull(packet);
         switch(packet)
         {
             case Packet_Dummy:
@@ -111,6 +114,7 @@ public partial class GameServer : Node
             }
             case Packet_CreateLobbyRequest _packet:
             {
+                ArgumentNullException.ThrowIfNull(_packet.PlayerName);
                 GD.Print($"{peerId} wants to create lobby. Player name: {_packet.PlayerName}");
 
                 if(!UpdateName(peerId, _packet.PlayerName, out Player? player))
@@ -134,6 +138,7 @@ public partial class GameServer : Node
             }
             case Packet_ConnectLobbyRequest _packet:
             {
+                ArgumentNullException.ThrowIfNull(_packet.PlayerName);
                 GD.Print($"{peerId} wants to connect to lobby {_packet.LobbyId} with name {_packet.PlayerName}");
 
                 if(!UpdateName(peerId, _packet.PlayerName, out Player? player))
@@ -362,7 +367,12 @@ public partial class GameServer : Node
                 }
 
                 string scenePath = _packet.ScenePath;
-                //not such path
+
+                //the packet having a null scene path is the result of an internal error
+                //and NOT a bad packet
+                ArgumentNullException.ThrowIfNull(scenePath);
+
+                //no such path
                 if(!ResourceLoader.Exists(scenePath))
                 {
                     GD.Print($"{peerId} failed to place token because the scene path does not exist");
@@ -537,6 +547,8 @@ public partial class GameServer : Node
 
     private bool UpdateName(int peerId, string name, [NotNullWhen(true)] out Player? player)
     {
+        ArgumentNullException.ThrowIfNull(name);
+        
         if(_players.TryGetValue(peerId, out player))
         {
             if(player.Lobby is not null)

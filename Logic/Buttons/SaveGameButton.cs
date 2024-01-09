@@ -1,4 +1,5 @@
 using Godot;
+using System;
 
 namespace FourInARowBattle;
 
@@ -11,8 +12,8 @@ public partial class SaveGameButton : Button
 
     private void VerifyExports()
     {
-        if(GameToSave is null) { GD.PushError($"No {nameof(GameToSave)} set"); return; }
-        if(SaveGamePopup is null) { GD.PushError($"No {nameof(SaveGamePopup)} set"); return; }
+        ArgumentNullException.ThrowIfNull(GameToSave);
+        ArgumentNullException.ThrowIfNull(SaveGamePopup);
     }
 
     private void ConnectSignals()
@@ -41,6 +42,7 @@ public partial class SaveGameButton : Button
 
     private void OnSaveGamePopupFileSelected(string path)
     {
+        ArgumentNullException.ThrowIfNull(path);
         GameData saveData = GameToSave.SerializeTo();
         Error err = ResourceSaver.Save(saveData, path, ResourceSaver.SaverFlags.Compress);
         if(err != Error.Ok)

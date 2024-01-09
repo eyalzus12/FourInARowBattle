@@ -1,6 +1,7 @@
 using Godot;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System;
 
 namespace FourInARowBattle;
 
@@ -26,6 +27,8 @@ public partial class DescriptionLabel : Label
 
     public void OnTokenHover(GameTurnEnum turn, string description)
     {
+        ArgumentNullException.ThrowIfNull(description);
+
         if(turn != ActiveOnTurn) return;
 
         _description = description;
@@ -34,6 +37,8 @@ public partial class DescriptionLabel : Label
 
     public void OnTokenStopHover(GameTurnEnum turn, string description)
     {
+        ArgumentNullException.ThrowIfNull(description);
+
         if(
             turn != ActiveOnTurn ||
             description != _description
