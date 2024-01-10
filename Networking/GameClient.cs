@@ -521,7 +521,7 @@ public partial class GameClient : Node
             Desync();
             return;
         }
-        _iHaveRequest = true;
+        _iHaveRequest = false;
         EmitSignal(SignalName.NewGameRejectReceived);
     }
 
