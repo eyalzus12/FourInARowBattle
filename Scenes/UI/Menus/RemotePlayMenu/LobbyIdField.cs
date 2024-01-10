@@ -27,7 +27,7 @@ public partial class LobbyIdField : LineEdit
             else
             {
                 //we are removing a character before the caret.
-                if(i < caretIndex-1)
+                if(i < caretIndex)
                 {
                     caretIndex--;
                 }

@@ -73,6 +73,8 @@ public partial class GameServer : Node
 
     public void Stop()
     {
+        if(!Server.Listening) return;
+
         foreach(Lobby lobby in _lobbies.Values)
         {
             lobby.ActiveGame?.QueueFreeDeferred();
@@ -98,7 +100,6 @@ public partial class GameServer : Node
     private void OnWebSocketServerPacketReceived(int peerId, byte[] packetBytes)
     {
         ArgumentNullException.ThrowIfNull(packetBytes);
-        GD.Print("server got packet");
         _buffer.PushRightRange(packetBytes);
 
         while(_buffer.Count > 0 && AbstractPacket.TryConstructFrom(_buffer, out AbstractPacket? packet))
@@ -124,7 +125,7 @@ public partial class GameServer : Node
     public void SendPacket(int peerId, AbstractPacket packet)
     {
         ArgumentNullException.ThrowIfNull(packet);
-        Server?.SendPacket(peerId, packet.ToByteArray());
+        Server.SendPacket(peerId, packet.ToByteArray());
     }
 
     public void HandlePacket(int peerId, AbstractPacket packet)
@@ -190,6 +191,9 @@ public partial class GameServer : Node
     {
         ArgumentNullException.ThrowIfNull(packet);
         ArgumentNullException.ThrowIfNull(packet.PlayerName);
+
+        if(packet.PlayerName == "") packet.PlayerName = "Guest";
+
         GD.Print($"{peerId} wants to create lobby. Player name: {packet.PlayerName}");
 
         if(!UpdateName(peerId, packet.PlayerName, out Player? player))
@@ -215,6 +219,9 @@ public partial class GameServer : Node
     {
         ArgumentNullException.ThrowIfNull(packet);
         ArgumentNullException.ThrowIfNull(packet.PlayerName);
+
+        if(packet.PlayerName == "") packet.PlayerName = "Guest";
+        
         GD.Print($"{peerId} wants to connect to lobby {packet.LobbyId} with name {packet.PlayerName}");
 
         if(!UpdateName(peerId, packet.PlayerName, out Player? player))

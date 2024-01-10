@@ -24,7 +24,7 @@ public partial class Packet_ConnectLobbyOk : AbstractPacket
             GD.PushError($"Player name is too long: {OtherPlayerName}");
             stringBuffer = stringBuffer.Take(byte.MaxValue).ToArray();
         }
-        byte[] buffer = new byte[1 + 1 + stringBuffer.Length];
+        byte[] buffer = new byte[1 + 4 + stringBuffer.Length];
         buffer.StoreBigEndianU8((byte)PacketTypeEnum.CONNECT_LOBBY_OK, 0);
         buffer.StoreBigEndianU32((uint)stringBuffer.Length, 1);
         buffer.StoreBuffer(stringBuffer, 5);

@@ -50,9 +50,9 @@ public abstract partial class AbstractPacket : Resource
             }
             case PacketTypeEnum.CREATE_LOBBY_REQUEST:
             {
-                if(buffer.Count < 5) return false;
+                if(buffer.Count < 2) return false;
                 byte size = buffer[1];
-                if(buffer.Count < 5 + size) return false;
+                if(buffer.Count < 2 + size) return false;
                 for(int i = 0; i < 2; ++i) buffer.PopLeft();
                 byte[] name = new byte[size]; for(int i = 0; i < size; ++i) name[i] = buffer.PopLeft();
                 packet = new Packet_CreateLobbyRequest(name.GetStringFromUtf8());

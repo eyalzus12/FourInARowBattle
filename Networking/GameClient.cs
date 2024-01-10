@@ -6,6 +6,8 @@ namespace FourInARowBattle;
 
 public partial class GameClient : Node
 {
+    public const string CONNECTION_URL = "127.0.0.1:1234";
+
     #region Signals
 
     [Signal]
@@ -55,7 +57,7 @@ public partial class GameClient : Node
 
     private readonly Deque<byte> _buffer = new();
 
-    public string? ClientName{get; set;}
+    public string ClientName{get; set;} = "";
 
     #region State Variables
 
@@ -98,7 +100,7 @@ public partial class GameClient : Node
     {
         VerifyExports();
         ConnectSignals();
-        Error err = Client.ConnectToUrl("127.0.0.1:1234");
+        Error err = Client.ConnectToUrl(CONNECTION_URL);
         if(err != Error.Ok)
         {
             DisplayError($"Error while trying to connect: {err}");
@@ -109,7 +111,7 @@ public partial class GameClient : Node
     {
         if(what == NotificationExitTree || what == NotificationCrash || what == NotificationWMCloseRequest)
         {
-            Client.Close();
+            CloseConnection();
         }
     }
 
@@ -144,8 +146,6 @@ public partial class GameClient : Node
     public void SendPacket(AbstractPacket packet)
     {
         ArgumentNullException.ThrowIfNull(packet);
-
-        GD.Print("sending packet");
 
         if(Client.State != WebSocketPeer.State.Open)
         {
@@ -277,7 +277,7 @@ public partial class GameClient : Node
     private void HandlePacket_InvalidPacket(Packet_InvalidPacket packet)
     {
         ArgumentNullException.ThrowIfNull(packet);
-        GD.Print($"Got invalid _packet: {packet.GivenPacketType}");
+        GD.Print($"Got invalid packet: {packet.GivenPacketType}");
         DisplayError("Bad packet from server");
         Desync();
     }
@@ -285,7 +285,7 @@ public partial class GameClient : Node
     private void HandlePacket_InvalidPacketInform(Packet_InvalidPacketInform packet)
     {
         ArgumentNullException.ThrowIfNull(packet);
-        GD.Print($"Server informed about invalid _packet: {packet.GivenPacketType}");
+        GD.Print($"Server informed about invalid packet: {packet.GivenPacketType}");
         DisplayError("Something went wrong while communicating with the server");
         Desync();
     }
@@ -311,7 +311,7 @@ public partial class GameClient : Node
         _isPlayer1 = true;
         _lobbyConnectionRequest = null;
         _otherPlayer = null;
-        EmitSignal(SignalName.LobbyEntered, packet.LobbyId, ClientName!, _otherPlayer!, (bool)_isPlayer1);
+        EmitSignal(SignalName.LobbyEntered, packet.LobbyId, ClientName, _otherPlayer!, (bool)_isPlayer1);
     }
 
     private void HandlePacket_CreateLobbyFail(Packet_CreateLobbyFail packet)
@@ -325,7 +325,7 @@ public partial class GameClient : Node
             return;
         }
         _lobbyConnectionRequest = null;
-        DisplayError($"Creating lobby failed with error: {packet.ErrorCode}");
+        DisplayError($"Creating lobby failed with error: {ErrorCodeUtils.Humanize(packet.ErrorCode)}");
     }
 
     private void HandlePacket_ConnectLobbyOk(Packet_ConnectLobbyOk packet)
@@ -344,7 +344,7 @@ public partial class GameClient : Node
         _otherPlayer = (packet.OtherPlayerName == "")?null:packet.OtherPlayerName;
         _isPlayer1 = _otherPlayer is null;
 
-        EmitSignal(SignalName.LobbyEntered, (uint)_lobbyConnectionRequest, _otherPlayer ?? ClientName!, _otherPlayer!, _otherPlayer is null);
+        EmitSignal(SignalName.LobbyEntered, (uint)_lobbyConnectionRequest, _otherPlayer ?? ClientName, _otherPlayer!, _otherPlayer is null);
         _lobbyConnectionRequest = null;
     }
 
@@ -359,7 +359,7 @@ public partial class GameClient : Node
             return;
         }
 
-        DisplayError($"Connecting to lobby failed with error: {packet.ErrorCode}");
+        DisplayError($"Connecting to lobby failed with error: {ErrorCodeUtils.Humanize(packet.ErrorCode)}");
 
         _lobby = null;
         _isPlayer1 = null;
@@ -380,7 +380,7 @@ public partial class GameClient : Node
         }
         _otherPlayer = packet.OtherPlayerName;
 
-        EmitSignal(SignalName.LobbyStateUpdated, ClientName!, _otherPlayer, true);
+        EmitSignal(SignalName.LobbyStateUpdated, ClientName, _otherPlayer, true);
     }
 
     private void HandlePacket_NewGameRequestOk(Packet_NewGameRequestOk packet)
@@ -408,7 +408,7 @@ public partial class GameClient : Node
             return;
         }
         _sentRequest = false;
-        DisplayError($"Sending game request failed with error: {packet.ErrorCode}");
+        DisplayError($"Sending game request failed with error: {ErrorCodeUtils.Humanize(packet.ErrorCode)}");
     }
 
     private void HandlePacket_NewGameRequested(Packet_NewGameRequested packet)
@@ -458,7 +458,7 @@ public partial class GameClient : Node
             return;
         }
         _sentAccept = false;
-        DisplayError($"Accepting game request failed with error: {packet.ErrorCode}");
+        DisplayError($"Accepting game request failed with error: {ErrorCodeUtils.Humanize(packet.ErrorCode)}");
     }
 
     private void HandlePacket_NewGameAccepted(Packet_NewGameAccepted packet)
@@ -502,7 +502,7 @@ public partial class GameClient : Node
             return;
         }
         _sentReject = false;
-        DisplayError($"Rejecting game request failed with error: {packet.ErrorCode}");
+        DisplayError($"Rejecting game request failed with error: {ErrorCodeUtils.Humanize(packet.ErrorCode)}");
     }
 
     private void HandlePacket_NewGameRejected(Packet_NewGameRejected packet)
@@ -545,7 +545,7 @@ public partial class GameClient : Node
             return;
         }
         _sentCancel = false;
-        DisplayError($"Canceling game request failed with error: {packet.ErrorCode}");
+        DisplayError($"Canceling game request failed with error: {ErrorCodeUtils.Humanize(packet.ErrorCode)}");
     }
 
     private void HandlePacket_NewGameCanceled(Packet_NewGameCanceled packet)
@@ -581,7 +581,7 @@ public partial class GameClient : Node
 
         if(!(bool)_isPlayer1!) _isPlayer1 = true;
 
-        EmitSignal(SignalName.LobbyStateUpdated, ClientName!, "", true);
+        EmitSignal(SignalName.LobbyStateUpdated, ClientName, "", true);
 
         _otherPlayer = null;
         _sentRequest = false;
@@ -749,11 +749,11 @@ public partial class GameClient : Node
 
     public void CreateLobby()
     {
-        SendPacket(new Packet_CreateLobbyRequest(ClientName!));
+        SendPacket(new Packet_CreateLobbyRequest(ClientName));
     }
     public void JoinLobby(uint lobby)
     {
-        SendPacket(new Packet_ConnectLobbyRequest(lobby, ClientName!));
+        SendPacket(new Packet_ConnectLobbyRequest(lobby, ClientName));
         _lobbyConnectionRequest = lobby;
     }
     public void DisconnectFromLobby(DisconnectReasonEnum reason)
@@ -824,7 +824,10 @@ public partial class GameClient : Node
 
     public void CloseConnection()
     {
-        Client?.Close();
+        if(Client.State != WebSocketPeer.State.Open)
+            return;
+        
+        Client.Close();
         _lobby = null;
         _isPlayer1 = null;
         _lobbyConnectionRequest = null;

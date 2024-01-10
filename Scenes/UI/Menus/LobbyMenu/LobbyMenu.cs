@@ -108,9 +108,48 @@ public partial class LobbyMenu : Control
 
     public void SetLobbyId(uint id)
     {
-        if(LobbyIdLabel is not null)
+        LobbyIdLabel.Text = id.ToString();
+    }
+
+    private Color? _player1OldModulate = null;
+    private Color? _player2OldModulate = null;
+
+    public void SetPlayer1Marked()
+    {
+        if(_player2OldModulate is not null)
         {
-            LobbyIdLabel.Text = id.ToString();
+            Player2NameLabel.Modulate = (Color)_player2OldModulate;
+            _player2OldModulate = null;
+        }
+
+        _player1OldModulate ??= Player1NameLabel.Modulate;
+        Player1NameLabel.Modulate = Colors.Blue;
+    }
+
+    public void SetPlayer2Marked()
+    {
+        if(_player1OldModulate is not null)
+        {
+            Player1NameLabel.Modulate = (Color)_player1OldModulate;
+            _player1OldModulate = null;
+        }
+
+        _player2OldModulate ??= Player2NameLabel.Modulate;
+        Player2NameLabel.Modulate = Colors.Blue;
+    }
+
+    public void ClearMark()
+    {
+        if(_player1OldModulate is not null)
+        {
+            Player1NameLabel.Modulate = (Color)_player1OldModulate;
+            _player1OldModulate = null;
+        }
+
+        if(_player2OldModulate is not null)
+        {
+            Player2NameLabel.Modulate = (Color)_player2OldModulate;
+            _player2OldModulate = null;
         }
     }
 
@@ -118,20 +157,14 @@ public partial class LobbyMenu : Control
     {
         ArgumentNullException.ThrowIfNull(name);
         if(name.Length > Globals.NAME_LENGTH_LIMIT) name = name[..Globals.NAME_LENGTH_LIMIT];
-        if(Player1NameLabel is not null)
-        {
-            Player1NameLabel.Text = name;
-        }
+        Player1NameLabel.Text = name;
     }
 
     public void SetPlayer2Name(string name)
     {
         ArgumentNullException.ThrowIfNull(name);
         if(name.Length > Globals.NAME_LENGTH_LIMIT) name = name[..Globals.NAME_LENGTH_LIMIT];
-        if(Player2NameLabel is not null)
-        {
-            Player2NameLabel.Text = name;
-        }
+        Player2NameLabel.Text = name;
     }
 
     public void SetChallengeState_NoChallenge()

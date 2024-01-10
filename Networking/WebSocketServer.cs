@@ -8,6 +8,9 @@ namespace FourInARowBattle;
 
 public partial class WebSocketServer : Node
 {
+    public const int MIN_PEER_ID = 2;
+    public const int MAX_PEER_ID = 1 << 30;
+    
     private sealed class PendingPeer
     {
         public ulong ConnectTime{get; set;}
@@ -56,6 +59,9 @@ public partial class WebSocketServer : Node
     public CryptoKey? TlsKey{get; set;} = null;
 
     private readonly TcpServer _tcpServer = new();
+
+    public bool Listening => _tcpServer.IsListening();
+
     private readonly HashSet<PendingPeer> _pendingPeers = new();
     private readonly Dictionary<int, WebSocketPeer> _peers = new();
 
@@ -154,7 +160,7 @@ public partial class WebSocketServer : Node
     {
         if(!_tcpServer.IsListening())
             return;
-        
+
         //get new pending peers
         while(!RefuseNewConnections && _tcpServer.IsConnectionAvailable())
         {
@@ -182,6 +188,7 @@ public partial class WebSocketServer : Node
         foreach((int id, WebSocketPeer ws) in peersCopy)
         {
             ws.Poll();
+            
             if(ws.GetReadyState() != WebSocketPeer.State.Open)
             {
                 EmitSignal(SignalName.ClientDisconnected, id);
@@ -197,7 +204,9 @@ public partial class WebSocketServer : Node
                     break;
                 }
                 if(packet is not null)
-                    EmitSignal(SignalName.PacketReceived, packet);
+                {
+                    EmitSignal(SignalName.PacketReceived, id, packet);
+                }
             }
         }
     }
@@ -212,7 +221,7 @@ public partial class WebSocketServer : Node
             if(state == WebSocketPeer.State.Open)
             {
                 //find unused id
-                int id; do{id = GD.RandRange(2, 1 << 30);} while(_peers.ContainsKey(id));
+                int id; do{id = GD.RandRange(MIN_PEER_ID, MAX_PEER_ID);} while(_peers.ContainsKey(id));
                 _peers.Add(id, peer.WebSocket);
                 EmitSignal(SignalName.ClientConnected, id);
                 return true; // Success

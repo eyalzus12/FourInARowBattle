@@ -7,6 +7,8 @@ public partial class JoinLobbyButton : Button
 {
     [Signal]
     public delegate void JoinLobbyButtonPressedEventHandler(uint with);
+    [Signal]
+    public delegate void LobbyNumberWasInvalidEventHandler();
 
     [Export]
     public LobbyIdField Field{get; set;} = null!;
@@ -27,7 +29,7 @@ public partial class JoinLobbyButton : Button
             EmitSignal(SignalName.JoinLobbyButtonPressed, result);
         else
         {
-            //invalid lobby number
+            EmitSignal(SignalName.LobbyNumberWasInvalid);
         }
     }
 }

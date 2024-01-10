@@ -10,6 +10,8 @@ public partial class RemotePlayMenu : Control
     [Signal]
     public delegate void JoinLobbyRequestedEventHandler(uint lobbyId, string playerName);
     [Signal]
+    public delegate void LobbyNumberWasInvalidEventHandler();
+    [Signal]
     public delegate void GoBackRequestedEventHandler(string path);
 
     [Export]
@@ -33,6 +35,7 @@ public partial class RemotePlayMenu : Control
     {
         CreateLobby.CreateLobbyButtonPressed += OnCreateLobbyCreateLobbyButtonPressed;
         JoinLobby.JoinLobbyButtonPressed += OnJoinLobbyJoinLobbyButtonPressed;
+        JoinLobby.LobbyNumberWasInvalid += OnJoinLobbyLobbyNumberWasInvalid;
         GoBack.ChangeSceneRequested += OnGoBackChangeSceneRequested;
     }
 
@@ -50,6 +53,11 @@ public partial class RemotePlayMenu : Control
     private void OnJoinLobbyJoinLobbyButtonPressed(uint lobbyId)
     {
         EmitSignal(SignalName.JoinLobbyRequested, lobbyId, PlayerNameField?.Text ?? "");
+    }
+
+    private void OnJoinLobbyLobbyNumberWasInvalid()
+    {
+        EmitSignal(SignalName.LobbyNumberWasInvalid);
     }
 
     private void OnGoBackChangeSceneRequested(string path)

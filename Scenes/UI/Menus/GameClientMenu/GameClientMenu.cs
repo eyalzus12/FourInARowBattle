@@ -77,6 +77,7 @@ public partial class GameClientMenu : Node
         Client.GameFinished += OnClientGameFinished;
         RemotePlayMenu.CreateLobbyRequested += OnRemotePlayMenuCreateLobbyRequested;
         RemotePlayMenu.JoinLobbyRequested += OnRemotePlayMenuJoinLobbyRequested;
+        RemotePlayMenu.LobbyNumberWasInvalid += OnRemotePlayMenuLobbyNumberWasInvalid;
         RemotePlayMenu.GoBackRequested += OnRemotePlayMenuGoBackRequested;
         LobbyMenu.ExitLobbyRequested += OnLobbyMenuExitLobbyRequested;
         LobbyMenu.ChallengeSent += OnLobbyMenuChallengeSent;
@@ -180,8 +181,11 @@ public partial class GameClientMenu : Node
     {
         SwitchToLobbyMenu();
         LobbyMenu.SetLobbyId(lobbyId);
-        LobbyMenu.SetPlayer1Name(player1Name ?? "");
-        LobbyMenu.SetPlayer2Name(player2Name ?? "");
+        LobbyMenu.SetPlayer1Name(player1Name ?? "Guest");
+        LobbyMenu.SetPlayer2Name(player2Name ?? "Guest");
+
+        if(isPlayer1) LobbyMenu.SetPlayer1Marked();
+        else LobbyMenu.SetPlayer2Marked();
 
         if(LobbyMenu.LobbyFull())
             LobbyMenu.SetChallengeState_NoChallenge();
@@ -192,8 +196,12 @@ public partial class GameClientMenu : Node
     private void OnClientLobbyStateUpdated(string? player1Name, string? player2Name, bool isPlayer1)
     {
         bool lobbyPreviouslyEmpty = !LobbyMenu.LobbyFull();
-        LobbyMenu.SetPlayer1Name(player1Name ?? "");
-        LobbyMenu.SetPlayer2Name(player2Name ?? "");
+        LobbyMenu.SetPlayer1Name(player1Name ?? "Guest");
+        LobbyMenu.SetPlayer2Name(player2Name ?? "Guest");
+
+        if(isPlayer1) LobbyMenu.SetPlayer1Marked();
+        else LobbyMenu.SetPlayer2Marked();
+
         if(LobbyMenu.LobbyFull())
         {
             //lobby just filled up. you can now challenge.
@@ -277,6 +285,7 @@ public partial class GameClientMenu : Node
     private void OnRemotePlayMenuCreateLobbyRequested(string playerName)
     {
         ArgumentNullException.ThrowIfNull(playerName);
+        if(playerName == "") playerName = "Guest";
         Client.ClientName = playerName;
         Client.CreateLobby();
     }
@@ -284,8 +293,14 @@ public partial class GameClientMenu : Node
     private void OnRemotePlayMenuJoinLobbyRequested(uint id, string playerName)
     {
         ArgumentNullException.ThrowIfNull(playerName);
+        if(playerName == "") playerName = "Guest";
         Client.ClientName = playerName;
         Client.JoinLobby(id);
+    }
+
+    private void OnRemotePlayMenuLobbyNumberWasInvalid()
+    {
+        DisplayError("Invalid lobby number");
     }
 
     private void OnRemotePlayMenuGoBackRequested(string path)
@@ -356,6 +371,7 @@ public partial class GameClientMenu : Node
 
         LobbyMenu.ProcessMode = ProcessModeEnum.Inherit;
         LobbyMenu.Visible = true;
+        LobbyMenu.ClearMark();
 
         _inLobby = true;
         LobbyMenu.SetChallengeState_CannotChallenge();
