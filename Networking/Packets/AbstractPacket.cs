@@ -2,6 +2,7 @@ using DequeNet;
 using Godot;
 using System.Diagnostics.CodeAnalysis;
 using System;
+using System.Linq;
 
 namespace FourInARowBattle;
 
@@ -55,6 +56,11 @@ public abstract partial class AbstractPacket : Resource
                 if(buffer.Count < 2 + size) return false;
                 for(int i = 0; i < 2; ++i) buffer.PopLeft();
                 byte[] name = new byte[size]; for(int i = 0; i < size; ++i) name[i] = buffer.PopLeft();
+                if(name.Length > Globals.NAME_LENGTH_LIMIT)
+                {
+                    GD.Print($"Packet has name with invalid length {name.Length}. It will be trimmed.");
+                    name = name.Take(Globals.NAME_LENGTH_LIMIT).ToArray();
+                }
                 packet = new Packet_CreateLobbyRequest(name.GetStringFromUtf8());
                 return true;
             }
@@ -81,6 +87,11 @@ public abstract partial class AbstractPacket : Resource
                 uint lobbyId = new[]{buffer[1], buffer[2], buffer[3], buffer[4]}.LoadBigEndianU32();
                 for(int i = 0; i < 6; ++i) buffer.PopLeft();
                 byte[] name = new byte[size]; for(int i = 0; i < size; ++i) name[i] = buffer.PopLeft();
+                if(name.Length > Globals.NAME_LENGTH_LIMIT)
+                {
+                    GD.Print($"Packet has name with invalid length {name.Length}. It will be trimmed.");
+                    name = name.Take(Globals.NAME_LENGTH_LIMIT).ToArray();
+                }
                 packet = new Packet_ConnectLobbyRequest(lobbyId, name.GetStringFromUtf8());
                 return true;
             }
@@ -91,6 +102,11 @@ public abstract partial class AbstractPacket : Resource
                 if(buffer.Count < 2 + size) return false;
                 for(int i = 0; i < 2; ++i) buffer.PopLeft();
                 byte[] name = new byte[size]; for(int i = 0; i < size; ++i) name[i] = buffer.PopLeft();
+                if(name.Length > Globals.NAME_LENGTH_LIMIT)
+                {
+                    GD.Print($"Packet has name with invalid length {name.Length}. It will be trimmed.");
+                    name = name.Take(Globals.NAME_LENGTH_LIMIT).ToArray();
+                }
                 packet = new Packet_ConnectLobbyOk(name.GetStringFromUtf8());
                 return true;
             }
@@ -108,6 +124,11 @@ public abstract partial class AbstractPacket : Resource
                 if(buffer.Count < 2 + size) return false;
                 for(int i = 0; i < 2; ++i) buffer.PopLeft();
                 byte[] name = new byte[size]; for(int i = 0; i < size; ++i) name[i] = buffer.PopLeft();
+                if(name.Length > Globals.NAME_LENGTH_LIMIT)
+                {
+                    GD.Print($"Packet has name with invalid length {name.Length}. It will be trimmed.");
+                    name = name.Take(Globals.NAME_LENGTH_LIMIT).ToArray();
+                }
                 packet = new Packet_LobbyNewPlayer(name.GetStringFromUtf8());
                 return true;
             }

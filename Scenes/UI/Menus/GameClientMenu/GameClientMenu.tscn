@@ -27,7 +27,6 @@ Client = NodePath("WebSocketClient")
 
 [node name="WebSocketClient" type="Node" parent="GameClient"]
 script = ExtResource("2_n1vdk")
-SupportedProtocols = PackedStringArray("test")
 
 [node name="Game" parent="." instance=ExtResource("3_eqh8t")]
 process_mode = 4

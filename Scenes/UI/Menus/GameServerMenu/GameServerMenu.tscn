@@ -24,7 +24,6 @@ GameScene = ExtResource("3_sa8hx")
 
 [node name="WebSocketServer" type="Node" parent="GameServer"]
 script = ExtResource("4_wyd18")
-SupportedProtocols = PackedStringArray("test")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 

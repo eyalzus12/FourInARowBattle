@@ -75,32 +75,32 @@ public partial class LobbyGameChallengeMenu : Control
     public void SetState_NoChallenge()
     {
         SendChallengeButton.Visible = true;
-        CancelChallengeButton.Visible = false;
-        AcceptChallengeButton.Visible = false;
-        RejectChallengeButton.Visible = false;
+        CancelChallengeButton.Visible = true;
+        AcceptChallengeButton.Visible = true;
+        RejectChallengeButton.Visible = true;
     }
 
     public void SetState_SentChallenge()
     {
-        SendChallengeButton.Visible = false;
+        SendChallengeButton.Visible = true;
         CancelChallengeButton.Visible = true;
-        AcceptChallengeButton.Visible = false;
-        RejectChallengeButton.Visible = false;
+        AcceptChallengeButton.Visible = true;
+        RejectChallengeButton.Visible = true;
     }
 
     public void SetState_GotChallenge()
     {
-        SendChallengeButton.Visible = false;
-        CancelChallengeButton.Visible = false;
+        SendChallengeButton.Visible = true;
+        CancelChallengeButton.Visible = true;
         AcceptChallengeButton.Visible = true;
         RejectChallengeButton.Visible = true;
     }
 
     public void SetState_CannotChallenge()
     {
-        SendChallengeButton.Visible = false;
-        CancelChallengeButton.Visible = false;
-        AcceptChallengeButton.Visible = false;
-        RejectChallengeButton.Visible = false;
+        SendChallengeButton.Visible = true;
+        CancelChallengeButton.Visible = true;
+        AcceptChallengeButton.Visible = true;
+        RejectChallengeButton.Visible = true;
     }
 }

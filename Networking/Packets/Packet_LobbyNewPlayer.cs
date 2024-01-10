@@ -18,10 +18,10 @@ public partial class Packet_LobbyNewPlayer : AbstractPacket
     public override byte[] ToByteArray()
     {
         byte[] stringBuffer = OtherPlayerName.ToUtf8Buffer();
-        if(stringBuffer.Length > byte.MaxValue)
+        if(stringBuffer.Length > Globals.NAME_LENGTH_LIMIT)
         {
-            GD.PushError($"Player name is too long: {OtherPlayerName}");
-            stringBuffer = stringBuffer.Take(byte.MaxValue).ToArray();
+            GD.PushError($"Player name has invalid length {stringBuffer.Length}");
+            stringBuffer = stringBuffer.Take(Globals.NAME_LENGTH_LIMIT).ToArray();
         }
         byte[] buffer = new byte[1 + 1 + stringBuffer.Length];
         buffer.StoreBigEndianU8((byte)PacketType, 0);

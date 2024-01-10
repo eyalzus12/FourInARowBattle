@@ -285,12 +285,23 @@ public partial class GameServer : Node
             SendPacket(peerId, new Packet_NewGameRequestFail(ErrorCodeEnum.CANNOT_REQUEST_START_NO_OTHER_PLAYER));
             return;
         }
-        if(lobby.Requester is not null)
+
+        Player other = lobby.Players[0] == player ? lobby.Players[1]! : lobby.Players[0]!;
+
+        if(lobby.Requester == player)
         {
             GD.Print($"{peerId} cannot request game start because they already did.");
             SendPacket(peerId, new Packet_NewGameRequestFail(ErrorCodeEnum.CANNOT_REQUEST_START_ALREADY_DID));
             return;
         }
+
+        if(lobby.Requester == other)
+        {
+            GD.Print($"{peerId} cannot request game start because there's already an active request.");
+            SendPacket(peerId, new Packet_NewGameRequestFail(ErrorCodeEnum.CANNOT_REQUEST_START_OTHER_DID));
+            return;
+        }
+
         if(lobby.ActiveGame is not null)
         {
             GD.Print($"{peerId} cannot request game start because they are in the middle of a game.");
@@ -298,9 +309,9 @@ public partial class GameServer : Node
             return;
         }
 
+
         GD.Print($"{peerId} requested game start");
         lobby.Requester = player;
-        Player other = lobby.Players[0] == player ? lobby.Players[1]! : lobby.Players[0]!;
         SendPacket(player.Id, new Packet_NewGameRequestOk());
         SendPacket(other.Id, new Packet_NewGameRequested());
     }

@@ -341,11 +341,14 @@ public partial class GameClient : Node
             return;
         }
         _lobby = _lobbyConnectionRequest;
-        //empty string means only us are in the lobby
+        //empty string means only we are in the lobby
         _otherPlayer = (packet.OtherPlayerName == "")?null:packet.OtherPlayerName;
         _isPlayer1 = _otherPlayer is null;
 
-        EmitSignal(SignalName.LobbyEntered, (uint)_lobbyConnectionRequest, _otherPlayer ?? ClientName, _otherPlayer!, _otherPlayer is null);
+        string? player1Name = (bool)_isPlayer1 ? ClientName : _otherPlayer;
+        string? player2Name = (bool)_isPlayer1 ? _otherPlayer : ClientName;
+
+        EmitSignal(SignalName.LobbyEntered, (uint)_lobbyConnectionRequest, player1Name!, player2Name!, (bool)_isPlayer1);
         _lobbyConnectionRequest = null;
     }
 
@@ -757,15 +760,18 @@ public partial class GameClient : Node
 
     public void CreateLobby()
     {
+        if(_lobby is not null) return;
         SendPacket(new Packet_CreateLobbyRequest(ClientName));
     }
     public void JoinLobby(uint lobby)
     {
+        if(_lobby is not null) return;
         SendPacket(new Packet_ConnectLobbyRequest(lobby, ClientName));
         _lobbyConnectionRequest = lobby;
     }
     public void DisconnectFromLobby(DisconnectReasonEnum reason)
     {
+        if(_lobby is null) return;
         SendPacket(new Packet_LobbyDisconnect(reason));
         _lobby = null;
         _isPlayer1 = null;
@@ -786,41 +792,47 @@ public partial class GameClient : Node
     }
     public void RequestNewGame()
     {
-        if(_lobby is null) return;
+        if(_lobby is null || _otherPlayerHasRequest || _iHaveRequest || _gameShouldStart || _inGame) return;
+
         _sentRequest = true;
         SendPacket(new Packet_NewGameRequest());
     }
     public void AcceptNewGame()
     {
-        if(_lobby is not null && _otherPlayerHasRequest)
-        {
-            _sentAccept = true;
-            SendPacket(new Packet_NewGameAccept());
-        }
+        if(_lobby is null || !_otherPlayerHasRequest) return;
+
+        _sentAccept = true;
+        SendPacket(new Packet_NewGameAccept());
     }
     public void RejectNewGame()
     {
-        if(_lobby is not null && _otherPlayerHasRequest)
-        {
-            _sentReject = true;
-            SendPacket(new Packet_NewGameReject());
-        }
+        if(_lobby is null || !_otherPlayerHasRequest) return;
+
+        _sentReject = true;
+        SendPacket(new Packet_NewGameReject());
     }
     public void CancelNewGame()
     {
-        if(_lobby is not null && _iHaveRequest)
-        {
-            _sentCancel = true;
-            SendPacket(new Packet_NewGameCancel());
-        }
+        if(_lobby is null || !_iHaveRequest) return;
+
+        _sentCancel = true;
+        SendPacket(new Packet_NewGameCancel());
     }
     public void PlaceToken(byte column, string path)
     {
         ArgumentNullException.ThrowIfNull(path);
+
+        //if(!_inGame) return;
+
         SendPacket(new Packet_GameActionPlace(column, path));
     }
 
-    public void Refill() => SendPacket(new Packet_GameActionRefill());
+    public void Refill()
+    {
+        //if(!_inGame) return;
+
+        SendPacket(new Packet_GameActionRefill());
+    }
 
     public void Desync()
     {

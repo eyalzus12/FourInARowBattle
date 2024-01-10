@@ -43,6 +43,7 @@ public partial class RemotePlayMenu : Control
     {
         VerifyExports();
         ConnectSignals();
+        PlayerNameField.MaxLength = Globals.NAME_LENGTH_LIMIT;
     }
 
     private void OnCreateLobbyCreateLobbyButtonPressed()
