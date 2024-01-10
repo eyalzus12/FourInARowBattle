@@ -74,7 +74,8 @@ public partial class GameClient : Node
     private bool _sentAccept = false;
     private bool _sentCancel = false;
 
-    private bool _otherPlayerSentRequest = false;
+    private bool _iHaveRequest = false;
+    private bool _otherPlayerHasRequest = false;
 
     private bool _gameShouldStart = false;
     private bool _inGame = false;
@@ -394,6 +395,7 @@ public partial class GameClient : Node
             return;
         }
         _sentRequest = false;
+        _iHaveRequest = true;
         EmitSignal(SignalName.NewGameRequestSent);
     }
 
@@ -408,7 +410,11 @@ public partial class GameClient : Node
             return;
         }
         _sentRequest = false;
-        DisplayError($"Sending game request failed with error: {ErrorCodeUtils.Humanize(packet.ErrorCode)}");
+        _iHaveRequest = false;
+        //due to timing we might send the game request before we receive the other player's
+        //if that happens we move on and don't display an error
+        if(!_otherPlayerHasRequest)
+            DisplayError($"Sending game request failed with error: {ErrorCodeUtils.Humanize(packet.ErrorCode)}");
     }
 
     private void HandlePacket_NewGameRequested(Packet_NewGameRequested packet)
@@ -421,13 +427,13 @@ public partial class GameClient : Node
             Desync();
             return;
         }
-        if(_sentRequest || _otherPlayerSentRequest)
+        if(_iHaveRequest || _otherPlayerHasRequest)
         {
             GD.Print("But there's already a request??");
             Desync();
             return;
         }
-        _otherPlayerSentRequest = true;
+        _otherPlayerHasRequest = true;
         EmitSignal(SignalName.NewGameRequestReceived);
     }
 
@@ -441,8 +447,8 @@ public partial class GameClient : Node
             Desync();
             return;
         }
-        _sentAccept = false;
-        _otherPlayerSentRequest = false;
+        _otherPlayerHasRequest = false;
+        _iHaveRequest = false;
         _gameShouldStart = true;
         EmitSignal(SignalName.NewGameAcceptSent);
     }
@@ -465,13 +471,13 @@ public partial class GameClient : Node
     {
         ArgumentNullException.ThrowIfNull(packet);
         GD.Print("New game request was accepted!");
-        if(!_sentRequest)
+        if(!_iHaveRequest)
         {
             GD.Print("But I don't have a request??");
             Desync();
             return;
         }
-        _sentRequest = false;
+        _iHaveRequest = false;
         _gameShouldStart = true;
         EmitSignal(SignalName.NewGameAcceptReceived);
     }
@@ -479,7 +485,7 @@ public partial class GameClient : Node
     private void HandlePacket_NewGameRejectOk(Packet_NewGameRejectOk packet)
     {
         ArgumentNullException.ThrowIfNull(packet);
-        GD.PushError("Rejecting new game request was succesful");
+        GD.Print("Rejecting new game request was succesful");
         if(!_sentReject)
         {
             GD.Print("But I didn't answer??");
@@ -487,7 +493,7 @@ public partial class GameClient : Node
             return;
         }
         _sentReject = false;
-        _otherPlayerSentRequest = false;
+        _otherPlayerHasRequest = false;
         EmitSignal(SignalName.NewGameRejectSent);
     }
 
@@ -509,13 +515,13 @@ public partial class GameClient : Node
     {
         ArgumentNullException.ThrowIfNull(packet);
         GD.Print("New game request was rejected :(");
-        if(!_sentRequest)
+        if(!_iHaveRequest)
         {
             GD.Print("But I don't have a request??");
             Desync();
             return;
         }
-        _sentRequest = true;
+        _iHaveRequest = true;
         EmitSignal(SignalName.NewGameRejectReceived);
     }
 
@@ -530,7 +536,7 @@ public partial class GameClient : Node
             return;
         }
         _sentCancel = false;
-        _sentRequest = false;
+        _iHaveRequest = false;
         EmitSignal(SignalName.NewGameCancelSent);
     }
 
@@ -552,13 +558,13 @@ public partial class GameClient : Node
     {
         ArgumentNullException.ThrowIfNull(packet);
         GD.Print("New game request was canceled");
-        if(!_otherPlayerSentRequest)
+        if(!_otherPlayerHasRequest)
         {
             GD.Print("But there's no request??");
             Desync();
             return;
         }
-        _otherPlayerSentRequest = false;
+        _otherPlayerHasRequest = false;
         EmitSignal(SignalName.NewGameCancelReceived);
     }
 
@@ -587,7 +593,8 @@ public partial class GameClient : Node
         _sentRequest = false;
         _sentAccept = false;
         _sentReject = false;
-        _otherPlayerSentRequest = false;
+        _iHaveRequest = false;
+        _otherPlayerHasRequest = false;
         _gameShouldStart = false;
     }
     private void HandlePacket_LobbyTimeoutWarning(Packet_LobbyTimeoutWarning packet)
@@ -620,7 +627,8 @@ public partial class GameClient : Node
         _sentRequest = false;
         _sentAccept = false;
         _sentReject = false;
-        _otherPlayerSentRequest = false;
+        _iHaveRequest = false;
+        _otherPlayerHasRequest = false;
         _gameShouldStart = false;
         _inGame = false;
         _isPlayer1 = false;
@@ -766,7 +774,8 @@ public partial class GameClient : Node
         _sentRequest = false;
         _sentAccept = false;
         _sentReject = false;
-        _otherPlayerSentRequest = false;
+        _iHaveRequest = false;
+        _otherPlayerHasRequest = false;
         _gameShouldStart = false;
         _inGame = false;
     }
@@ -783,7 +792,7 @@ public partial class GameClient : Node
     }
     public void AcceptNewGame()
     {
-        if(_lobby is not null && _otherPlayerSentRequest)
+        if(_lobby is not null && _otherPlayerHasRequest)
         {
             _sentAccept = true;
             SendPacket(new Packet_NewGameAccept());
@@ -791,7 +800,7 @@ public partial class GameClient : Node
     }
     public void RejectNewGame()
     {
-        if(_lobby is not null && _otherPlayerSentRequest)
+        if(_lobby is not null && _otherPlayerHasRequest)
         {
             _sentReject = true;
             SendPacket(new Packet_NewGameReject());
@@ -799,7 +808,7 @@ public partial class GameClient : Node
     }
     public void CancelNewGame()
     {
-        if(_lobby is not null && _sentRequest)
+        if(_lobby is not null && _iHaveRequest)
         {
             _sentCancel = true;
             SendPacket(new Packet_NewGameCancel());
@@ -835,7 +844,8 @@ public partial class GameClient : Node
         _sentRequest = false;
         _sentAccept = false;
         _sentReject = false;
-        _otherPlayerSentRequest = false;
+        _iHaveRequest = false;
+        _otherPlayerHasRequest = false;
         _gameShouldStart = false;
         _inGame = false;
     }
