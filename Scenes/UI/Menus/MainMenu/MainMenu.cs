@@ -12,12 +12,13 @@ public partial class MainMenu : Control
     [Signal]
     public delegate void HostServerRequestedEventHandler(string path);
 
+    [ExportCategory("Nodes")]
     [Export]
-    public ChangeSceneOnPressButton LocalPlayButton{get; set;} = null!;
+    private ChangeSceneOnPressButton LocalPlayButton = null!;
     [Export]
-    public ChangeSceneOnPressButton RemotePlayButton{get; set;} = null!;
+    private ChangeSceneOnPressButton RemotePlayButton = null!;
     [Export]
-    public ChangeSceneOnPressButton HostServerButton{get; set;} = null!;
+    private ChangeSceneOnPressButton HostServerButton = null!;
 
     private void VerifyExports()
     {

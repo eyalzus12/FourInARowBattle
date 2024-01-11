@@ -60,7 +60,7 @@ tooltip_text = "Play locally on the same computer"
 mouse_filter = 1
 text = "Local Play"
 script = ExtResource("1_w7sya")
-ChangeTo = "res://Scenes/UI/Menus/LocalPlayMenu/LocalPlayMenu.tscn"
+ChangeTo = "res://Scenes/UI/Menus/GameMenuLocal/GameMenuLocal.tscn"
 
 [node name="RemotePlayMarginContainer" type="MarginContainer" parent="ButtonsMarginContainer/ButtonsVBoxContainer"]
 layout_mode = 2

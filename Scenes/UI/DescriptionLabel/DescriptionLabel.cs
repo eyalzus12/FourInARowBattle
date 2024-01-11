@@ -13,7 +13,7 @@ public partial class DescriptionLabel : Label
     private readonly static Dictionary<PackedScene, string> DescriptionCache = new();
 
     [Export]
-    public GameTurnEnum ActiveOnTurn{get; set;}
+    private GameTurnEnum ActiveOnTurn;
 
     private string? _description = null;
 

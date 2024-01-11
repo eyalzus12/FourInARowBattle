@@ -6,7 +6,6 @@ namespace FourInARowBattle;
 public partial class PersistentData : Node
 {
     public GameData? ContinueFromState{get; set;}
-    public bool HeadlessMode{get; set;} = false;
 
     public override void _Ready()
     {

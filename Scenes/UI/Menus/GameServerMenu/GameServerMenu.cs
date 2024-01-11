@@ -1,27 +1,27 @@
 using Godot;
 using System;
-using System.Collections.Generic;
 
 namespace FourInARowBattle;
 
 public partial class GameServerMenu : Node
 {
+    [ExportCategory("Nodes")]
     [Export]
-    public GameServer Server{get; set;} = null!;
+    private GameServer Server = null!;
     [Export]
-    public LineEdit Port{get; set;} = null!;
+    private LineEdit Port = null!;
     [Export]
-    public Button StartServer{get; set;} = null!;
+    private Button StartServer = null!;
     [Export]
-    public Button StopServer{get; set;} = null!;
+    private Button StopServer = null!;
     [Export]
-    public CheckButton RefuseNewConnections{get; set;} = null!;
+    private CheckButton RefuseNewConnections = null!;
     [Export]
-    public AcceptDialog ErrorPopup{get; set;} = null!;
+    private AcceptDialog ErrorPopup = null!;
     [Export]
-    public GoBackButton GoBack{get; set;} = null!;
+    private GoBackButton GoBack = null!;
     [Export]
-    public ConfirmationDialog GoBackConfirmationDialog{get; set;} = null!;
+    private ConfirmationDialog GoBackConfirmationDialog = null!;
 
     private void VerifyExports()
     {

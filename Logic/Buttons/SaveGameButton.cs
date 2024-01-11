@@ -5,21 +5,20 @@ namespace FourInARowBattle;
 
 public partial class SaveGameButton : Button
 {
+    [Signal]
+    public delegate void GameSaveRequestedEventHandler(string path);
+
+    [ExportCategory("Nodes")]
     [Export]
-    public Game GameToSave{get; set;} = null!;
-    [Export]
-    public FileDialog SaveGamePopup{get; set;} = null!;
+    private FileDialog SaveGamePopup = null!;
 
     private void VerifyExports()
     {
-        ArgumentNullException.ThrowIfNull(GameToSave);
         ArgumentNullException.ThrowIfNull(SaveGamePopup);
     }
 
     private void ConnectSignals()
     {
-        GameToSave.GameBoard.TokenFinishedDrop += OnGameToSaveGameBoardTokenFinishedDrop;
-        GameToSave.GameBoard.TokenStartedDrop += OnGameToSaveGameBoardTokenStartedDrop;
         SaveGamePopup.FileSelected += OnSaveGamePopupFileSelected;
         GetWindow().SizeChanged += OnWindowSizeChanged;
     }
@@ -30,23 +29,10 @@ public partial class SaveGameButton : Button
         ConnectSignals();
     }
 
-    private void OnGameToSaveGameBoardTokenFinishedDrop()
-    {
-        Disabled = false;
-    }
-
-    private void OnGameToSaveGameBoardTokenStartedDrop()
-    {
-        Disabled = true;
-    }
-
     private void OnSaveGamePopupFileSelected(string path)
     {
         ArgumentNullException.ThrowIfNull(path);
-        GameData saveData = GameToSave.SerializeTo();
-        Error err = ResourceSaver.Save(saveData, path, ResourceSaver.SaverFlags.Compress);
-        if(err != Error.Ok)
-            GD.PushError($"Error {err} while trying to save game");
+        EmitSignal(SignalName.GameSaveRequested, path);
     }
 
     private void OnWindowSizeChanged()

@@ -11,25 +11,26 @@ public partial class GameClientMenu : Node
 
     #region Editor-Set Values
 
+    [ExportCategory("Nodes")]
     [Export]
-    public GameClient Client{get; set;} = null!;
-
+    private GameClient Client = null!;
     [Export(PropertyHint.File, "*.tscn,*.scn")]
-    public string MainMenu{get; set;} = "";
+    private string MainMenu = "";
     [Export]
-    public RemotePlayMenu RemotePlayMenu{get; set;} = null!;
+    private RemotePlayMenu RemotePlayMenu = null!;
     [Export]
-    public LobbyMenu LobbyMenu{get; set;} = null!;
+    private LobbyMenu LobbyMenu = null!;
     [Export]
-    public Game Game{get; set;} = null!;
+    private GameMenu GameMenu = null!;
     [Export]
-    public Label StatusLabel{get; set;} = null!;
+    private Label StatusLabel = null!;
     [Export]
-    public AcceptDialog NoticePopup{get; set;} = null!;
+    private AcceptDialog NoticePopup = null!;
     [Export]
-    public AcceptDialog ErrorPopup{get; set;} = null!;
+    private AcceptDialog ErrorPopup = null!;
+    [ExportCategory("")]
     [Export]
-    public GameData InitialState{get; set;} = null!;
+    private GameData InitialState = null!;
 
     #endregion
 
@@ -44,7 +45,7 @@ public partial class GameClientMenu : Node
         ArgumentNullException.ThrowIfNull(Client);
         ArgumentNullException.ThrowIfNull(RemotePlayMenu);
         ArgumentNullException.ThrowIfNull(LobbyMenu);
-        ArgumentNullException.ThrowIfNull(Game);
+        ArgumentNullException.ThrowIfNull(GameMenu);
         ArgumentNullException.ThrowIfNull(StatusLabel);
         ArgumentNullException.ThrowIfNull(ErrorPopup);
         ArgumentNullException.ThrowIfNull(NoticePopup);
@@ -74,6 +75,10 @@ public partial class GameClientMenu : Node
         Client.NewGameCancelSent += OnClientNewGameCancelSent;
         Client.NewGameCancelReceived += OnClientNewGameCancelReceived;
         Client.GameStarted += OnClientGameStarted;
+        Client.GameActionPlaceSent += OnClientGameActionPlaceSent;
+        Client.GameActionPlaceReceived += OnClientGameActionPlaceReceived;
+        Client.GameActionRefillSent += OnClientGameActionRefillSent;
+        Client.GameActionRefillReceived += OnClientGameActionRefillReceived;
         Client.GameFinished += OnClientGameFinished;
         RemotePlayMenu.CreateLobbyRequested += OnRemotePlayMenuCreateLobbyRequested;
         RemotePlayMenu.JoinLobbyRequested += OnRemotePlayMenuJoinLobbyRequested;
@@ -275,6 +280,41 @@ public partial class GameClientMenu : Node
     private void OnClientGameStarted(GameTurnEnum turn)
     {
         SwitchToGame();
+        GameMenu.AllowedTurns = new(){turn};
+    }
+
+    private void OnClientGameActionPlaceSent(int column, PackedScene scene)
+    {
+        ArgumentNullException.ThrowIfNull(scene);
+        GameMenu.PlaceToken(column, scene);
+    }
+
+    private void OnClientGameActionPlaceReceived(int column, PackedScene scene)
+    {
+        ArgumentNullException.ThrowIfNull(scene);
+        ErrorCodeEnum? err = GameMenu.PlaceToken(column, scene);
+        if(err is not null)
+        {
+            GD.Print($"Other player's placement produced error {ErrorCodeUtils.Humanize((ErrorCodeEnum)err)}??");
+            Client.Desync();
+            return;
+        }
+    }
+
+    private void OnClientGameActionRefillSent()
+    {
+        GameMenu.Refill();
+    }
+
+    private void OnClientGameActionRefillReceived()
+    {
+        ErrorCodeEnum? err = GameMenu.Refill();
+        if(err is not null)
+        {
+            GD.Print($"Other player's refill produced error {ErrorCodeUtils.Humanize((ErrorCodeEnum)err)}??");
+            Client.Desync();
+            return;
+        }
     }
 
     private void OnClientGameFinished()
@@ -350,8 +390,8 @@ public partial class GameClientMenu : Node
         LobbyMenu.ProcessMode = ProcessModeEnum.Disabled;
         LobbyMenu.Visible = false;
 
-        Game.ProcessMode = ProcessModeEnum.Disabled;
-        Game.Visible = false;
+        GameMenu.ProcessMode = ProcessModeEnum.Disabled;
+        GameMenu.Visible = false;
 
         _inGame = false;
         if(_inLobby)
@@ -366,8 +406,8 @@ public partial class GameClientMenu : Node
         RemotePlayMenu.ProcessMode = ProcessModeEnum.Disabled;
         RemotePlayMenu.Visible = false;
         
-        Game.ProcessMode = ProcessModeEnum.Disabled;
-        Game.Visible = false;
+        GameMenu.ProcessMode = ProcessModeEnum.Disabled;
+        GameMenu.Visible = false;
 
         LobbyMenu.ProcessMode = ProcessModeEnum.Inherit;
         LobbyMenu.Visible = true;
@@ -385,10 +425,10 @@ public partial class GameClientMenu : Node
         LobbyMenu.ProcessMode = ProcessModeEnum.Disabled;
         LobbyMenu.Visible = false;
         
-        Game.ProcessMode = ProcessModeEnum.Inherit;
-        Game.Visible = true;
+        GameMenu.ProcessMode = ProcessModeEnum.Inherit;
+        GameMenu.Visible = true;
 
-        Game.DeserializeFrom(InitialState);
+        GameMenu.Game.DeserializeFrom(InitialState);
 
         _inGame = true;
     }

@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3 uid="uid://bt64nnjf4aumq"]
+
+[ext_resource type="PackedScene" uid="uid://cqb4y6hptd1vu" path="res://Scenes/UI/Menus/GameMenu/GameMenu.tscn" id="1_eo1jt"]
+[ext_resource type="Script" path="res://Scenes/UI/Menus/GameMenuLocal/GameMenuLocal.cs" id="2_2dtod"]
+
+[node name="GameMenu" instance=ExtResource("1_eo1jt")]
+script = ExtResource("2_2dtod")
+InteractionEnabled = true
+LoadingEnabled = true
+SavingEnabled = true
+AllowedTurns = Array[int]([0, 1])

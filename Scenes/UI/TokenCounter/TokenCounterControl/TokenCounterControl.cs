@@ -15,18 +15,18 @@ public partial class TokenCounterControl : Control
     private int _count = 0;
 
     [Export]
-    public Godot.Collections.Array<TokenCounterButton> TokenButtons{get; set;} = null!;
+    public Godot.Collections.Array<TokenCounterButton> TokenButtons{get; private set;} = null!;
 
     [Export]
-    public Label TokenCountLabel{get; set;} = null!;
+    private Label TokenCountLabel = null!;
 
     [Export]
-    public bool Infinite{get; set;} = false;
+    private bool Infinite = false;
     [Export]
-    public int TokenMaxCount{get; set;} = 5;
+    private int TokenMaxCount = 5;
 
     [Export]
-    public int TokenCount
+    private int TokenCount
     {
         get => _count;
         set
@@ -42,7 +42,7 @@ public partial class TokenCounterControl : Control
     }
 
     private bool _disabled = false;
-    public bool Disabled
+    private bool Disabled
     {
         get => _disabled;
         set

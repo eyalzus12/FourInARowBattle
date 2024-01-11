@@ -14,14 +14,15 @@ public partial class RemotePlayMenu : Control
     [Signal]
     public delegate void GoBackRequestedEventHandler(string path);
 
+    [ExportCategory("Nodes")]
     [Export]
-    public CreateLobbyButton CreateLobby{get; set;} = null!;
+    private CreateLobbyButton CreateLobby = null!;
     [Export]
-    public JoinLobbyButton JoinLobby{get; set;} = null!;
+    private JoinLobbyButton JoinLobby = null!;
     [Export]
-    public GoBackButton GoBack{get; set;} = null!;
+    private GoBackButton GoBack = null!;
     [Export]
-    public LineEdit PlayerNameField{get; set;} = null!;
+    private LineEdit PlayerNameField = null!;
 
     private void VerifyExports()
     {

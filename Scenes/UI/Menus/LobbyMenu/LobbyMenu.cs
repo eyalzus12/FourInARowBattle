@@ -18,18 +18,19 @@ public partial class LobbyMenu : Control
     public delegate void ChallengeRejectedEventHandler();
     #endregion
 
+    [ExportCategory("Nodes")]
     [Export]
-    public GoBackButton GoBack{get; set;} = null!;
+    private GoBackButton GoBack = null!;
     [Export]
-    public ConfirmationDialog GoBackConfirmationDialog{get; set;} = null!;
+    private ConfirmationDialog GoBackConfirmationDialog = null!;
     [Export]
-    public Label LobbyIdLabel{get; set;} = null!;
+    private Label LobbyIdLabel = null!;
     [Export]
-    public Label Player1NameLabel{get; set;} = null!;
+    private Label Player1NameLabel = null!;
     [Export]
-    public Label Player2NameLabel{get; set;} = null!;
+    private Label Player2NameLabel = null!;
     [Export]
-    public LobbyGameChallengeMenu GameChallengeSubMenu{get; set;} = null!;
+    private LobbyGameChallengeMenu GameChallengeSubMenu = null!;
 
     private string? _goBackRequestPath;
 

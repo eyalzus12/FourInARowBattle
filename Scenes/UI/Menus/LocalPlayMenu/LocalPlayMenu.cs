@@ -12,12 +12,13 @@ public partial class LocalPlayMenu : Control
     [Signal]
     public delegate void GoBackRequestedEventHandler(string path);
 
+    [ExportCategory("Nodes")]
     [Export]
-    public ChangeSceneOnPressButton CreateNewGame{get; set;} = null!;
+    private ChangeSceneOnPressButton CreateNewGame = null!;
     [Export]
-    public ChangeSceneAndLoadGameButton LoadGame{get; set;} = null!;
+    private ChangeSceneAndLoadGameButton LoadGame = null!;
     [Export]
-    public GoBackButton GoBack{get; set;} = null!;
+    private GoBackButton GoBack = null!;
 
     private void VerifyExports()
     {

@@ -16,16 +16,17 @@ public partial class LobbyGameChallengeMenu : Control
     public delegate void ChallengeRejectedEventHandler();
     #endregion
 
+    [ExportCategory("Nodes")]
     [Export]
-    public Label ChallengeStatusLabel{get; set;} = null!;
+    private Label ChallengeStatusLabel = null!;
     [Export]
-    public Button SendChallengeButton{get; set;} = null!;
+    private Button SendChallengeButton = null!;
     [Export]
-    public Button CancelChallengeButton{get; set;} = null!;
+    private Button CancelChallengeButton = null!;
     [Export]
-    public Button AcceptChallengeButton{get; set;} = null!;
+    private Button AcceptChallengeButton = null!;
     [Export]
-    public Button RejectChallengeButton{get; set;} = null!;
+    private Button RejectChallengeButton = null!;
 
     private void VerifyExports()
     {
@@ -75,32 +76,32 @@ public partial class LobbyGameChallengeMenu : Control
     public void SetState_NoChallenge()
     {
         SendChallengeButton.Visible = true;
-        CancelChallengeButton.Visible = true;
-        AcceptChallengeButton.Visible = true;
-        RejectChallengeButton.Visible = true;
+        CancelChallengeButton.Visible = false;
+        AcceptChallengeButton.Visible = false;
+        RejectChallengeButton.Visible = false;
     }
 
     public void SetState_SentChallenge()
     {
-        SendChallengeButton.Visible = true;
+        SendChallengeButton.Visible = false;
         CancelChallengeButton.Visible = true;
-        AcceptChallengeButton.Visible = true;
-        RejectChallengeButton.Visible = true;
+        AcceptChallengeButton.Visible = false;
+        RejectChallengeButton.Visible = false;
     }
 
     public void SetState_GotChallenge()
     {
-        SendChallengeButton.Visible = true;
-        CancelChallengeButton.Visible = true;
+        SendChallengeButton.Visible = false;
+        CancelChallengeButton.Visible = false;
         AcceptChallengeButton.Visible = true;
         RejectChallengeButton.Visible = true;
     }
 
     public void SetState_CannotChallenge()
     {
-        SendChallengeButton.Visible = true;
-        CancelChallengeButton.Visible = true;
-        AcceptChallengeButton.Visible = true;
-        RejectChallengeButton.Visible = true;
+        SendChallengeButton.Visible = false;
+        CancelChallengeButton.Visible = false;
+        AcceptChallengeButton.Visible = false;
+        RejectChallengeButton.Visible = false;
     }
 }

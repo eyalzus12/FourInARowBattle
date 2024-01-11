@@ -4,18 +4,18 @@
 [ext_resource type="Resource" uid="uid://dyponttgtoqyl" path="res://Resources/GameData/InitialGameState.res" id="2_cm8wa"]
 [ext_resource type="Script" path="res://Networking/WebSocketClient.cs" id="2_n1vdk"]
 [ext_resource type="Script" path="res://Networking/GameClient.cs" id="2_qp1rk"]
-[ext_resource type="PackedScene" uid="uid://dyhkvrlph6p16" path="res://Scenes/Game/Game.tscn" id="3_eqh8t"]
 [ext_resource type="PackedScene" uid="uid://dceaof5l1mq5t" path="res://Scenes/UI/Menus/RemotePlayMenu/RemotePlayMenu.tscn" id="4_bd1wx"]
+[ext_resource type="PackedScene" uid="uid://cqb4y6hptd1vu" path="res://Scenes/UI/Menus/GameMenu/GameMenu.tscn" id="5_i2lhf"]
 [ext_resource type="PackedScene" uid="uid://dq62pcxpxm3pr" path="res://Scenes/UI/Menus/LobbyMenu/LobbyMenu.tscn" id="5_w2fpg"]
 [ext_resource type="Theme" uid="uid://qdeiddbstwpc" path="res://Resources/Themes/LabelWithOutlineTheme.tres" id="6_o8jko"]
 
-[node name="GameClientMenu" type="Node" node_paths=PackedStringArray("Client", "RemotePlayMenu", "LobbyMenu", "Game", "StatusLabel", "NoticePopup", "ErrorPopup")]
+[node name="GameClientMenu" type="Node" node_paths=PackedStringArray("Client", "RemotePlayMenu", "LobbyMenu", "GameMenu", "StatusLabel", "NoticePopup", "ErrorPopup")]
 script = ExtResource("1_shirc")
 Client = NodePath("GameClient")
 MainMenu = "res://Scenes/UI/Menus/MainMenu/MainMenu.tscn"
 RemotePlayMenu = NodePath("CanvasLayer/RemotePlayScene")
 LobbyMenu = NodePath("CanvasLayer/LobbyScene")
-Game = NodePath("Game")
+GameMenu = NodePath("GameMenu")
 StatusLabel = NodePath("CanvasLayer/StatusLabel")
 NoticePopup = NodePath("NoticePopup")
 ErrorPopup = NodePath("ErrorPopup")
@@ -28,9 +28,12 @@ Client = NodePath("WebSocketClient")
 [node name="WebSocketClient" type="Node" parent="GameClient"]
 script = ExtResource("2_n1vdk")
 
-[node name="Game" parent="." instance=ExtResource("3_eqh8t")]
+[node name="GameMenu" parent="." instance=ExtResource("5_i2lhf")]
 process_mode = 4
 visible = false
+InteractionEnabled = true
+SavingEnabled = true
+AllowedTurns = Array[int]([])
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 

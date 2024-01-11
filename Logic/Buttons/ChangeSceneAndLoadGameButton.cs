@@ -5,8 +5,9 @@ namespace FourInARowBattle;
 
 public partial class ChangeSceneAndLoadGameButton : ChangeSceneOnPressButton
 {
+    [ExportCategory("Nodes")]
     [Export]
-    public FileDialog FileSelectDialog{get; set;} = null!;
+    private FileDialog FileSelectDialog = null!;
 
     private void VerifyExports()
     {

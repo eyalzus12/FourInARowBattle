@@ -8,7 +8,7 @@ namespace FourInARowBattle;
 public partial class TokenCounterListControl : Control
 {
     [Signal]
-    public delegate void RefilledTokensEventHandler();
+    public delegate void RefillAttemptedEventHandler();
     [Signal]
     public delegate void TokenSelectedEventHandler(TokenCounterControl what, TokenCounterButton who);
     [Signal]
@@ -16,17 +16,15 @@ public partial class TokenCounterListControl : Control
     [Signal]
     public delegate void TokenButtonStoppedHoverEventHandler(GameTurnEnum turn, string description);
 
+    [ExportCategory("Nodes")]
+    [Export]
+    private Array<TokenCounterControl> Counters = new();
+    [Export]
+    private Label ScoreLabel = null!;
+    [Export]
+    private Button RefillButton = null!;
+
     private GameTurnEnum _activeOnTurn;
-
-    [Export]
-    public Array<TokenCounterControl> Counters{get; set;} = new();
-
-    [Export]
-    public Label ScoreLabel{get; set;} = null!;
-
-    [Export]
-    public Button RefillButton{get; set;} = null!;
-
     private bool _refillLocked = false;
     private bool _refillUnlockedNextTurn = false;
 
@@ -111,7 +109,8 @@ public partial class TokenCounterListControl : Control
 
     private void OnRefillButtonPressed()
     {
-        DoRefill();
+        if(_refillLocked || !AnyCanAdd()) return;
+        EmitSignal(SignalName.RefillAttempted);
     }
 
     private void OnRefillButtonMouseEntered()
@@ -134,10 +133,10 @@ public partial class TokenCounterListControl : Control
 
     public bool DoRefill()
     {
-        if(_refillLocked || !AnyCanAdd()) return false;
+        if(!AnyCanAdd()) return false;
+        if(_refillLocked) return false;
         foreach(TokenCounterControl c in Counters) if(c.CanAdd()) c.Add(1);
         if(!_refillLocked) _refillLocked = true;
-        EmitSignal(SignalName.RefilledTokens);
         return true;
     }
 
@@ -192,6 +191,22 @@ public partial class TokenCounterListControl : Control
     {
         foreach(TokenCounterControl c in Counters) if(c.CanAdd()) return true;
         return false;
+    }
+
+    public TokenCounterControl? FindCounterOfScene(PackedScene scene)
+    {
+        ArgumentNullException.ThrowIfNull(scene);
+        foreach(TokenCounterControl c in Counters)
+        {
+            foreach(TokenCounterButton b in c.TokenButtons)
+            {
+                if(b.AssociatedScene == scene)
+                {
+                    return c;
+                }
+            }
+        }
+        return null;
     }
 
     public void DeserializeFrom(TokenCounterListData data)

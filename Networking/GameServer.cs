@@ -29,13 +29,15 @@ public partial class GameServer : Node
         public GameTurnEnum[]? Turns{get; set;} = null;
 
         public Player? Requester{get; set;} = null;
-        public Game? ActiveGame{get; set;} = null;
+        public GameMenu? ActiveGame{get; set;} = null;
     }
 
+    [ExportCategory("Nodes")]
     [Export]
-    public WebSocketServer Server{get; set;} = null!;
+    private WebSocketServer Server = null!;
+    [ExportCategory("")]
     [Export]
-    public PackedScene GameScene{get; set;} = null!;
+    private PackedScene GameScene = null!;
     [Export]
     public bool RefuseNewConnections{get => Server.RefuseNewConnections; set => Server.RefuseNewConnections = value;}
 
@@ -67,7 +69,6 @@ public partial class GameServer : Node
     {
         Error err = Server.Listen(port);
         if(err != Error.Ok) return err;
-        Autoloads.PersistentData.HeadlessMode = true;
         return Error.Ok;
     }
 
@@ -86,7 +87,6 @@ public partial class GameServer : Node
         }
 
         Server.Stop();
-        Autoloads.PersistentData.HeadlessMode = false;
     }
 
     public override void _Notification(int what)
@@ -352,7 +352,7 @@ public partial class GameServer : Node
         start game here
         */
         GD.Print($"game will now started in lobby {lobby.Id}");
-        lobby.ActiveGame = Autoloads.ScenePool.GetScene<Game>(GameScene!);
+        lobby.ActiveGame = Autoloads.ScenePool.GetScene<GameMenu>(GameScene!);
         AddChild(lobby.ActiveGame);
         bool which = GD.RandRange(0, 1) == 0; //decide which player is first
         lobby.Turns = new GameTurnEnum[]{which ? GameTurnEnum.Player1 : GameTurnEnum.Player2, which ? GameTurnEnum.Player2 : GameTurnEnum.Player1};
@@ -450,7 +450,7 @@ public partial class GameServer : Node
             SendPacket(peerId, new Packet_GameActionPlaceFail(ErrorCodeEnum.CANNOT_PLACE_NOT_IN_GAME));
             return;
         }
-        Game game = lobby.ActiveGame;
+        GameMenu game = lobby.ActiveGame;
         GameTurnEnum playerTurn = (lobby.Players[0] == player)?lobby.Turns![0]:lobby.Turns![1];
         if(game.Turn != playerTurn)
         {
@@ -460,7 +460,7 @@ public partial class GameServer : Node
         }
         int column = packet.Column;
 
-        if(column < 0 || game.GameBoard.Columns <= column)
+        if(!game.ValidColumn(column))
         {
             GD.Print($"{peerId} failed to place token because the column was invalid");
             SendPacket(peerId, new Packet_GameActionPlaceFail(ErrorCodeEnum.CANNOT_PLACE_INVALID_COLUMN));
@@ -489,60 +489,23 @@ public partial class GameServer : Node
             SendPacket(peerId, new Packet_GameActionPlaceFail(ErrorCodeEnum.CANNOT_PLACE_INVALID_TOKEN));
             return;
         }
-        TokenBase? token = Autoloads.ScenePool.GetSceneOrNull<TokenBase>(scene);
-        //scene is not a token
-        if(token is null)
-        {
-            GD.Print($"{peerId} failed to place token because the scene is not a token");
-            SendPacket(peerId, new Packet_GameActionPlaceFail(ErrorCodeEnum.CANNOT_PLACE_INVALID_TOKEN));
-            return;
-        }
-        //find matching token counter
-        TokenCounterControl? control = null;
-        foreach(TokenCounterListControl lc in game.CounterLists)
-        {
-            if(lc.ActiveOnTurn != playerTurn)
-                continue;
-            foreach(TokenCounterControl c in lc.Counters)
-            {
-                foreach(TokenCounterButton b in c.TokenButtons)
-                {
-                    if(b.AssociatedScene == scene)
-                    {
-                        control = c;
-                        break;
-                    }
-                }
-                if(control is not null) break;
-            }
-            if(control is not null) break;
-        }
-        //attempt to use unusable token
-        if(control is null)
-        {
-            GD.Print($"{peerId} failed to place token because the token is invalid");
-            SendPacket(peerId, new Packet_GameActionPlaceFail(ErrorCodeEnum.CANNOT_PLACE_INVALID_TOKEN));
-            return;
-        }
-        //not enough tokens to use
-        if(!control.CanTake())
-        {
-            GD.Print($"{peerId} failed to place token because they don't have enough tokens");
-            SendPacket(peerId, new Packet_GameActionPlaceFail(ErrorCodeEnum.CANNOT_PLACE_NOT_ENOUGH_TOKENS));
-            return;
-        }
+    
+        ErrorCodeEnum? placeError = game.PlaceToken(column, scene);
 
-        token.TokenColor = game.TurnColor;
-        if(game.GameBoard.AddToken(column, token))
+        switch(placeError)
         {
-            control.Take(1);
-            game.PassTurn();
-        }
-        else
-        {
-            GD.Print($"{peerId} failed to place token because the column is full");
-            SendPacket(peerId, new Packet_GameActionPlaceFail(ErrorCodeEnum.CANNOT_PLACE_FULL_COLUMN));
-            return;
+            case ErrorCodeEnum.CANNOT_PLACE_INVALID_TOKEN:
+                GD.Print($"{peerId} failed to place token because the token is invalid");
+                SendPacket(peerId, new Packet_GameActionPlaceFail(ErrorCodeEnum.CANNOT_PLACE_INVALID_TOKEN));
+                return;
+            case ErrorCodeEnum.CANNOT_PLACE_NOT_ENOUGH_TOKENS:
+                GD.Print($"{peerId} failed to place token because they don't have enough tokens");
+                SendPacket(peerId, new Packet_GameActionPlaceFail(ErrorCodeEnum.CANNOT_PLACE_NOT_ENOUGH_TOKENS));
+                return;
+            case ErrorCodeEnum.CANNOT_PLACE_FULL_COLUMN:
+                GD.Print($"{peerId} failed to place token because the column is full");
+                SendPacket(peerId, new Packet_GameActionPlaceFail(ErrorCodeEnum.CANNOT_PLACE_FULL_COLUMN));
+                return;
         }
 
         GD.Print($"{peerId} placed token");
@@ -570,7 +533,7 @@ public partial class GameServer : Node
             SendPacket(peerId, new Packet_GameActionRefillFail(ErrorCodeEnum.CANNOT_REFILL_NOT_IN_GAME));
             return;
         }
-        Game game = lobby.ActiveGame;
+        GameMenu game = lobby.ActiveGame;
         GameTurnEnum playerTurn = (lobby.Players[0] == player)?lobby.Turns![0]:lobby.Turns![1];
         if(game.Turn != playerTurn)
         {
@@ -579,30 +542,18 @@ public partial class GameServer : Node
             return;
         }
 
-        bool didRefill = false;
-        bool anyCouldRefill = false;
-        foreach(TokenCounterListControl lc in game.CounterLists)
-        {
-            if(lc.ActiveOnTurn != playerTurn)
-                continue;
-            if(lc.AnyCanAdd())
-            {
-                anyCouldRefill = true;
-                if(lc.DoRefill())
-                    didRefill = true;
-            }
-        }
+        ErrorCodeEnum? refillError = game.Refill();
 
-        if(!anyCouldRefill)
+        switch(refillError)
         {
-            GD.Print($"{peerId} failed to refill because all were filled");
-            SendPacket(peerId, new Packet_GameActionRefillFail(ErrorCodeEnum.CANNOT_REFILL_ALL_FILLED));
-        }
-
-        if(!didRefill)
-        {
-            GD.Print($"{peerId} failed to refill because refilling is locked");
-            SendPacket(peerId, new Packet_GameActionRefillFail(ErrorCodeEnum.CANNOT_REFILL_TWO_TURN_STREAK));
+            case ErrorCodeEnum.CANNOT_REFILL_ALL_FILLED:
+                GD.Print($"{peerId} failed to refill because all were filled");
+                SendPacket(peerId, new Packet_GameActionRefillFail(ErrorCodeEnum.CANNOT_REFILL_ALL_FILLED));
+                return;
+            case ErrorCodeEnum.CANNOT_REFILL_TWO_TURN_STREAK:
+                GD.Print($"{peerId} failed to refill because refilling is locked");
+                SendPacket(peerId, new Packet_GameActionRefillFail(ErrorCodeEnum.CANNOT_REFILL_TWO_TURN_STREAK));
+                return;
         }
 
         Player other = lobby.Players[0] == player ? lobby.Players[1]! : lobby.Players[0]!;

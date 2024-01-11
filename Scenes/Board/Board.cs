@@ -1,7 +1,6 @@
 using Godot;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace FourInARowBattle;
 
@@ -16,45 +15,46 @@ public partial class Board : Node2D
     [Signal]
     public delegate void TokenFinishedDropEventHandler();
 
+    [ExportCategory("Nodes")]
+    [Export]
+    private Control BoardBase = null!;
+    [ExportCategory("")]
     [Export]
     public int Rows{get; set;} = 6;
     [Export]
     public int Columns{get; set;} = 7;
     [Export]
-    public int WinRequirement{get; set;} = 4;
+    private int WinRequirement = 4;
     [Export]
-    public float LeftMargin{get; set;} = 32;
+    private float LeftMargin = 32;
     [Export]
-    public float RightMargin{get; set;} = 32;
+    private float RightMargin = 32;
     [Export]
-    public float TopMargin{get; set;} = 32;
+    private float TopMargin = 32;
     [Export]
-    public float BottomMargin{get; set;} = 32;
+    private float BottomMargin = 32;
     [Export]
     public float SlotRadius{get; set;} = 24;
     [Export]
-    public float TokenRadius{get; set;} = 21;
+    private float TokenRadius = 21;
     [Export]
-    public float DropStartOffset{get; set;} = 500;
+    private float DropStartOffset = 500;
     [Export]
-    public float GhostTokenAlpha{get; set;} = 0.5f;
+    private float GhostTokenAlpha = 0.5f;
     [Export]
-    public float TokenDropSpeed{get; set;} = 1000;
+    private float TokenDropSpeed = 1000;
     [Export]
-    public Texture2D HoleMaskTexture{get; set;} = null!;
+    private Texture2D HoleMaskTexture = null!;
 
-    public Vector2 HoleScale => 2 * SlotRadius * Vector2.One / HoleMaskTexture.GetSize();
-    public Vector2 TokenScale => 2 * TokenRadius * Vector2.One / HoleMaskTexture.GetSize();
+    private Vector2 HoleScale => 2 * SlotRadius * Vector2.One / HoleMaskTexture.GetSize();
+    private Vector2 TokenScale => 2 * TokenRadius * Vector2.One / HoleMaskTexture.GetSize();
 
-    public TokenBase?[,] TokenGrid{get; set;} = null!;
-
-    [Export]
-    public Control BoardBase{get; set;} = null!;
+    private TokenBase?[,] TokenGrid = null!;
 
     private Node2D? _maskGroup = null;
 
-    public Vector2 BoardPosition => BoardBase.GlobalPosition + new Vector2(LeftMargin,TopMargin);
-    public Vector2 BoardSize => BoardBase.Size - new Vector2(RightMargin,BottomMargin);
+    private Vector2 BoardPosition => BoardBase.GlobalPosition + new Vector2(LeftMargin,TopMargin);
+    private Vector2 BoardSize => BoardBase.Size - new Vector2(RightMargin,BottomMargin);
 
     private Vector2 HoleJump => BoardSize / new Vector2(Columns+1, Rows+1);
     private Vector2 CenterOffset => SlotRadius * Vector2.One;

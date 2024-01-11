@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://Scenes/UI/Menus/GameServerMenu/GameServerMenu.cs" id="1_f0143"]
 [ext_resource type="Script" path="res://Networking/GameServer.cs" id="2_0s4yf"]
-[ext_resource type="PackedScene" uid="uid://dyhkvrlph6p16" path="res://Scenes/Game/Game.tscn" id="3_sa8hx"]
+[ext_resource type="PackedScene" uid="uid://cqb4y6hptd1vu" path="res://Scenes/UI/Menus/GameMenu/GameMenu.tscn" id="3_ax736"]
 [ext_resource type="Script" path="res://Networking/WebSocketServer.cs" id="4_wyd18"]
 [ext_resource type="Script" path="res://Logic/Buttons/GoBackButton.cs" id="5_uk11p"]
 
@@ -20,7 +20,7 @@ GoBackConfirmationDialog = NodePath("ConfirmationDialog")
 [node name="GameServer" type="Node" parent="." node_paths=PackedStringArray("Server")]
 script = ExtResource("2_0s4yf")
 Server = NodePath("WebSocketServer")
-GameScene = ExtResource("3_sa8hx")
+GameScene = ExtResource("3_ax736")
 
 [node name="WebSocketServer" type="Node" parent="GameServer"]
 script = ExtResource("4_wyd18")

@@ -5,14 +5,15 @@ namespace FourInARowBattle;
 
 public partial class LoadGameButton : Button
 {
+    [Signal]
+    public delegate void GameLoadRequestedEventHandler(string path);
+    
+    [ExportCategory("Nodes")]
     [Export]
-    public Game GameToLoadTo{get; set;} = null!;
-    [Export]
-    public FileDialog LoadGamePopup{get; set;} = null!;
+    private FileDialog LoadGamePopup = null!;
 
     private void VerifyExports()
     {
-        ArgumentNullException.ThrowIfNull(GameToLoadTo);
         ArgumentNullException.ThrowIfNull(LoadGamePopup);
     }
 
@@ -31,8 +32,7 @@ public partial class LoadGameButton : Button
     private void OnLoadGamePopupFileSelected(string path)
     {
         ArgumentNullException.ThrowIfNull(path);
-        GameData saveData = ResourceLoader.Load<GameData>(path, cacheMode: ResourceLoader.CacheMode.Replace);
-        GameToLoadTo.DeserializeFrom(saveData);
+        EmitSignal(SignalName.GameLoadRequested, path);
     }
 
     private void OnWindowSizeChanged()

@@ -10,8 +10,9 @@ public partial class JoinLobbyButton : Button
     [Signal]
     public delegate void LobbyNumberWasInvalidEventHandler();
 
+    [ExportCategory("Nodes")]
     [Export]
-    public LobbyIdField Field{get; set;} = null!;
+    private LobbyIdField Field = null!;
 
     private void VerifyExports()
     {
