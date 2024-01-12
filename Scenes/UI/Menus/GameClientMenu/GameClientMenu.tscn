@@ -31,6 +31,8 @@ script = ExtResource("2_n1vdk")
 [node name="GameMenu" parent="." instance=ExtResource("5_i2lhf")]
 process_mode = 4
 visible = false
+_interactionEnabled = true
+_savingEnabled = true
 AllowedTurns = Array[int]([])
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]

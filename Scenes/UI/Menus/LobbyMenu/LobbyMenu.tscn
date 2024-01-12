@@ -29,6 +29,7 @@ offset_bottom = 88.0
 mouse_filter = 1
 text = "Exit Lobby"
 script = ExtResource("2_ev8m8")
+_changeTo = "res://Scenes/UI/Menus/RemotePlayMenu/RemotePlayMenu.tscn"
 
 [node name="LobbyIdMarginContainer" type="MarginContainer" parent="."]
 layout_mode = 1

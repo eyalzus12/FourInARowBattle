@@ -131,6 +131,14 @@ public partial class TokenCounterListControl : Control
         );
     }
 
+    public void SetCountersForceDisabled(bool disabled)
+    {
+        foreach(TokenCounterControl c in _counters)
+        {
+            c.ForceDisabled = disabled;
+        }
+    }
+
     public bool DoRefill()
     {
         if(!AnyCanAdd()) return false;

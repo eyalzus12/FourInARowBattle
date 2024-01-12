@@ -15,11 +15,22 @@ public partial class Game : Node2D
     public delegate void TokenPlaceAttemptedEventHandler(int column, PackedScene token);
     [Signal]
     public delegate void RefillAttemptedEventHandler();
+    [Signal]
+    public delegate void TurnChangedEventHandler();
     
     private TokenCounterControl? _selectedControl = null;
     private TokenCounterButton? _selectedButton = null;
 
-    public GameTurnEnum Turn{get; set;} = GameTurnEnum.Player1;
+    private GameTurnEnum _turn = GameTurnEnum.Player1;
+    public GameTurnEnum Turn
+    {
+        get => _turn; 
+        set
+        {
+            _turn = value;
+            EmitSignal(SignalName.TurnChanged);
+        }
+    }
     private Color TurnColor => Turn.GameTurnToColor();
 
     private GameTurnEnum NextTurn => Turn switch
@@ -184,11 +195,11 @@ public partial class Game : Node2D
             col.SetDeferredDisabled(disabled);
     }
 
-    public void HideCountersOfTurns(IReadOnlySet<GameTurnEnum> turns)
+    public void ForceDisableCountersWithoutApprovedTurns(IReadOnlySet<GameTurnEnum> turns)
     {
         foreach(TokenCounterListControl clist in _counterLists)
         {
-            clist.Visible = turns.Contains(clist.ActiveOnTurn);
+            clist.SetCountersForceDisabled(!turns.Contains(clist.ActiveOnTurn));
         }
     }
 

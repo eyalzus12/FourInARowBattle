@@ -93,8 +93,6 @@ public partial class GameClient : Node
 
     #endregion
 
-    public Game? Game{get; set;} = null;
-
     private void VerifyExports()
     {
         ArgumentNullException.ThrowIfNull(_client);
@@ -668,7 +666,7 @@ public partial class GameClient : Node
     {
         ArgumentNullException.ThrowIfNull(packet);
         GD.Print("Placing was succesful");
-        if(!_inGame || Game is null)
+        if(!_inGame)
         {
             GD.Print("But I'm not in a game??");
             Desync();
@@ -837,45 +835,40 @@ public partial class GameClient : Node
     public void RequestNewGame()
     {
         if(_lobby is null || _otherPlayer is null || _otherPlayerHasRequest || _iHaveRequest || _gameShouldStart || _inGame) return;
-
         _gameRequestPacket = new Packet_NewGameRequest();
         SendPacket(_gameRequestPacket);
     }
     public void AcceptNewGame()
     {
         if(_lobby is null || !_otherPlayerHasRequest) return;
-
         _gameAcceptPacket = new Packet_NewGameAccept();
         SendPacket(_gameAcceptPacket);
     }
     public void RejectNewGame()
     {
         if(_lobby is null || !_otherPlayerHasRequest) return;
-
         _gameRejectPacket = new Packet_NewGameReject();
         SendPacket(_gameRejectPacket);
     }
     public void CancelNewGame()
     {
         if(_lobby is null || !_iHaveRequest) return;
-
         _gameCancelPacket = new Packet_NewGameCancel();
         SendPacket(_gameCancelPacket);
     }
     public void PlaceToken(byte column, string path)
     {
         ArgumentNullException.ThrowIfNull(path);
-
-        //if(!_inGame) return;
-
-        SendPacket(new Packet_GameActionPlace(column, path));
+        if(!_inGame) return;
+        _placePacket = new Packet_GameActionPlace(column, path);
+        SendPacket(_placePacket);
     }
 
     public void Refill()
     {
-        //if(!_inGame) return;
-
-        SendPacket(new Packet_GameActionRefill());
+        if(!_inGame) return;
+        _refillPacket = new Packet_GameActionRefill();
+        SendPacket(_refillPacket);
     }
 
     public void Desync()

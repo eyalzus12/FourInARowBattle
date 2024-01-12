@@ -89,6 +89,8 @@ public partial class GameClientMenu : Node
         _lobbyMenu.ChallengeCanceled += OnLobbyMenuChallengeCanceled;
         _lobbyMenu.ChallengeAccepted += OnLobbyMenuChallengeAccepted;
         _lobbyMenu.ChallengeRejected += OnLobbyMenuChallengeRejected;
+        _gameMenu.TokenPlaceAttempted += OnGameMenuTokenPlaceAttempted;
+        _gameMenu.RefillAttempted += OnGameMenuRefillAttempted;
     }
 
     public override void _Ready()
@@ -234,7 +236,7 @@ public partial class GameClientMenu : Node
     private void OnClientGameEjected()
     {
         DisplayNotice("Other player disconnected. Game ejected");
-        _kickingToRemotePlayMenu = true;
+        _kickingToLobby = true;
     }
 
     private void OnClientNewGameRequestSent()
@@ -281,6 +283,7 @@ public partial class GameClientMenu : Node
     {
         SwitchToGame();
         _gameMenu.AllowedTurns = new(){turn};
+        _gameMenu.InitGame();
     }
 
     private void OnClientGameActionPlaceSent(int column, PackedScene scene)
@@ -381,6 +384,16 @@ public partial class GameClientMenu : Node
         _client.RejectNewGame();
     }
 
+    private void OnGameMenuTokenPlaceAttempted(int column, PackedScene token)
+    {
+        _client.PlaceToken((byte)column, token.ResourcePath);
+    }
+
+    private void OnGameMenuRefillAttempted()
+    {
+        _client.Refill();
+    }
+
     #endregion
     
     #region Menu Operations
@@ -411,7 +424,6 @@ public partial class GameClientMenu : Node
 
         _lobbyMenu.ProcessMode = ProcessModeEnum.Inherit;
         _lobbyMenu.Visible = true;
-        _lobbyMenu.ClearMark();
 
         _inLobby = true;
         _lobbyMenu.SetChallengeState_CannotChallenge();

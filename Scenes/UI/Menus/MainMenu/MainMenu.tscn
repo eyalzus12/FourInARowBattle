@@ -75,7 +75,7 @@ tooltip_text = "Play with someone else who is hosting a game"
 mouse_filter = 1
 text = "Remote Play"
 script = ExtResource("1_w7sya")
-_changeTo = "res://Scenes/UI/Menus/RemotePlayMenu/RemotePlayMenu.tscn"
+_changeTo = "res://Scenes/UI/Menus/GameClientMenu/GameClientMenu.tscn"
 
 [node name="GameHostMarginContainer" type="MarginContainer" parent="ButtonsMarginContainer/ButtonsVBoxContainer"]
 layout_mode = 2

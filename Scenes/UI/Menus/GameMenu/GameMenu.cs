@@ -52,18 +52,9 @@ public partial class GameMenu : Node2D
         Game.GhostTokenHidingWanted += OnGameGhostTokenHidingWanted;
         Game.TokenPlaceAttempted += OnGameTokenPlaceAttempted;
         Game.RefillAttempted += OnGameRefillAttempted;
+        Game.TurnChanged += OnGameTurnChanged;
         _loadGameButton.GameLoadRequested += OnLoadGameButtonGameLoadRequested;
         _saveGameButton.GameSaveRequested += OnSaveGameButtonGameSaveRequested;
-    }
-
-    private void InitGame()
-    {
-        if(_interactionEnabled)
-        {
-            Game.SetupDropDetectors();
-            Game.SetDetectorsDisabled(!_allowedTurns.Contains(Game.Turn));
-        }
-        Game.HideCountersOfTurns(_allowedTurns);
     }
 
     public override void _Ready()
@@ -113,6 +104,14 @@ public partial class GameMenu : Node2D
         EmitSignal(SignalName.RefillAttempted);
     }
 
+    private void OnGameTurnChanged()
+    {
+        if(_interactionEnabled)
+        {
+            Game.SetDetectorsDisabled(!_allowedTurns.Contains(Game.Turn));
+        }
+    }
+
     private void OnLoadGameButtonGameLoadRequested(string path)
     {
         ArgumentNullException.ThrowIfNull(path);
@@ -134,25 +133,25 @@ public partial class GameMenu : Node2D
         }
     }
 
+    public void InitGame()
+    {
+        if(_interactionEnabled)
+        {
+            Game.SetupDropDetectors();
+            Game.SetDetectorsDisabled(!_allowedTurns.Contains(Game.Turn));
+        }
+        Game.ForceDisableCountersWithoutApprovedTurns(_allowedTurns);
+    }
+
     public ErrorCodeEnum? PlaceToken(int column, PackedScene token)
     {
         ArgumentNullException.ThrowIfNull(token);
-        ErrorCodeEnum? err = Game.PlaceToken(column, token);
-        if(_interactionEnabled && err is null)
-        {
-            Game.SetDetectorsDisabled(!_allowedTurns.Contains(Game.Turn));
-        }
-        return err;
+        return Game.PlaceToken(column, token);
     }
 
     public ErrorCodeEnum? Refill()
     {
-        ErrorCodeEnum? err = Game.DoRefill();
-        if(_interactionEnabled && err is null)
-        {
-            Game.SetDetectorsDisabled(!_allowedTurns.Contains(Game.Turn));
-        }
-        return err;
+        return Game.DoRefill();
     }
 
     public bool ValidColumn(int column)

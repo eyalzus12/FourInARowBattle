@@ -105,4 +105,5 @@ text = "Hover over a token to learn more about it"
 label_settings = SubResource("LabelSettings_6s1y4")
 autowrap_mode = 2
 script = ExtResource("4_8pjqi")
+ActiveOnTurn = 1
 metadata/_edit_lock_ = true

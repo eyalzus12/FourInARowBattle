@@ -49,7 +49,19 @@ public partial class TokenCounterControl : Control
         {
             _disabled = value;
             foreach(TokenCounterButton button in TokenButtons)
-                button.Disabled = _disabled;
+                button.Disabled = _disabled || _forceDisabled;
+        }
+    }
+
+    private bool _forceDisabled = false;
+    public bool ForceDisabled
+    {
+        get => _forceDisabled;
+        set
+        {
+            _forceDisabled = value;
+            foreach(TokenCounterButton button in TokenButtons)
+                button.Disabled = _disabled || _forceDisabled;
         }
     }
 
