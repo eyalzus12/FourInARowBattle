@@ -54,12 +54,16 @@ public partial class LobbyMenu : Control
         _goBackButton.ChangeSceneRequested += OnGoBackButtonChangeSceneRequested;
         for(int i = 0; i < _slots.Count; ++i)
         {
-            PlayerSlot slotBind = _slots[i];
-            slotBind.ChallengeSent += () => OnPlayerSlotChallengeSent(slotBind);
-            slotBind.ChallengeCanceled += () => OnPlayerSlotChallengeCanceled(slotBind);
-            slotBind.ChallengeAccepted += () => OnPlayerSlotChallengeAccepted(slotBind);
-            slotBind.ChallengeRejected += () => OnPlayerSlotChallengeRejected(slotBind);
+            ConnectSlotSignals(_slots[i]);
         }
+    }
+
+    private void ConnectSlotSignals(PlayerSlot slot)
+    {
+        slot.ChallengeSent += () => OnPlayerSlotChallengeSent(slot);
+        slot.ChallengeCanceled += () => OnPlayerSlotChallengeCanceled(slot);
+        slot.ChallengeAccepted += () => OnPlayerSlotChallengeAccepted(slot);
+        slot.ChallengeRejected += () => OnPlayerSlotChallengeRejected(slot);
     }
 
     public override void _Ready()
