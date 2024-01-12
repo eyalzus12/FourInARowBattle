@@ -46,8 +46,8 @@ public partial class LobbyMenu : Control
 
     private void ConnectSignals()
     {
-        _goBackConfirmationDialog.Confirmed += OnGoBackConfirmationDialogConfirmed;
         GetWindow().SizeChanged += OnWindowSizeChanged;
+        _goBackConfirmationDialog.Confirmed += OnGoBackConfirmationDialogConfirmed;
         _goBackButton.ChangeSceneRequested += OnGoBackButtonChangeSceneRequested;
         _gameChallengeSubMenu.ChallengeSent += OnChallengeSubMenuChallengeSent;
         _gameChallengeSubMenu.ChallengeCanceled += OnChallengeSubMenuChallengeCanceled;

@@ -25,6 +25,7 @@ public partial class TokenCounterListControl : Control
     private Button _refillButton = null!;
 
     private GameTurnEnum _activeOnTurn;
+    private bool _refillForceDisabled = false;
     private bool _refillLocked = false;
     private bool _refillUnlockedNextTurn = false;
 
@@ -137,6 +138,7 @@ public partial class TokenCounterListControl : Control
         {
             c.ForceDisabled = disabled;
         }
+        _refillForceDisabled = disabled;
     }
 
     public bool DoRefill()
@@ -163,24 +165,24 @@ public partial class TokenCounterListControl : Control
             if(_refillLocked)
             {
                 _refillLocked = false;
-                _refillButton.Disabled = true;
+                _refillButton.Disabled = true || _refillForceDisabled;
                 _refillUnlockedNextTurn = true;
             }
             else if(AnyCanAdd())
             {
-                _refillButton.Disabled = false;
+                _refillButton.Disabled = false || _refillForceDisabled;
                 _refillUnlockedNextTurn = false;
             }
             else
             {
-                _refillButton.Disabled = true;
+                _refillButton.Disabled = true || _refillForceDisabled;
                 _refillUnlockedNextTurn = false;
             }
         }
         //opponent's turn
         else
         {
-            _refillButton.Disabled = true;
+            _refillButton.Disabled = true || _refillForceDisabled;
         }
 
         foreach(TokenCounterControl c in _counters)

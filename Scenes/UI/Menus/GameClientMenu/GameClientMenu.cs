@@ -55,8 +55,10 @@ public partial class GameClientMenu : Node
     private void ConnectSignals()
     {
         GetWindow().SizeChanged += OnWindowSizeChanged;
-        _errorPopup.VisibilityChanged += OnErrorPopupClosed;
-        _noticePopup.VisibilityChanged += OnNoticePopupClosed;
+        _errorPopup.Confirmed += OnErrorPopupClosed;
+        _errorPopup.Canceled += OnErrorPopupClosed;
+        _noticePopup.Confirmed += OnNoticePopupClosed;
+        _noticePopup.Canceled += OnNoticePopupClosed;
         _client.Connected += OnClientConnected;
         _client.Disconnected += OnClientDisconnected;
         _client.ServerClosed += OnClientServerClosed;
@@ -107,6 +109,8 @@ public partial class GameClientMenu : Node
     {
         if(_errorPopup.Visible)
             _errorPopup.PopupCentered();
+        if(_noticePopup.Visible)
+            _noticePopup.PopupCentered();
     }
 
     private void OnErrorPopupClosed()
@@ -162,8 +166,8 @@ public partial class GameClientMenu : Node
     private void OnClientDisconnected()
     {
         GD.Print("Connection closed");
-        DisplayError("Connection failed");
         _kickingToMainMenu = true;
+        DisplayError("Connection failed");
 
         _statusLabel.Text = DISCONNECTED_STATUS;
     }
@@ -173,7 +177,6 @@ public partial class GameClientMenu : Node
         GD.Print("Server closed");
         _kickingToMainMenu = true;
         DisplayNotice("Server Closed!");
-        _client.CloseConnection();
 
         _statusLabel.Text = DISCONNECTED_STATUS;
     }
