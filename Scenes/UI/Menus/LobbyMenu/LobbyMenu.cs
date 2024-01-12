@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Collections.Generic;
 
 namespace FourInARowBattle;
 
@@ -26,11 +27,14 @@ public partial class LobbyMenu : Control
     [Export]
     private Label _lobbyIdLabel = null!;
     [Export]
-    private Label _player1NameLabel = null!;
+    private Control _playerSlotsBase = null!;
+    [ExportCategory("")]
     [Export]
-    private Label _player2NameLabel = null!;
-    [Export]
-    private LobbyGameChallengeMenu _gameChallengeSubMenu = null!;
+    private PackedScene _playerSlotScene = null!;
+
+    private readonly List<PlayerSlot> _slots = new();
+
+    public int PlayerCount => _slots.Count;
 
     private string? _goBackRequestPath;
 
@@ -39,9 +43,8 @@ public partial class LobbyMenu : Control
         ArgumentNullException.ThrowIfNull(_goBackButton);
         ArgumentNullException.ThrowIfNull(_goBackConfirmationDialog);
         ArgumentNullException.ThrowIfNull(_lobbyIdLabel);
-        ArgumentNullException.ThrowIfNull(_player1NameLabel);
-        ArgumentNullException.ThrowIfNull(_player2NameLabel);
-        ArgumentNullException.ThrowIfNull(_gameChallengeSubMenu);
+        ArgumentNullException.ThrowIfNull(_playerSlotsBase);
+        ArgumentNullException.ThrowIfNull(_playerSlotScene);
     }
 
     private void ConnectSignals()
@@ -49,10 +52,14 @@ public partial class LobbyMenu : Control
         GetWindow().SizeChanged += OnWindowSizeChanged;
         _goBackConfirmationDialog.Confirmed += OnGoBackConfirmationDialogConfirmed;
         _goBackButton.ChangeSceneRequested += OnGoBackButtonChangeSceneRequested;
-        _gameChallengeSubMenu.ChallengeSent += OnChallengeSubMenuChallengeSent;
-        _gameChallengeSubMenu.ChallengeCanceled += OnChallengeSubMenuChallengeCanceled;
-        _gameChallengeSubMenu.ChallengeAccepted += OnChallengeSubMenuChallengeAccepted;
-        _gameChallengeSubMenu.ChallengeRejected += OnChallengeSubMenuChallengeRejected;
+        for(int i = 0; i < _slots.Count; ++i)
+        {
+            PlayerSlot slotBind = _slots[i];
+            slotBind.ChallengeSent += () => OnPlayerSlotChallengeSent(slotBind);
+            slotBind.ChallengeCanceled += () => OnPlayerSlotChallengeCanceled(slotBind);
+            slotBind.ChallengeAccepted += () => OnPlayerSlotChallengeAccepted(slotBind);
+            slotBind.ChallengeRejected += () => OnPlayerSlotChallengeRejected(slotBind);
+        }
     }
 
     public override void _Ready()
@@ -60,8 +67,6 @@ public partial class LobbyMenu : Control
         VerifyExports();
         ConnectSignals();
     }
-
-    public bool LobbyFull() => _player1NameLabel.Text != "" && _player2NameLabel.Text != "";
 
     #region Signal Handling
     private void OnGoBackConfirmationDialogConfirmed()
@@ -80,29 +85,31 @@ public partial class LobbyMenu : Control
     {
         ArgumentNullException.ThrowIfNull(path);
         _goBackRequestPath = path;
-
-        //Vector2I decorations = GetWindow().GetSizeOfDecorations();
-        _goBackConfirmationDialog.PopupCentered(/*GetWindow().GetVisibleSize() - new Vector2I(0,decorations.Y)*/);
+        _goBackConfirmationDialog.PopupCentered();
     }
 
-    private void OnChallengeSubMenuChallengeSent()
+    private void OnPlayerSlotChallengeSent(PlayerSlot which)
     {
-        EmitSignal(SignalName.ChallengeSent);
+        int index = _slots.FindIndex(s => s == which);
+        EmitSignal(SignalName.ChallengeSent, index);
     }
 
-    private void OnChallengeSubMenuChallengeCanceled()
+    private void OnPlayerSlotChallengeCanceled(PlayerSlot which)
     {
-        EmitSignal(SignalName.ChallengeCanceled);
+        int index = _slots.FindIndex(s => s == which);
+        EmitSignal(SignalName.ChallengeCanceled, index);
     }
 
-    private void OnChallengeSubMenuChallengeAccepted()
+    private void OnPlayerSlotChallengeAccepted(PlayerSlot which)
     {
-        EmitSignal(SignalName.ChallengeAccepted);
+        int index = _slots.FindIndex(s => s == which);
+        EmitSignal(SignalName.ChallengeAccepted, index);
     }
 
-    private void OnChallengeSubMenuChallengeRejected()
+    private void OnPlayerSlotChallengeRejected(PlayerSlot which)
     {
-        EmitSignal(SignalName.ChallengeRejected);
+        int index = _slots.FindIndex(s => s == which);
+        EmitSignal(SignalName.ChallengeRejected, index);
     }
 
     #endregion
@@ -112,79 +119,48 @@ public partial class LobbyMenu : Control
         _lobbyIdLabel.Text = id.ToString();
     }
 
-    private Color? _player1OldModulate = null;
-    private Color? _player2OldModulate = null;
-
-    public void SetPlayer1Marked()
+    public void SetMark(int index)
     {
-        if(_player2OldModulate is not null)
+        for(int i = 0; i < _slots.Count; ++i)
         {
-            _player2NameLabel.Modulate = (Color)_player2OldModulate;
-            _player2OldModulate = null;
+            _slots[i].Marked = i == index;
         }
-
-        _player1OldModulate ??= _player1NameLabel.Modulate;
-        _player1NameLabel.Modulate = Colors.Blue;
-    }
-
-    public void SetPlayer2Marked()
-    {
-        if(_player1OldModulate is not null)
-        {
-            _player1NameLabel.Modulate = (Color)_player1OldModulate;
-            _player1OldModulate = null;
-        }
-
-        _player2OldModulate ??= _player2NameLabel.Modulate;
-        _player2NameLabel.Modulate = Colors.Blue;
     }
 
     public void ClearMark()
     {
-        if(_player1OldModulate is not null)
-        {
-            _player1NameLabel.Modulate = (Color)_player1OldModulate;
-            _player1OldModulate = null;
-        }
-
-        if(_player2OldModulate is not null)
-        {
-            _player2NameLabel.Modulate = (Color)_player2OldModulate;
-            _player2OldModulate = null;
-        }
+        SetMark(-1);
     }
 
-    public void SetPlayer1Name(string name)
+    public void AddPlayer(string name)
     {
         ArgumentNullException.ThrowIfNull(name);
-        if(name.Length > Globals.NAME_LENGTH_LIMIT) name = name[..Globals.NAME_LENGTH_LIMIT];
-        _player1NameLabel.Text = name;
+        PlayerSlot slot = Autoloads.ScenePool.GetScene<PlayerSlot>(_playerSlotScene);
+        _playerSlotsBase.AddChild(slot);
+        slot.SetState(ChallengeStateEnum.NONE);
+        slot.PlayerName = name;
+        _slots.Add(slot);
     }
 
-    public void SetPlayer2Name(string name)
+    public void RemovePlayer(int index)
     {
-        ArgumentNullException.ThrowIfNull(name);
-        if(name.Length > Globals.NAME_LENGTH_LIMIT) name = name[..Globals.NAME_LENGTH_LIMIT];
-        _player2NameLabel.Text = name;
+        Autoloads.ScenePool.ReturnScene(_slots[index]);
+        _slots.RemoveAt(index);
     }
 
-    public void SetChallengeState_NoChallenge()
+    public void SetPlayerNames(string[] names)
     {
-        _gameChallengeSubMenu.SetState_NoChallenge();
+        ArgumentNullException.ThrowIfNull(names);
+
+        for(int i = 0; i < names.Length; ++i)
+        {
+            if(i >= _slots.Count) AddPlayer(names[i]);
+            _slots[i].PlayerName = names[i];
+        }
     }
 
-    public void SetChallengeState_SentChallenge()
+    public void SetChallengeState(ChallengeStateEnum state, int index)
     {
-        _gameChallengeSubMenu.SetState_SentChallenge();
-    }
-
-    public void SetChallengeState_GotChallenge()
-    {
-        _gameChallengeSubMenu.SetState_GotChallenge();
-    }
-
-    public void SetChallengeState_CannotChallenge()
-    {
-        _gameChallengeSubMenu.SetState_CannotChallenge();
+        _slots[index].SetState(state);
     }
 }

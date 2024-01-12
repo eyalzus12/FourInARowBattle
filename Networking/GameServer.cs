@@ -247,12 +247,14 @@ public partial class GameServer : Node
             return;
         }
 
-        lobby.Players.Add(player);
-
         GD.Print($"{peerId} connected to lobby {packet.LobbyId}");
 
+        lobby.Players.Add(player);
         int index = lobby.Players.Count - 1;
         string[] names = lobby.Players.Select(player => player.Name).ToArray();
+        
+        player.Lobby = lobby;
+        player.Index = index;
         SendPacket(player.Id, new Packet_ConnectLobbyOk(index, names));
         foreach(Player other in lobby.Players) if(other != player)
         {
@@ -355,11 +357,19 @@ public partial class GameServer : Node
 
         GD.Print($"{peerId} approved game request from {other.Id}");
 
-        other.RequestSources.Remove(player);
-        player.RequestTargets.Remove(other);
+        other.RequestSources.Clear();
+        other.RequestTargets.Clear();
+        player.RequestSources.Clear();
+        player.RequestTargets.Clear();
 
         foreach(Player another in lobby.Players)
+        {
+            another.RequestSources.Remove(other);
+            another.RequestSources.Remove(player);
+            another.RequestTargets.Remove(other);
+            another.RequestTargets.Remove(player);
             SendPacket(another.Id, new Packet_NewGameAccepted((int)other.Index!, (int)player.Index!));
+        }
         /*
         start game here
         */

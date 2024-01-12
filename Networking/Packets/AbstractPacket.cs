@@ -105,7 +105,7 @@ public abstract partial class AbstractPacket : Resource
                 {
                     byte size = buffer[index];
                     index += size + 1;
-                    if(index >= buffer.Count) return false;
+                    if(i != playerCount-1 && index >= buffer.Count) return false;
                 }
                 int yourIndex = (int)new[]{buffer[1], buffer[2], buffer[3], buffer[4]}.ReadBigEndian<uint>();
                 byte[][] names = new byte[playerCount][];
@@ -113,6 +113,7 @@ public abstract partial class AbstractPacket : Resource
                 for(int i = 0; i < playerCount; ++i)
                 {
                     byte size = buffer.PopLeft();
+                    names[i] = new byte[size];
                     for(int j = 0; j < size; ++j)
                     {
                         names[i][j] = buffer.PopLeft();

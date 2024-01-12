@@ -1,0 +1,82 @@
+[gd_scene load_steps=2 format=3 uid="uid://51q6gqnfkyy7"]
+
+[ext_resource type="Script" path="res://Scenes/UI/Menus/LobbyMenu/PlayerSlot/PlayerSlot.cs" id="1_mdawf"]
+
+[node name="PlayerSlot" type="Control" node_paths=PackedStringArray("_playerName", "_sendChallengeButton", "_cancelChallengeButton", "_acceptChallengeButton", "_rejectChallengeButton")]
+custom_minimum_size = Vector2(530, 56)
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -622.0
+offset_bottom = -592.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 2
+script = ExtResource("1_mdawf")
+_playerName = NodePath("MarginContainer/HBoxContainer/PanelContainer/MarginContainer/PlayerName")
+_sendChallengeButton = NodePath("MarginContainer/HBoxContainer/PanelContainer2/HBoxContainer2/Challenge")
+_cancelChallengeButton = NodePath("MarginContainer/HBoxContainer/PanelContainer2/HBoxContainer2/Cancel")
+_acceptChallengeButton = NodePath("MarginContainer/HBoxContainer/PanelContainer2/HBoxContainer2/Accept")
+_rejectChallengeButton = NodePath("MarginContainer/HBoxContainer/PanelContainer2/HBoxContainer2/Reject")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="MarginContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/HBoxContainer/PanelContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_left = 25
+theme_override_constants/margin_right = 10
+
+[node name="PlayerName" type="Label" parent="MarginContainer/HBoxContainer/PanelContainer/MarginContainer"]
+layout_mode = 2
+
+[node name="PanelContainer2" type="PanelContainer" parent="MarginContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="MarginContainer/HBoxContainer/PanelContainer2"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Challenge" type="Button" parent="MarginContainer/HBoxContainer/PanelContainer2/HBoxContainer2"]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Challenge"
+
+[node name="Cancel" type="Button" parent="MarginContainer/HBoxContainer/PanelContainer2/HBoxContainer2"]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Cancel Challenge"
+
+[node name="Accept" type="Button" parent="MarginContainer/HBoxContainer/PanelContainer2/HBoxContainer2"]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Accept Challenge"
+
+[node name="Reject" type="Button" parent="MarginContainer/HBoxContainer/PanelContainer2/HBoxContainer2"]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Reject Challenge"

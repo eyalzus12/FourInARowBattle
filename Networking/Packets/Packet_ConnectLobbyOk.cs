@@ -37,7 +37,7 @@ public partial class Packet_ConnectLobbyOk : AbstractPacket
             bufferSize += sizeof(byte) + nameBuffer.Length;
         }
         byte[] buffer = new byte[bufferSize];
-        buffer.WriteBigEndian((byte)PacketTypeEnum.CONNECT_LOBBY_OK, 0, out int index);
+        buffer.WriteBigEndian((byte)PacketType, 0, out int index);
         buffer.WriteBigEndian((uint)YourIndex, index, out index);
         buffer.WriteBigEndian((uint)Players.Count, index, out index);
         for(int i = 0; i < Players.Count; ++i)

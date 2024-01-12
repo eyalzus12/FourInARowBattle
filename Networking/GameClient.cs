@@ -23,7 +23,9 @@ public partial class GameClient : Node
     [Signal]
     public delegate void LobbyEnteredEventHandler(uint lobbyId, Godot.Collections.Array<string> players, int index);
     [Signal]
-    public delegate void LobbyStateUpdatedEventHandler(Godot.Collections.Array<string> players, int index);
+    public delegate void LobbyPlayerLeftEventHandler(int index);
+    [Signal]
+    public delegate void LobbyPlayerJoinedEventHandler(string name);
     [Signal]
     public delegate void LobbyTimeoutWarnedEventHandler(int secondsRemaining);
     [Signal]
@@ -48,6 +50,8 @@ public partial class GameClient : Node
     public delegate void NewGameCancelReceivedEventHandler(int playerIndex);
     [Signal]
     public delegate void PlayerBecameBusyEventHandler(int playerIndex);
+    [Signal]
+    public delegate void PlayerBecameAvailableEventHandler(int playerIndex);
     [Signal]
     public delegate void GameStartedEventHandler(GameTurnEnum turn, int opponentIndex);
     [Signal]
@@ -329,7 +333,7 @@ public partial class GameClient : Node
             Index = 0
         };
 
-        EmitSignal(SignalName.LobbyEntered, packet.LobbyId, _lobby.Players.ToGodotArray(), _lobby.Index);
+        EmitSignal(SignalName.LobbyEntered, packet.LobbyId, _lobby.Players.Select(p => p.Name).ToGodotArray(), _lobby.Index);
     }
 
     private void HandlePacket_CreateLobbyFail(Packet_CreateLobbyFail packet)
@@ -408,7 +412,7 @@ public partial class GameClient : Node
             Index = _lobby.Players.Count
         });
 
-        EmitSignal(SignalName.LobbyStateUpdated, ClientName, _lobby.Players.Select(p => p.Name).ToGodotArray(), _lobby.Index);
+        EmitSignal(SignalName.LobbyPlayerJoined, packet.OtherPlayerName);
     }
 
     private void HandlePacket_NewGameRequestFail(Packet_NewGameRequestFail packet)
@@ -848,7 +852,7 @@ public partial class GameClient : Node
             _lobby.Players[i].Index = i;
         }
 
-        EmitSignal(SignalName.LobbyStateUpdated, _lobby.Players.Select(p => p.Name).ToGodotArray(), _lobby.Index);
+        EmitSignal(SignalName.LobbyPlayerLeft, index);
     }
     private void HandlePacket_LobbyTimeoutWarning(Packet_LobbyTimeoutWarning packet)
     {
@@ -928,6 +932,19 @@ public partial class GameClient : Node
             Desync();
             return;
         }
+
+        for(int i = 0; i < _lobby.Players.Count; ++i)
+        {
+            if(i == player1Idx || i == player2Idx) continue;
+            Player another = _lobby.Players[i];
+            another.ISentRequest = false;
+            another.IGotRequest = false;
+            another.GameRequestPacket = null;
+            another.GameAcceptPacket = null;
+            another.GameRejectPacket = null;
+            another.GameCancelPacket = null;
+        }
+
         GameTurnEnum turn = (player1Idx == _lobby.Index) ? GameTurnEnum.Player1 : GameTurnEnum.Player2;
         EmitSignal(SignalName.GameStarted, (int)turn, _lobby.Opponent.Index);
     }
@@ -1075,12 +1092,14 @@ public partial class GameClient : Node
         if(_lobby is not null) return;
         SendPacket(new Packet_CreateLobbyRequest(ClientName));
     }
+
     public void JoinLobby(uint lobby)
     {
         if(_lobby is not null) return;
         _lobbyConnectionPacket = new Packet_ConnectLobbyRequest(lobby, ClientName);
         SendPacket(_lobbyConnectionPacket);
     }
+
     public void DisconnectFromLobby(DisconnectReasonEnum reason)
     {
         if(_lobby is null) return;
@@ -1088,11 +1107,13 @@ public partial class GameClient : Node
         _lobby = null;
         _lobbyConnectionPacket = null;
     }
+
     public void DisconnectFromServer(DisconnectReasonEnum reason)
     {
         DisconnectFromLobby(reason);
         CloseConnection();
     }
+
     public void RequestNewGame(int index)
     {
         if(_lobby is null || _lobby.Opponent is not null) return;
@@ -1102,6 +1123,7 @@ public partial class GameClient : Node
         p.GameRequestPacket = new Packet_NewGameRequest(_lobby.Index);
         SendPacket(p.GameRequestPacket);
     }
+
     public void AcceptNewGame(int index)
     {
         if(_lobby is null || _lobby.Opponent is not null) return;
@@ -1111,6 +1133,7 @@ public partial class GameClient : Node
         p.GameAcceptPacket = new Packet_NewGameAccept(_lobby.Index);
         SendPacket(p.GameAcceptPacket);
     }
+    
     public void RejectNewGame(int index)
     {
         if(_lobby is null || _lobby.Opponent is not null) return;
@@ -1120,6 +1143,7 @@ public partial class GameClient : Node
         p.GameRejectPacket = new Packet_NewGameReject(_lobby.Index);
         SendPacket(p.GameRejectPacket);
     }
+
     public void CancelNewGame(int index)
     {
         if(_lobby is null || _lobby.Opponent is not null) return;
@@ -1129,6 +1153,7 @@ public partial class GameClient : Node
         p.GameCancelPacket = new Packet_NewGameCancel(_lobby.Index);
         SendPacket(p.GameCancelPacket);
     }
+    
     public void PlaceToken(byte column, string path)
     {
         ArgumentNullException.ThrowIfNull(path);

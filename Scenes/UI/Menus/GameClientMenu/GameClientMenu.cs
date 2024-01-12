@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Godot;
 
 namespace FourInARowBattle;
@@ -64,7 +65,8 @@ public partial class GameClientMenu : Node
         _client.ServerClosed += OnClientServerClosed;
         _client.ErrorOccured += OnClientErrorOccured;
         _client.LobbyEntered += OnClientLobbyEntered;
-        _client.LobbyStateUpdated += OnClientLobbyStateUpdated;
+        _client.LobbyPlayerJoined += OnClientLobbyPlayerJoined;
+        _client.LobbyPlayerLeft += OnClientLobbyPlayerLeft;
         _client.LobbyTimeoutWarned += OnClientLobbyTimeoutWarned;
         _client.LobbyTimedOut += OnClientLobbyTimedOut;
         _client.GameEjected += OnClientGameEjected;
@@ -76,6 +78,8 @@ public partial class GameClientMenu : Node
         _client.NewGameRejectReceived += OnClientNewGameRejectReceived;
         _client.NewGameCancelSent += OnClientNewGameCancelSent;
         _client.NewGameCancelReceived += OnClientNewGameCancelReceived;
+        _client.PlayerBecameBusy += OnClientPlayerBecameBusy;
+        _client.PlayerBecameAvailable += OnClientPlayerBecameAvailable;
         _client.GameStarted += OnClientGameStarted;
         _client.GameActionPlaceSent += OnClientGameActionPlaceSent;
         _client.GameActionPlaceReceived += OnClientGameActionPlaceReceived;
@@ -187,42 +191,23 @@ public partial class GameClientMenu : Node
         DisplayError(description);
     }
 
-    private void OnClientLobbyEntered(uint lobbyId, string? player1Name, string? player2Name, bool isPlayer1)
+    private void OnClientLobbyEntered(uint lobbyId, Godot.Collections.Array<string> players, int index)
     {
         SwitchToLobbyMenu();
         _lobbyMenu.SetLobbyId(lobbyId);
-        _lobbyMenu.SetPlayer1Name(player1Name ?? "Guest");
-        _lobbyMenu.SetPlayer2Name(player2Name ?? "Guest");
-
-        if(isPlayer1) _lobbyMenu.SetPlayer1Marked();
-        else _lobbyMenu.SetPlayer2Marked();
-
-        if(_lobbyMenu.LobbyFull())
-            _lobbyMenu.SetChallengeState_NoChallenge();
-        else
-            _lobbyMenu.SetChallengeState_CannotChallenge();
+        _lobbyMenu.SetPlayerNames(players.ToArray());
+        _lobbyMenu.SetMark(index);
+        _lobbyMenu.SetChallengeState(ChallengeStateEnum.CANNOT, index);
     }
 
-    private void OnClientLobbyStateUpdated(string? player1Name, string? player2Name, bool isPlayer1)
+    private void OnClientLobbyPlayerJoined(string name)
     {
-        bool lobbyPreviouslyEmpty = !_lobbyMenu.LobbyFull();
-        _lobbyMenu.SetPlayer1Name(player1Name ?? "Guest");
-        _lobbyMenu.SetPlayer2Name(player2Name ?? "Guest");
+        _lobbyMenu.AddPlayer(name);
+    }
 
-        if(isPlayer1) _lobbyMenu.SetPlayer1Marked();
-        else _lobbyMenu.SetPlayer2Marked();
-
-        if(_lobbyMenu.LobbyFull())
-        {
-            //lobby just filled up. you can now challenge.
-            if(lobbyPreviouslyEmpty)
-                _lobbyMenu.SetChallengeState_NoChallenge();
-        }
-        //not enough players to challenge
-        else
-        {
-            _lobbyMenu.SetChallengeState_CannotChallenge();
-        }
+    private void OnClientLobbyPlayerLeft(int index)
+    {
+        _lobbyMenu.RemovePlayer(index);
     }
 
     private void OnClientLobbyTimeoutWarned(int secondsRemaining)
@@ -242,48 +227,60 @@ public partial class GameClientMenu : Node
         _kickingToLobby = true;
     }
 
-    private void OnClientNewGameRequestSent()
+    private void OnClientNewGameRequestSent(int playerIndex)
     {
-        _lobbyMenu.SetChallengeState_SentChallenge();
+        _lobbyMenu.SetChallengeState(ChallengeStateEnum.SENT, playerIndex);
     }
 
-    private void OnClientNewGameRequestReceived()
+    private void OnClientNewGameRequestReceived(int playerIndex)
     {
-        _lobbyMenu.SetChallengeState_GotChallenge();
+        _lobbyMenu.SetChallengeState(ChallengeStateEnum.GOT, playerIndex);
     }
 
-    private void OnClientNewGameAcceptSent()
+    private void OnClientNewGameAcceptSent(int playerIndex)
     {
-        _lobbyMenu.SetChallengeState_CannotChallenge();
+        _lobbyMenu.SetChallengeState(ChallengeStateEnum.CANNOT, playerIndex);
     }
 
-    private void OnClientNewGameAcceptReceived()
+    private void OnClientNewGameAcceptReceived(int playerIndex)
     {
-        _lobbyMenu.SetChallengeState_CannotChallenge();
+        _lobbyMenu.SetChallengeState(ChallengeStateEnum.CANNOT, playerIndex);
     }
 
-    private void OnClientNewGameRejectSent()
+    private void OnClientNewGameRejectSent(int playerIndex)
     {
-        _lobbyMenu.SetChallengeState_NoChallenge();
+        _lobbyMenu.SetChallengeState(ChallengeStateEnum.NONE, playerIndex);
     }
 
-    private void OnClientNewGameRejectReceived()
+    private void OnClientNewGameRejectReceived(int playerIndex)
     {
-        _lobbyMenu.SetChallengeState_NoChallenge();
+        _lobbyMenu.SetChallengeState(ChallengeStateEnum.NONE, playerIndex);
     }
 
-    private void OnClientNewGameCancelSent()
+    private void OnClientNewGameCancelSent(int playerIndex)
     {
-        _lobbyMenu.SetChallengeState_NoChallenge();
+        _lobbyMenu.SetChallengeState(ChallengeStateEnum.NONE, playerIndex);
     }
 
-    private void OnClientNewGameCancelReceived()
+    private void OnClientNewGameCancelReceived(int playerIndex)
     {
-        _lobbyMenu.SetChallengeState_NoChallenge();
+        _lobbyMenu.SetChallengeState(ChallengeStateEnum.NONE, playerIndex);
     }
 
-    private void OnClientGameStarted(GameTurnEnum turn)
+    private void OnClientPlayerBecameBusy(int playerIndex)
     {
+        _lobbyMenu.SetChallengeState(ChallengeStateEnum.CANNOT, playerIndex);
+    }
+
+    private void OnClientPlayerBecameAvailable(int playerIndex)
+    {
+        _lobbyMenu.SetChallengeState(ChallengeStateEnum.NONE, playerIndex);
+    }
+
+    private void OnClientGameStarted(GameTurnEnum turn, int opponentIndex)
+    {
+        for(int i = 0; i < _lobbyMenu.PlayerCount; ++i)
+            _lobbyMenu.SetChallengeState(ChallengeStateEnum.NONE, i);
         SwitchToGame();
         _gameMenu.AllowedTurns = new(){turn};
         _gameMenu.InitGame();
@@ -367,24 +364,24 @@ public partial class GameClientMenu : Node
         SwitchToRemotePlayMenu();
     }
 
-    private void OnLobbyMenuChallengeSent()
+    private void OnLobbyMenuChallengeSent(int index)
     {
-        _client.RequestNewGame();
+        _client.RequestNewGame(index);
     }
 
-    private void OnLobbyMenuChallengeCanceled()
+    private void OnLobbyMenuChallengeCanceled(int index)
     {
-        _client.CancelNewGame();
+        _client.CancelNewGame(index);
     }
 
-    private void OnLobbyMenuChallengeAccepted()
+    private void OnLobbyMenuChallengeAccepted(int index)
     {
-        _client.AcceptNewGame();
+        _client.AcceptNewGame(index);
     }
 
-    private void OnLobbyMenuChallengeRejected()
+    private void OnLobbyMenuChallengeRejected(int index)
     {
-        _client.RejectNewGame();
+        _client.RejectNewGame(index);
     }
 
     private void OnGameMenuTokenPlaceAttempted(int column, PackedScene token)
@@ -429,7 +426,6 @@ public partial class GameClientMenu : Node
         _lobbyMenu.Visible = true;
 
         _inLobby = true;
-        _lobbyMenu.SetChallengeState_CannotChallenge();
     }
 
     private void SwitchToGame()
