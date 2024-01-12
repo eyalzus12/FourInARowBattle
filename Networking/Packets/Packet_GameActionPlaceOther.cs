@@ -20,11 +20,11 @@ public partial class Packet_GameActionPlaceOther : AbstractPacket
     public override byte[] ToByteArray()
     {
         byte[] stringBuffer = ScenePath.ToUtf8Buffer();
-        byte[] buffer = new byte[1 + 1 + 4 + stringBuffer.Length];
-        buffer.WriteBigEndian((byte)PacketType, 0);
-        buffer.WriteBigEndian(Column, 1);
-        buffer.WriteBigEndian((uint)stringBuffer.Length, 2);
-        buffer.StoreBuffer(stringBuffer, 8);
+        byte[] buffer = new byte[sizeof(byte) + sizeof(byte) + sizeof(uint) + stringBuffer.Length];
+        buffer.WriteBigEndian((byte)PacketType, 0, out int index);
+        buffer.WriteBigEndian(Column, index, out index);
+        buffer.WriteBigEndian((uint)stringBuffer.Length, index, out index);
+        buffer.StoreBuffer(stringBuffer, index, out _);
         return buffer;
     }
 }

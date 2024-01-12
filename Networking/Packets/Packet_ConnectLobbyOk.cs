@@ -24,10 +24,10 @@ public partial class Packet_ConnectLobbyOk : AbstractPacket
             GD.PushError($"Player name has invalid length {stringBuffer.Length}");
             stringBuffer = stringBuffer.Take(Globals.NAME_LENGTH_LIMIT).ToArray();
         }
-        byte[] buffer = new byte[1 + 1 + stringBuffer.Length];
-        buffer.WriteBigEndian((byte)PacketTypeEnum.CONNECT_LOBBY_OK, 0);
-        buffer.WriteBigEndian((byte)stringBuffer.Length, 1);
-        buffer.StoreBuffer(stringBuffer, 2);
+        byte[] buffer = new byte[sizeof(byte) + sizeof(byte) + stringBuffer.Length];
+        buffer.WriteBigEndian((byte)PacketTypeEnum.CONNECT_LOBBY_OK, 0, out int index);
+        buffer.WriteBigEndian((byte)stringBuffer.Length, index, out index);
+        buffer.StoreBuffer(stringBuffer, index, out _);
         return buffer;
     }
 }

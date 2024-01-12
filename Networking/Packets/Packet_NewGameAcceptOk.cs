@@ -11,8 +11,8 @@ public partial class Packet_NewGameAcceptOk : AbstractPacket
 
     public override byte[] ToByteArray()
     {
-        byte[] buffer = new byte[1];
-        buffer.WriteBigEndian((byte)PacketType, 0);
+        byte[] buffer = new byte[sizeof(byte)];
+        buffer.WriteBigEndian((byte)PacketType, 0, out _);
         return buffer;
     }
 }

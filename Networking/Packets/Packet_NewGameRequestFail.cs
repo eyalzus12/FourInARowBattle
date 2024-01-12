@@ -16,9 +16,9 @@ public partial class Packet_NewGameRequestFail : AbstractPacket
 
     public override byte[] ToByteArray()
     {
-        byte[] buffer = new byte[1 + 1];
-        buffer.WriteBigEndian((byte)PacketType, 0);
-        buffer.WriteBigEndian((byte)ErrorCode, 1);
+        byte[] buffer = new byte[sizeof(byte) + sizeof(byte)];
+        buffer.WriteBigEndian((byte)PacketType, 0, out int index);
+        buffer.WriteBigEndian((byte)ErrorCode, index, out _);
         return buffer;
     }
 }
