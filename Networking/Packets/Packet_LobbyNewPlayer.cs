@@ -24,8 +24,8 @@ public partial class Packet_LobbyNewPlayer : AbstractPacket
             stringBuffer = stringBuffer.Take(Globals.NAME_LENGTH_LIMIT).ToArray();
         }
         byte[] buffer = new byte[1 + 1 + stringBuffer.Length];
-        buffer.StoreBigEndianU8((byte)PacketType, 0);
-        buffer.StoreBigEndianU8((byte)stringBuffer.Length, 1);
+        buffer.WriteBigEndian((byte)PacketType, 0);
+        buffer.WriteBigEndian((byte)stringBuffer.Length, 1);
         buffer.StoreBuffer(stringBuffer, 2);
         return buffer;
     }

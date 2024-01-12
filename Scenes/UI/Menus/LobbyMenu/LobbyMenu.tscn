@@ -5,7 +5,7 @@
 [ext_resource type="Theme" uid="uid://qdeiddbstwpc" path="res://Resources/Themes/LabelWithOutlineTheme.tres" id="3_5e4re"]
 [ext_resource type="Script" path="res://Scenes/UI/Menus/LobbyMenu/LobbyGameChallengeMenu.cs" id="4_v82b4"]
 
-[node name="LobbyScene" type="Control" node_paths=PackedStringArray("GoBack", "GoBackConfirmationDialog", "LobbyIdLabel", "Player1NameLabel", "Player2NameLabel", "GameChallengeSubMenu")]
+[node name="LobbyScene" type="Control" node_paths=PackedStringArray("_goBackButton", "_goBackConfirmationDialog", "_lobbyIdLabel", "_player1NameLabel", "_player2NameLabel", "_gameChallengeSubMenu")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -14,12 +14,12 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_2xj2s")
-GoBack = NodePath("GoBack")
-GoBackConfirmationDialog = NodePath("ConfirmationDialog")
-LobbyIdLabel = NodePath("LobbyIdMarginContainer/LobbyIdVBoxContainer/LobbyIdLabel2")
-Player1NameLabel = NodePath("PlayerNamesMarginContainer/PlayerNamesVBoxContainer/PlayerName1HBoxContainer/PlayerName1Label2")
-Player2NameLabel = NodePath("PlayerNamesMarginContainer/PlayerNamesVBoxContainer/PlayerName2HBoxContainer/PlayerName2Label2")
-GameChallengeSubMenu = NodePath("GameChallengeMarginContainer")
+_goBackButton = NodePath("GoBack")
+_goBackConfirmationDialog = NodePath("ConfirmationDialog")
+_lobbyIdLabel = NodePath("LobbyIdMarginContainer/LobbyIdVBoxContainer/LobbyIdLabel2")
+_player1NameLabel = NodePath("PlayerNamesMarginContainer/PlayerNamesVBoxContainer/PlayerName1HBoxContainer/PlayerName1Label2")
+_player2NameLabel = NodePath("PlayerNamesMarginContainer/PlayerNamesVBoxContainer/PlayerName2HBoxContainer/PlayerName2Label2")
+_gameChallengeSubMenu = NodePath("GameChallengeMarginContainer")
 
 [node name="GoBack" type="Button" parent="."]
 modulate = Color(1, 0.156863, 0.403922, 1)
@@ -29,7 +29,6 @@ offset_bottom = 88.0
 mouse_filter = 1
 text = "Exit Lobby"
 script = ExtResource("2_ev8m8")
-ChangeTo = "res://Scenes/UI/Menus/RemotePlayMenu/RemotePlayMenu.tscn"
 
 [node name="LobbyIdMarginContainer" type="MarginContainer" parent="."]
 layout_mode = 1
@@ -97,7 +96,7 @@ text = "Player 2: "
 layout_mode = 2
 theme = ExtResource("3_5e4re")
 
-[node name="GameChallengeMarginContainer" type="MarginContainer" parent="." node_paths=PackedStringArray("ChallengeStatusLabel", "SendChallengeButton", "CancelChallengeButton", "AcceptChallengeButton", "RejectChallengeButton")]
+[node name="GameChallengeMarginContainer" type="MarginContainer" parent="." node_paths=PackedStringArray("_sendChallengeButton", "_cancelChallengeButton", "_acceptChallengeButton", "_rejectChallengeButton")]
 layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
@@ -106,11 +105,10 @@ offset_top = -93.0
 offset_right = 312.0
 grow_vertical = 0
 script = ExtResource("4_v82b4")
-ChallengeStatusLabel = NodePath("GameChallengeVBoxContainer/GameChallengeLabel")
-SendChallengeButton = NodePath("GameChallengeVBoxContainer/GameChallengeHBoxContainer/GameChallengeRequestVBoxContainer/ChallengeToGame")
-CancelChallengeButton = NodePath("GameChallengeVBoxContainer/GameChallengeHBoxContainer/GameChallengeRequestVBoxContainer/CancelGameChallenge")
-AcceptChallengeButton = NodePath("GameChallengeVBoxContainer/GameChallengeHBoxContainer/GameChallengeResponseVBoxContainer/AcceptGameChallenge")
-RejectChallengeButton = NodePath("GameChallengeVBoxContainer/GameChallengeHBoxContainer/GameChallengeResponseVBoxContainer/RejectGameChallenge")
+_sendChallengeButton = NodePath("GameChallengeVBoxContainer/GameChallengeHBoxContainer/GameChallengeRequestVBoxContainer/ChallengeToGame")
+_cancelChallengeButton = NodePath("GameChallengeVBoxContainer/GameChallengeHBoxContainer/GameChallengeRequestVBoxContainer/CancelGameChallenge")
+_acceptChallengeButton = NodePath("GameChallengeVBoxContainer/GameChallengeHBoxContainer/GameChallengeResponseVBoxContainer/AcceptGameChallenge")
+_rejectChallengeButton = NodePath("GameChallengeVBoxContainer/GameChallengeHBoxContainer/GameChallengeResponseVBoxContainer/RejectGameChallenge")
 
 [node name="GameChallengeVBoxContainer" type="VBoxContainer" parent="GameChallengeMarginContainer"]
 layout_mode = 2

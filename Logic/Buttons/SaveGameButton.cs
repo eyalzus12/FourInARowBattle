@@ -10,16 +10,16 @@ public partial class SaveGameButton : Button
 
     [ExportCategory("Nodes")]
     [Export]
-    private FileDialog SaveGamePopup = null!;
+    private FileDialog _saveGamePopup = null!;
 
     private void VerifyExports()
     {
-        ArgumentNullException.ThrowIfNull(SaveGamePopup);
+        ArgumentNullException.ThrowIfNull(_saveGamePopup);
     }
 
     private void ConnectSignals()
     {
-        SaveGamePopup.FileSelected += OnSaveGamePopupFileSelected;
+        _saveGamePopup.FileSelected += OnSaveGamePopupFileSelected;
         GetWindow().SizeChanged += OnWindowSizeChanged;
     }
 
@@ -37,13 +37,13 @@ public partial class SaveGameButton : Button
 
     private void OnWindowSizeChanged()
     {
-        if(SaveGamePopup.Visible)
+        if(_saveGamePopup.Visible)
             _Pressed();
     }
 
     public override void _Pressed()
     {
         Vector2I decorations = GetWindow().GetSizeOfDecorations();
-        SaveGamePopup?.PopupCentered(GetWindow().GetVisibleSize() - new Vector2I(0,decorations.Y));
+        _saveGamePopup?.PopupCentered(GetWindow().GetVisibleSize() - new Vector2I(0,decorations.Y));
     }
 }

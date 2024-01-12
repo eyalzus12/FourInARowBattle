@@ -4,7 +4,7 @@
 
 [sub_resource type="LabelSettings" id="LabelSettings_oohaq"]
 
-[node name="TokenCounterControl" type="Panel" node_paths=PackedStringArray("TokenButtons", "TokenCountLabel")]
+[node name="TokenCounterControl" type="Panel" node_paths=PackedStringArray("TokenButtons")]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -14,7 +14,6 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_pf40s")
 TokenButtons = []
-TokenCountLabel = NodePath("HBoxContainer/CountLabel")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
 layout_mode = 1

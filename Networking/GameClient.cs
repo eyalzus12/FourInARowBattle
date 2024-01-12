@@ -61,7 +61,7 @@ public partial class GameClient : Node
 
     [ExportCategory("Nodes")]
     [Export]
-    private WebSocketClient Client = null!;
+    private WebSocketClient _client = null!;
 
     private readonly Deque<byte> _buffer = new();
 
@@ -97,21 +97,21 @@ public partial class GameClient : Node
 
     private void VerifyExports()
     {
-        ArgumentNullException.ThrowIfNull(Client);
+        ArgumentNullException.ThrowIfNull(_client);
     }
 
     private void ConnectSignals()
     {
-        Client.PacketReceived += OnWebSocketClientPacketReceived;
-        Client.ConnectedToServer += OnWebSocketClientConnected;
-        Client.ConnectionClosed += OnWebSocketClientConnectionClosed;
+        _client.PacketReceived += OnWebSocketClientPacketReceived;
+        _client.ConnectedToServer += OnWebSocketClientConnected;
+        _client.ConnectionClosed += OnWebSocketClientConnectionClosed;
     }
 
     public override void _Ready()
     {
         VerifyExports();
         ConnectSignals();
-        Error err = Client.ConnectToUrl(CONNECTION_URL);
+        Error err = _client.ConnectToUrl(CONNECTION_URL);
         if(err != Error.Ok)
         {
             DisplayError($"Error while trying to connect: {err}");
@@ -158,13 +158,13 @@ public partial class GameClient : Node
     {
         ArgumentNullException.ThrowIfNull(packet);
 
-        if(Client.State != WebSocketPeer.State.Open)
+        if(_client.State != WebSocketPeer.State.Open)
         {
             DisplayError("Connection to server is not yet established. Please wait.");
             return;
         }
 
-        Error err = Client.SendPacket(packet.ToByteArray());
+        Error err = _client.SendPacket(packet.ToByteArray());
         if(err != Error.Ok)
             DisplayError($"Error {err} while trying to communicate with server");
     }
@@ -174,6 +174,7 @@ public partial class GameClient : Node
         ArgumentNullException.ThrowIfNull(packet);
         //giant switch statement to handle all packets
         //can't use polymorphism since that would require to expose the GameClient privates to the packets.
+        //and can't use a dictionary since we need to cast the packets (and doing so generically would require reflection)
         switch(packet)
         {
             case Packet_Dummy _packet:
@@ -679,9 +680,19 @@ public partial class GameClient : Node
             Desync();
             return;
         }
-        if(!ResourceLoader.Exists(_placePacket.ScenePath)) return;
+        if(!ResourceLoader.Exists(_placePacket.ScenePath))
+        {
+            GD.Print("Server approved place action but the scene does not exist??");
+            Desync();
+            return;
+        }
         Resource res = ResourceLoader.Load(_placePacket.ScenePath);
-        if(res is not PackedScene scene) return;
+        if(res is not PackedScene scene)
+        {
+            GD.Print("Server approved place action but the resource is not a scene??");
+            Desync();
+            return;
+        }
         EmitSignal(SignalName.GameActionPlaceSent, _placePacket.Column, scene);
         _placePacket = null;
     }
@@ -878,10 +889,10 @@ public partial class GameClient : Node
 
     public void CloseConnection()
     {
-        if(Client.State != WebSocketPeer.State.Open)
+        if(_client.State != WebSocketPeer.State.Open)
             return;
         
-        Client.Close();
+        _client.Close();
         _lobby = null;
         _isPlayer1 = null;
         _lobbyConnectionPacket = null;

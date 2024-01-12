@@ -6,21 +6,21 @@
 [ext_resource type="Script" path="res://Networking/WebSocketServer.cs" id="4_wyd18"]
 [ext_resource type="Script" path="res://Logic/Buttons/GoBackButton.cs" id="5_uk11p"]
 
-[node name="GameServerMenu" type="Node" node_paths=PackedStringArray("Server", "Port", "StartServer", "StopServer", "RefuseNewConnections", "ErrorPopup", "GoBack", "GoBackConfirmationDialog")]
+[node name="GameServerMenu" type="Node" node_paths=PackedStringArray("_server", "_port", "_startServerButton", "_stopServerButton", "_refuseNewConnectionsCheckButton", "_errorPopup", "_goBackButton", "_goBackConfirmationDialog")]
 script = ExtResource("1_f0143")
-Server = NodePath("GameServer")
-Port = NodePath("CanvasLayer/ServerControlsMarginContainer/ServerControlsVBoxContainer/PortPanelContainer/PortMarginContainer/PortHBoxContainer/PortLineEdit")
-StartServer = NodePath("CanvasLayer/ServerControlsMarginContainer/ServerControlsVBoxContainer/ButtonsHBoxContainer/StartServerButton")
-StopServer = NodePath("CanvasLayer/ServerControlsMarginContainer/ServerControlsVBoxContainer/ButtonsHBoxContainer/StopServerButton")
-RefuseNewConnections = NodePath("CanvasLayer/ServerControlsMarginContainer/ServerControlsVBoxContainer/RefuseNewPanelContainer/RefuseNewMarginContainer/RefuseNewCheckButton")
-ErrorPopup = NodePath("ErrorPopup")
-GoBack = NodePath("GoBack")
-GoBackConfirmationDialog = NodePath("ConfirmationDialog")
+_server = NodePath("GameServer")
+_port = NodePath("CanvasLayer/ServerControlsMarginContainer/ServerControlsVBoxContainer/PortPanelContainer/PortMarginContainer/PortHBoxContainer/PortLineEdit")
+_startServerButton = NodePath("CanvasLayer/ServerControlsMarginContainer/ServerControlsVBoxContainer/ButtonsHBoxContainer/StartServerButton")
+_stopServerButton = NodePath("CanvasLayer/ServerControlsMarginContainer/ServerControlsVBoxContainer/ButtonsHBoxContainer/StopServerButton")
+_refuseNewConnectionsCheckButton = NodePath("CanvasLayer/ServerControlsMarginContainer/ServerControlsVBoxContainer/RefuseNewPanelContainer/RefuseNewMarginContainer/RefuseNewCheckButton")
+_errorPopup = NodePath("ErrorPopup")
+_goBackButton = NodePath("GoBack")
+_goBackConfirmationDialog = NodePath("ConfirmationDialog")
 
-[node name="GameServer" type="Node" parent="." node_paths=PackedStringArray("Server")]
+[node name="GameServer" type="Node" parent="." node_paths=PackedStringArray("_server")]
 script = ExtResource("2_0s4yf")
-Server = NodePath("WebSocketServer")
-GameScene = ExtResource("3_ax736")
+_server = NodePath("WebSocketServer")
+_gameScene = ExtResource("3_ax736")
 
 [node name="WebSocketServer" type="Node" parent="GameServer"]
 script = ExtResource("4_wyd18")
@@ -111,7 +111,6 @@ offset_bottom = 88.0
 mouse_filter = 1
 text = "Back To Main Menu"
 script = ExtResource("5_uk11p")
-ChangeTo = "res://Scenes/UI/Menus/MainMenu/MainMenu.tscn"
 
 [node name="ConfirmationDialog" type="ConfirmationDialog" parent="."]
 snap_2d_transforms_to_pixel = true

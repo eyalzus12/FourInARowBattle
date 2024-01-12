@@ -7,16 +7,16 @@ public partial class ChangeSceneAndLoadGameButton : ChangeSceneOnPressButton
 {
     [ExportCategory("Nodes")]
     [Export]
-    private FileDialog FileSelectDialog = null!;
+    private FileDialog _fileSelectDialog = null!;
 
     private void VerifyExports()
     {
-        ArgumentNullException.ThrowIfNull(FileSelectDialog);
+        ArgumentNullException.ThrowIfNull(_fileSelectDialog);
     }
 
     private void ConnectSignals()
     {
-        FileSelectDialog.FileSelected += OnFileSelectDialogFileSelected;
+        _fileSelectDialog.FileSelected += OnFileSelectDialogFileSelected;
         GetWindow().SizeChanged += OnWindowSizeChanged;
     }
 
@@ -34,13 +34,13 @@ public partial class ChangeSceneAndLoadGameButton : ChangeSceneOnPressButton
 
     private void OnWindowSizeChanged()
     {
-        if(FileSelectDialog.Visible)
+        if(_fileSelectDialog.Visible)
             _Pressed();
     }
 
     public override void _Pressed()
     {
         Vector2I decorations = GetWindow().GetSizeOfDecorations();
-        FileSelectDialog.PopupCentered(GetWindow().GetVisibleSize() - new Vector2I(0,decorations.Y));
+        _fileSelectDialog.PopupCentered(GetWindow().GetVisibleSize() - new Vector2I(0,decorations.Y));
     }
 }

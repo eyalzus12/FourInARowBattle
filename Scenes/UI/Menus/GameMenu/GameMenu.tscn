@@ -5,11 +5,11 @@
 [ext_resource type="Script" path="res://Logic/Buttons/SaveGameButton.cs" id="3_ioy0s"]
 [ext_resource type="Script" path="res://Logic/Buttons/LoadGameButton.cs" id="4_2mhhg"]
 
-[node name="GameMenu" type="Node2D" node_paths=PackedStringArray("Game", "SaveGame", "LoadGame")]
+[node name="GameMenu" type="Node2D" node_paths=PackedStringArray("Game", "_saveGameButton", "_loadGameButton")]
 script = ExtResource("1_nk18s")
 Game = NodePath("Game")
-SaveGame = NodePath("Control/HBoxContainer/Save Game")
-LoadGame = NodePath("Control/HBoxContainer/Load Game")
+_saveGameButton = NodePath("Control/HBoxContainer/Save Game")
+_loadGameButton = NodePath("Control/HBoxContainer/Load Game")
 
 [node name="Game" parent="." instance=ExtResource("2_g8him")]
 
@@ -62,14 +62,14 @@ offset_bottom = 66.0
 grow_horizontal = 2
 mouse_filter = 2
 
-[node name="Save Game" type="Button" parent="Control/HBoxContainer" node_paths=PackedStringArray("SaveGamePopup")]
+[node name="Save Game" type="Button" parent="Control/HBoxContainer" node_paths=PackedStringArray("_saveGamePopup")]
 layout_mode = 2
 text = "Save Game"
 script = ExtResource("3_ioy0s")
-SaveGamePopup = NodePath("../../../SaveDialog")
+_saveGamePopup = NodePath("../../../SaveDialog")
 
-[node name="Load Game" type="Button" parent="Control/HBoxContainer" node_paths=PackedStringArray("LoadGamePopup")]
+[node name="Load Game" type="Button" parent="Control/HBoxContainer" node_paths=PackedStringArray("_loadGamePopup")]
 layout_mode = 2
 text = "Load Game"
 script = ExtResource("4_2mhhg")
-LoadGamePopup = NodePath("../../../LoadDialog")
+_loadGamePopup = NodePath("../../../LoadDialog")

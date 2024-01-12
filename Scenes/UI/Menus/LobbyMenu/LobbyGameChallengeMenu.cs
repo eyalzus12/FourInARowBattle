@@ -18,31 +18,28 @@ public partial class LobbyGameChallengeMenu : Control
 
     [ExportCategory("Nodes")]
     [Export]
-    private Label ChallengeStatusLabel = null!;
+    private Button _sendChallengeButton = null!;
     [Export]
-    private Button SendChallengeButton = null!;
+    private Button _cancelChallengeButton = null!;
     [Export]
-    private Button CancelChallengeButton = null!;
+    private Button _acceptChallengeButton = null!;
     [Export]
-    private Button AcceptChallengeButton = null!;
-    [Export]
-    private Button RejectChallengeButton = null!;
+    private Button _rejectChallengeButton = null!;
 
     private void VerifyExports()
     {
-        ArgumentNullException.ThrowIfNull(ChallengeStatusLabel);
-        ArgumentNullException.ThrowIfNull(SendChallengeButton);
-        ArgumentNullException.ThrowIfNull(CancelChallengeButton);
-        ArgumentNullException.ThrowIfNull(AcceptChallengeButton);
-        ArgumentNullException.ThrowIfNull(RejectChallengeButton);
+        ArgumentNullException.ThrowIfNull(_sendChallengeButton);
+        ArgumentNullException.ThrowIfNull(_cancelChallengeButton);
+        ArgumentNullException.ThrowIfNull(_acceptChallengeButton);
+        ArgumentNullException.ThrowIfNull(_rejectChallengeButton);
     }
 
     private void ConnectSignals()
     {
-        SendChallengeButton.Pressed += OnSendChallengeButtonPressed;
-        CancelChallengeButton.Pressed += OnCancelChallengeButtonPressed;
-        AcceptChallengeButton.Pressed += OnAcceptChallengeButtonPressed;
-        RejectChallengeButton.Pressed += OnRejectChallengeButtonPressed;
+        _sendChallengeButton.Pressed += OnSendChallengeButtonPressed;
+        _cancelChallengeButton.Pressed += OnCancelChallengeButtonPressed;
+        _acceptChallengeButton.Pressed += OnAcceptChallengeButtonPressed;
+        _rejectChallengeButton.Pressed += OnRejectChallengeButtonPressed;
     }
 
     public override void _Ready()
@@ -75,33 +72,33 @@ public partial class LobbyGameChallengeMenu : Control
 
     public void SetState_NoChallenge()
     {
-        SendChallengeButton.Visible = true;
-        CancelChallengeButton.Visible = false;
-        AcceptChallengeButton.Visible = false;
-        RejectChallengeButton.Visible = false;
+        _sendChallengeButton.Visible = true;
+        _cancelChallengeButton.Visible = false;
+        _acceptChallengeButton.Visible = false;
+        _rejectChallengeButton.Visible = false;
     }
 
     public void SetState_SentChallenge()
     {
-        SendChallengeButton.Visible = false;
-        CancelChallengeButton.Visible = true;
-        AcceptChallengeButton.Visible = false;
-        RejectChallengeButton.Visible = false;
+        _sendChallengeButton.Visible = false;
+        _cancelChallengeButton.Visible = true;
+        _acceptChallengeButton.Visible = false;
+        _rejectChallengeButton.Visible = false;
     }
 
     public void SetState_GotChallenge()
     {
-        SendChallengeButton.Visible = false;
-        CancelChallengeButton.Visible = false;
-        AcceptChallengeButton.Visible = true;
-        RejectChallengeButton.Visible = true;
+        _sendChallengeButton.Visible = false;
+        _cancelChallengeButton.Visible = false;
+        _acceptChallengeButton.Visible = true;
+        _rejectChallengeButton.Visible = true;
     }
 
     public void SetState_CannotChallenge()
     {
-        SendChallengeButton.Visible = false;
-        CancelChallengeButton.Visible = false;
-        AcceptChallengeButton.Visible = false;
-        RejectChallengeButton.Visible = false;
+        _sendChallengeButton.Visible = false;
+        _cancelChallengeButton.Visible = false;
+        _acceptChallengeButton.Visible = false;
+        _rejectChallengeButton.Visible = false;
     }
 }

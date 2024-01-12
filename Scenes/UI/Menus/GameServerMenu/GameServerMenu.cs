@@ -7,41 +7,41 @@ public partial class GameServerMenu : Node
 {
     [ExportCategory("Nodes")]
     [Export]
-    private GameServer Server = null!;
+    private GameServer _server = null!;
     [Export]
-    private LineEdit Port = null!;
+    private LineEdit _port = null!;
     [Export]
-    private Button StartServer = null!;
+    private Button _startServerButton = null!;
     [Export]
-    private Button StopServer = null!;
+    private Button _stopServerButton = null!;
     [Export]
-    private CheckButton RefuseNewConnections = null!;
+    private CheckButton _refuseNewConnectionsCheckButton = null!;
     [Export]
-    private AcceptDialog ErrorPopup = null!;
+    private AcceptDialog _errorPopup = null!;
     [Export]
-    private GoBackButton GoBack = null!;
+    private GoBackButton _goBackButton = null!;
     [Export]
-    private ConfirmationDialog GoBackConfirmationDialog = null!;
+    private ConfirmationDialog _goBackConfirmationDialog = null!;
 
     private void VerifyExports()
     {
-        ArgumentNullException.ThrowIfNull(Server);
-        ArgumentNullException.ThrowIfNull(Port);
-        ArgumentNullException.ThrowIfNull(StartServer);
-        ArgumentNullException.ThrowIfNull(StopServer);
-        ArgumentNullException.ThrowIfNull(RefuseNewConnections);
-        ArgumentNullException.ThrowIfNull(ErrorPopup);
-        ArgumentNullException.ThrowIfNull(GoBack);
-        ArgumentNullException.ThrowIfNull(GoBackConfirmationDialog);
+        ArgumentNullException.ThrowIfNull(_server);
+        ArgumentNullException.ThrowIfNull(_port);
+        ArgumentNullException.ThrowIfNull(_startServerButton);
+        ArgumentNullException.ThrowIfNull(_stopServerButton);
+        ArgumentNullException.ThrowIfNull(_refuseNewConnectionsCheckButton);
+        ArgumentNullException.ThrowIfNull(_errorPopup);
+        ArgumentNullException.ThrowIfNull(_goBackButton);
+        ArgumentNullException.ThrowIfNull(_goBackConfirmationDialog);
     }
 
     private void ConnectSignals()
     {
-        StartServer.Pressed += OnStartServerPressed;
-        StopServer.Pressed += OnStopServerPressed;
-        RefuseNewConnections.Pressed += OnRefuseNewConnectionsPressed;
-        GoBack.ChangeSceneRequested += OnGoBackButtonChangeSceneRequested;
-        GoBackConfirmationDialog.Confirmed += OnGoBackConfirmationDialogConfirmed;
+        _startServerButton.Pressed += OnStartServerPressed;
+        _stopServerButton.Pressed += OnStopServerPressed;
+        _refuseNewConnectionsCheckButton.Pressed += OnRefuseNewConnectionsCheckButtonPressed;
+        _goBackButton.ChangeSceneRequested += OnGoBackButtonChangeSceneRequested;
+        _goBackConfirmationDialog.Confirmed += OnGoBackConfirmationDialogConfirmed;
     }
 
     public override void _Ready()
@@ -52,20 +52,20 @@ public partial class GameServerMenu : Node
 
     private void OnStartServerPressed()
     {
-        if(ushort.TryParse(Port.Text, out ushort port))
+        if(ushort.TryParse(_port.Text, out ushort port))
         {
-            Error err = Server.Listen(port);
+            Error err = _server.Listen(port);
             if(err != Error.Ok)
             {
                 DisplayError($"Error when trying to listen on port: {err}");
                 return;
             }
 
-            StartServer.Disabled = true;
-            StopServer.Disabled = false;
-            Port.Editable = false;
-            RefuseNewConnections.Disabled = false;
-            RefuseNewConnections.SetPressedNoSignal(false);
+            _startServerButton.Disabled = true;
+            _stopServerButton.Disabled = false;
+            _port.Editable = false;
+            _refuseNewConnectionsCheckButton.Disabled = false;
+            _refuseNewConnectionsCheckButton.SetPressedNoSignal(false);
         }
         else
         {
@@ -75,17 +75,17 @@ public partial class GameServerMenu : Node
 
     private void OnStopServerPressed()
     {
-        Server.Stop();
-        StartServer.Disabled = false;
-        StopServer.Disabled = true;
-        Port.Editable = true;
-        RefuseNewConnections.Disabled = true;
-        RefuseNewConnections.SetPressedNoSignal(false);
+        _server.Stop();
+        _startServerButton.Disabled = false;
+        _stopServerButton.Disabled = true;
+        _port.Editable = true;
+        _refuseNewConnectionsCheckButton.Disabled = true;
+        _refuseNewConnectionsCheckButton.SetPressedNoSignal(false);
     }
 
-    private void OnRefuseNewConnectionsPressed()
+    private void OnRefuseNewConnectionsCheckButtonPressed()
     {
-        Server.RefuseNewConnections = RefuseNewConnections.ButtonPressed;
+        _server.RefuseNewConnections = _refuseNewConnectionsCheckButton.ButtonPressed;
     }
 
     private string? _goBackRequestPath;
@@ -94,22 +94,22 @@ public partial class GameServerMenu : Node
     {
         ArgumentNullException.ThrowIfNull(path);
         _goBackRequestPath = path;
-        GoBackConfirmationDialog.PopupCentered();
+        _goBackConfirmationDialog.PopupCentered();
     }
 
     private void OnGoBackConfirmationDialogConfirmed()
     {
-        Server.Stop();
+        _server.Stop();
         GetTree().CallDeferred(SceneTree.MethodName.ChangeSceneToFile, _goBackRequestPath!);
     }
 
     private void DisplayError(string error)
     {
         ArgumentNullException.ThrowIfNull(error);
-        if(!ErrorPopup.Visible)
+        if(!_errorPopup.Visible)
         {
-            ErrorPopup.DialogText = error;
-            ErrorPopup.PopupCentered();
+            _errorPopup.DialogText = error;
+            _errorPopup.PopupCentered();
         }
     }
 }

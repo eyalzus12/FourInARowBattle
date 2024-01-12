@@ -17,8 +17,8 @@ public partial class Packet_LobbyTimeoutWarning : AbstractPacket
     public override byte[] ToByteArray()
     {
         byte[] buffer = new byte[1 + 4];
-        buffer.StoreBigEndianU8((byte)PacketType, 0);
-        buffer.StoreBigEndianU32((uint)SecondsRemaining, 1);
+        buffer.WriteBigEndian((byte)PacketType, 0);
+        buffer.WriteBigEndian((uint)SecondsRemaining, 1);
         return buffer;
     }
 }

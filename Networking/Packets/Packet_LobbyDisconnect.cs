@@ -17,8 +17,8 @@ public partial class Packet_LobbyDisconnect : AbstractPacket
     public override byte[] ToByteArray()
     {
         byte[] buffer = new byte[1 + 1];
-        buffer.StoreBigEndianU8((byte)PacketType, 0);
-        buffer.StoreBigEndianU8((byte)Reason, 1);
+        buffer.WriteBigEndian((byte)PacketType, 0);
+        buffer.WriteBigEndian((byte)Reason, 1);
         return buffer;
     }
 }

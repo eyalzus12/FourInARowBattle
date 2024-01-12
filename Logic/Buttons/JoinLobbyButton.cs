@@ -12,11 +12,11 @@ public partial class JoinLobbyButton : Button
 
     [ExportCategory("Nodes")]
     [Export]
-    private LobbyIdField Field = null!;
+    private LobbyIdField _field = null!;
 
     private void VerifyExports()
     {
-        ArgumentNullException.ThrowIfNull(Field);
+        ArgumentNullException.ThrowIfNull(_field);
     }
 
     public override void _Ready()
@@ -26,7 +26,7 @@ public partial class JoinLobbyButton : Button
 
     public override void _Pressed()
     {
-        if(uint.TryParse(Field.Text, out uint result))
+        if(uint.TryParse(_field.Text, out uint result))
             EmitSignal(SignalName.JoinLobbyButtonPressed, result);
         else
         {

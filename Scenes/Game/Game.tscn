@@ -13,11 +13,11 @@ font_color = Color(0.67451, 0.67451, 0.67451, 1)
 font_size = 21
 font_color = Color(0.67451, 0.67451, 0.67451, 1)
 
-[node name="Game" type="Node2D" node_paths=PackedStringArray("GameBoard", "CounterLists", "DescriptionLabels")]
+[node name="Game" type="Node2D" node_paths=PackedStringArray("GameBoard", "_counterLists", "_descriptionLables")]
 script = ExtResource("1_uwj10")
 GameBoard = NodePath("Board")
-CounterLists = [NodePath("Control/TokenCounterListControl"), NodePath("Control/TokenCounterListControl2")]
-DescriptionLabels = [NodePath("Control/Player1TokenDescriptionPanel/Player1TokenDescriptionLabel"), NodePath("Control/Player2TokenDescriptionPanel2/Player2TokenDescriptionLabel")]
+_counterLists = [NodePath("Control/TokenCounterListControl"), NodePath("Control/TokenCounterListControl2")]
+_descriptionLables = [NodePath("Control/Player1TokenDescriptionPanel/Player1TokenDescriptionLabel"), NodePath("Control/Player2TokenDescriptionPanel2/Player2TokenDescriptionLabel")]
 
 [node name="Board" parent="." instance=ExtResource("1_j8y8n")]
 
@@ -105,5 +105,4 @@ text = "Hover over a token to learn more about it"
 label_settings = SubResource("LabelSettings_6s1y4")
 autowrap_mode = 2
 script = ExtResource("4_8pjqi")
-ActiveOnTurn = 1
 metadata/_edit_lock_ = true

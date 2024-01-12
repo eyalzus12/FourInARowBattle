@@ -11,9 +11,9 @@ public partial class TokenBase : Node2D
     [Export(PropertyHint.MultilineText)]
     public string TokenDescription{get; set;} = "NO DESCRIPTION SET FOR THIS TOKEN";
     [Export]
-    public float TokenSpeed{get; set;} = 30f;
+    private float _tokenSpeed = 30f;
     [Export]
-    public float TokenAcceleration{get; set;} = 5f;
+    private float _tokenAcceleration = 5f;
 
     private Color _tokenColor = Colors.White;
     public Color TokenColor
@@ -93,7 +93,7 @@ public partial class TokenBase : Node2D
         Vector2 _desired = (Vector2)DesiredPosition;
         if(!_desired.IsEqualApprox(GlobalPosition))
         {
-            _currentSpeed = Mathf.MoveToward(_currentSpeed, TokenSpeed, TokenAcceleration);
+            _currentSpeed = Mathf.MoveToward(_currentSpeed, _tokenSpeed, _tokenAcceleration);
             GlobalPosition = GlobalPosition.MoveToward(_desired, _currentSpeed);
         }
         else

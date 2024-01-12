@@ -52,11 +52,11 @@ public partial class WebSocketServer : Node
 
     [ExportCategory("Tls")]
     [Export]
-    public bool UseTls{get; set;} = false;
+    private bool _useTls = false;
     [Export]
-    public X509Certificate? TlsCert{get; set;} = null;
+    private X509Certificate? _tlsCert = null;
     [Export]
-    public CryptoKey? TlsKey{get; set;} = null;
+    private CryptoKey? _tlsKey = null;
 
     private readonly TcpServer _tcpServer = new();
 
@@ -239,7 +239,7 @@ public partial class WebSocketServer : Node
         {
             return true; // Tcp Disconnected
         }
-        else if(!UseTls)
+        else if(!_useTls)
         {
             // Tcp is ready. Create WebSocket peer.
             peer.WebSocket = CreatePeer();
@@ -250,13 +250,13 @@ public partial class WebSocketServer : Node
         {
             if(peer.Connection == peer.Tcp)
             {
-                if(TlsKey is null || TlsCert is null)
+                if(_tlsKey is null || _tlsCert is null)
                 {
                     GD.PushError("Attempt to use Tls while Tls key and cert are null");
                     return true;
                 }
                 StreamPeerTls tls = new();
-                tls.AcceptStream(peer.Tcp, TlsOptions.Server(TlsKey, TlsCert));
+                tls.AcceptStream(peer.Tcp, TlsOptions.Server(_tlsKey, _tlsCert));
                 peer.Connection = tls;
             }
             if(peer.Connection is not StreamPeerTls tlsConn)

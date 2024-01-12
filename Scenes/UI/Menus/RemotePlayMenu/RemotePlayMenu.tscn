@@ -14,7 +14,7 @@ outline_color = Color(0, 0, 0, 1)
 shadow_color = Color(0, 0, 0, 1)
 shadow_offset = Vector2(-10, 1)
 
-[node name="RemotePlayScene" type="Control" node_paths=PackedStringArray("CreateLobby", "JoinLobby", "GoBack", "PlayerNameField")]
+[node name="RemotePlayScene" type="Control" node_paths=PackedStringArray("_createLobbyButton", "_joinLobbyButton", "_goBackButton", "_playerNameField")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -23,10 +23,10 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_dna4a")
-CreateLobby = NodePath("ButtonsMarginContainer/ButtonsVBoxContainer/CreateLobbyMarginContainer/CreateLobbyButton")
-JoinLobby = NodePath("ButtonsMarginContainer/ButtonsVBoxContainer/JoinLobbyMarginContainer/JoinLobbyHBoxContainer/JoinLobbyButton")
-GoBack = NodePath("GoBack")
-PlayerNameField = NodePath("PlayerName")
+_createLobbyButton = NodePath("ButtonsMarginContainer/ButtonsVBoxContainer/CreateLobbyMarginContainer/CreateLobbyButton")
+_joinLobbyButton = NodePath("ButtonsMarginContainer/ButtonsVBoxContainer/JoinLobbyMarginContainer/JoinLobbyHBoxContainer/JoinLobbyButton")
+_goBackButton = NodePath("GoBack")
+_playerNameField = NodePath("PlayerName")
 
 [node name="ButtonsMarginContainer" type="MarginContainer" parent="."]
 layout_mode = 0
@@ -92,7 +92,7 @@ placeholder_text = "Enter Lobby Id"
 max_length = 10
 script = ExtResource("2_ss3jf")
 
-[node name="JoinLobbyButton" type="Button" parent="ButtonsMarginContainer/ButtonsVBoxContainer/JoinLobbyMarginContainer/JoinLobbyHBoxContainer" node_paths=PackedStringArray("Field")]
+[node name="JoinLobbyButton" type="Button" parent="ButtonsMarginContainer/ButtonsVBoxContainer/JoinLobbyMarginContainer/JoinLobbyHBoxContainer" node_paths=PackedStringArray("_field")]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -101,7 +101,7 @@ mouse_filter = 1
 theme_override_font_sizes/font_size = 30
 text = "Join Lobby"
 script = ExtResource("2_s5kpe")
-Field = NodePath("../LobbyIdField")
+_field = NodePath("../LobbyIdField")
 
 [node name="GoBack" type="Button" parent="."]
 modulate = Color(1, 0.156863, 0.403922, 1)
@@ -111,7 +111,6 @@ offset_bottom = 88.0
 mouse_filter = 1
 text = "Back To Main Menu"
 script = ExtResource("1_pbaxe")
-ChangeTo = "res://Scenes/UI/Menus/MainMenu/MainMenu.tscn"
 
 [node name="PlayerName" type="LineEdit" parent="."]
 layout_mode = 1

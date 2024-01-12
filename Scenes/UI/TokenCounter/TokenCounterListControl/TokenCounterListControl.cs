@@ -18,24 +18,24 @@ public partial class TokenCounterListControl : Control
 
     [ExportCategory("Nodes")]
     [Export]
-    private Array<TokenCounterControl> Counters = new();
+    private Array<TokenCounterControl> _counters = new();
     [Export]
-    private Label ScoreLabel = null!;
+    private Label _scoreLabel = null!;
     [Export]
-    private Button RefillButton = null!;
+    private Button _refillButton = null!;
 
     private GameTurnEnum _activeOnTurn;
     private bool _refillLocked = false;
     private bool _refillUnlockedNextTurn = false;
 
     private int _currentScore = 0;
-    public int CurrentScore
+    private int CurrentScore
     {
         get => _currentScore;
         set
         {
             _currentScore = value;
-            ScoreLabel.Text = $"Score: {_currentScore}";
+            _scoreLabel.Text = $"Score: {_currentScore}";
         }
     }
 
@@ -43,12 +43,12 @@ public partial class TokenCounterListControl : Control
     public GameTurnEnum ActiveOnTurn
     {
         get => _activeOnTurn;
-        set
+        private set
         {
             _activeOnTurn = value;
             if(IsInsideTree())
             {
-                foreach(TokenCounterControl c in Counters)
+                foreach(TokenCounterControl c in _counters)
                     c.ActiveOnTurn = _activeOnTurn;
             }
         }
@@ -59,13 +59,13 @@ public partial class TokenCounterListControl : Control
 
     private void VerifyExports()
     {
-        ArgumentNullException.ThrowIfNull(ScoreLabel);
-        ArgumentNullException.ThrowIfNull(RefillButton);
+        ArgumentNullException.ThrowIfNull(_scoreLabel);
+        ArgumentNullException.ThrowIfNull(_refillButton);
     }
 
     private void ConnectSignals()
     {
-        foreach(TokenCounterControl c in Counters)
+        foreach(TokenCounterControl c in _counters)
         {
             TokenCounterControl cBind = c;
             c.TokenSelected += (TokenCounterButton button) => OnTokenSelected(cBind, button);
@@ -73,9 +73,9 @@ public partial class TokenCounterListControl : Control
             c.TokenButtonStoppedHover += OnTokenButtonStoppedHover;
         }
 
-        RefillButton.Pressed += OnRefillButtonPressed;
-        RefillButton.MouseEntered += OnRefillButtonMouseEntered;
-        RefillButton.MouseExited += OnRefillButtonMouseExited;
+        _refillButton.Pressed += OnRefillButtonPressed;
+        _refillButton.MouseEntered += OnRefillButtonMouseEntered;
+        _refillButton.MouseExited += OnRefillButtonMouseExited;
     }
 
     public override void _Ready()
@@ -135,7 +135,7 @@ public partial class TokenCounterListControl : Control
     {
         if(!AnyCanAdd()) return false;
         if(_refillLocked) return false;
-        foreach(TokenCounterControl c in Counters) if(c.CanAdd()) c.Add(1);
+        foreach(TokenCounterControl c in _counters) if(c.CanAdd()) c.Add(1);
         if(!_refillLocked) _refillLocked = true;
         return true;
     }
@@ -155,27 +155,27 @@ public partial class TokenCounterListControl : Control
             if(_refillLocked)
             {
                 _refillLocked = false;
-                RefillButton.Disabled = true;
+                _refillButton.Disabled = true;
                 _refillUnlockedNextTurn = true;
             }
             else if(AnyCanAdd())
             {
-                RefillButton.Disabled = false;
+                _refillButton.Disabled = false;
                 _refillUnlockedNextTurn = false;
             }
             else
             {
-                RefillButton.Disabled = true;
+                _refillButton.Disabled = true;
                 _refillUnlockedNextTurn = false;
             }
         }
         //opponent's turn
         else
         {
-            RefillButton.Disabled = true;
+            _refillButton.Disabled = true;
         }
 
-        foreach(TokenCounterControl c in Counters)
+        foreach(TokenCounterControl c in _counters)
         {
             c.OnTurnChange(to);
         }
@@ -189,14 +189,14 @@ public partial class TokenCounterListControl : Control
 
     public bool AnyCanAdd()
     {
-        foreach(TokenCounterControl c in Counters) if(c.CanAdd()) return true;
+        foreach(TokenCounterControl c in _counters) if(c.CanAdd()) return true;
         return false;
     }
 
     public TokenCounterControl? FindCounterOfScene(PackedScene scene)
     {
         ArgumentNullException.ThrowIfNull(scene);
-        foreach(TokenCounterControl c in Counters)
+        foreach(TokenCounterControl c in _counters)
         {
             foreach(TokenCounterButton b in c.TokenButtons)
             {
@@ -223,13 +223,13 @@ public partial class TokenCounterListControl : Control
         //so this assignment is needed to correctly get the previous state
         if(_refillUnlockedNextTurn) _refillLocked = true;
 
-        if(data.Counters.Count != Counters.Count)
+        if(data.Counters.Count != _counters.Count)
         {
-            GD.PushError($"Token counter list has {Counters.Count} counters, and there was an attempt to create it from data with {data.Counters.Count} counters");
+            GD.PushError($"Token counter list has {_counters.Count} counters, and there was an attempt to create it from data with {data.Counters.Count} counters");
             return;
         }
-        for(int i = 0; i < Counters.Count; ++i)
-            Counters[i].DeserializeFrom(data.Counters[i]);
+        for(int i = 0; i < _counters.Count; ++i)
+            _counters[i].DeserializeFrom(data.Counters[i]);
     }
 
     public TokenCounterListData SerializeTo() => new()
@@ -237,6 +237,6 @@ public partial class TokenCounterListControl : Control
         Score = CurrentScore,
         RefillLocked = _refillLocked,
         RefillUnlockedNextTurn = _refillUnlockedNextTurn,
-        Counters = Counters.Select(c => c.SerializeTo()).ToGodotArray()
+        Counters = _counters.Select(c => c.SerializeTo()).ToGodotArray()
     };
 }

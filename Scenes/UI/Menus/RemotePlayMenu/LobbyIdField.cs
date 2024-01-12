@@ -11,7 +11,7 @@ public partial class LobbyIdField : LineEdit
         TextChanged += OnTextChanged;
     }
 
-    public void OnTextChanged(string newText)
+    private void OnTextChanged(string newText)
     {
         ArgumentNullException.ThrowIfNull(newText);
         int caretIndex = CaretColumn;

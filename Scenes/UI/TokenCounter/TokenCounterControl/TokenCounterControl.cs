@@ -18,12 +18,12 @@ public partial class TokenCounterControl : Control
     public Godot.Collections.Array<TokenCounterButton> TokenButtons{get; private set;} = null!;
 
     [Export]
-    private Label TokenCountLabel = null!;
+    private Label _tokenCountLabel = null!;
 
     [Export]
-    private bool Infinite = false;
+    private bool _infinite = false;
     [Export]
-    private int TokenMaxCount = 5;
+    private int _tokenMaxCount = 5;
 
     [Export]
     private int TokenCount
@@ -34,7 +34,7 @@ public partial class TokenCounterControl : Control
             _count = value;
             if(IsInsideTree())
             {
-                TokenCountLabel.Text = Infinite?"∞/∞":$"{value}/{TokenMaxCount}";
+                _tokenCountLabel.Text = _infinite?"∞/∞":$"{value}/{_tokenMaxCount}";
                 if(!CanTake())
                     Disabled = true;
             }
@@ -74,7 +74,7 @@ public partial class TokenCounterControl : Control
 
     private void VerifyExports()
     {
-        ArgumentNullException.ThrowIfNull(TokenCountLabel);
+        ArgumentNullException.ThrowIfNull(_tokenCountLabel);
     }
 
     private void ConnectSignals()
@@ -128,10 +128,10 @@ public partial class TokenCounterControl : Control
         Disabled = to != ActiveOnTurn || !CanTake();
     }
 
-    public bool CanTake() => Infinite || (TokenCount > 0);
-    public bool CanAdd() => !Infinite && (TokenCount < TokenMaxCount);
-    public void Take(int amount){if(!Infinite) TokenCount -= amount;}
-    public void Add(int amount){if(!Infinite) TokenCount += amount;}
+    public bool CanTake() => _infinite || (TokenCount > 0);
+    public bool CanAdd() => !_infinite && (TokenCount < _tokenMaxCount);
+    public void Take(int amount){if(!_infinite) TokenCount -= amount;}
+    public void Add(int amount){if(!_infinite) TokenCount += amount;}
 
     public void DeserializeFrom(TokenCounterData data)
     {

@@ -10,11 +10,11 @@ public partial class ChangeSceneOnPressButton : BaseButton
     //to avoid a cyclic reference, we store the file path
 
     [Export(PropertyHint.File, "*.tscn,*.scn")]
-    private string ChangeTo = "";
+    private string _changeTo = "";
 
     public override void _Pressed()
     {
-        if(ChangeTo != "")
-            EmitSignal(SignalName.ChangeSceneRequested, ChangeTo);
+        if(_changeTo != "")
+            EmitSignal(SignalName.ChangeSceneRequested, _changeTo);
     }
 }

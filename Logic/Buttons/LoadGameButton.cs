@@ -10,16 +10,16 @@ public partial class LoadGameButton : Button
     
     [ExportCategory("Nodes")]
     [Export]
-    private FileDialog LoadGamePopup = null!;
+    private FileDialog _loadGamePopup = null!;
 
     private void VerifyExports()
     {
-        ArgumentNullException.ThrowIfNull(LoadGamePopup);
+        ArgumentNullException.ThrowIfNull(_loadGamePopup);
     }
 
     private void ConnectSignals()
     {
-        LoadGamePopup.FileSelected += OnLoadGamePopupFileSelected;
+        _loadGamePopup.FileSelected += OnLoadGamePopupFileSelected;
         GetWindow().SizeChanged += OnWindowSizeChanged;
     }
 
@@ -37,13 +37,13 @@ public partial class LoadGameButton : Button
 
     private void OnWindowSizeChanged()
     {
-        if(LoadGamePopup.Visible)
+        if(_loadGamePopup.Visible)
             _Pressed();
     }
 
     public override void _Pressed()
     {
         Vector2I decorations = GetWindow().GetSizeOfDecorations();
-        LoadGamePopup.PopupCentered(GetWindow().GetVisibleSize() - new Vector2I(0,decorations.Y));
+        _loadGamePopup.PopupCentered(GetWindow().GetVisibleSize() - new Vector2I(0,decorations.Y));
     }
 }

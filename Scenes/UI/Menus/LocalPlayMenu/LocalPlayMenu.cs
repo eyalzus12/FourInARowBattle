@@ -14,24 +14,24 @@ public partial class LocalPlayMenu : Control
 
     [ExportCategory("Nodes")]
     [Export]
-    private ChangeSceneOnPressButton CreateNewGame = null!;
+    private ChangeSceneOnPressButton _createNewGameButton = null!;
     [Export]
-    private ChangeSceneAndLoadGameButton LoadGame = null!;
+    private ChangeSceneAndLoadGameButton _loadGameButton = null!;
     [Export]
-    private GoBackButton GoBack = null!;
+    private GoBackButton _goBackButton = null!;
 
     private void VerifyExports()
     {
-        ArgumentNullException.ThrowIfNull(CreateNewGame);
-        ArgumentNullException.ThrowIfNull(LoadGame);
-        ArgumentNullException.ThrowIfNull(GoBack);
+        ArgumentNullException.ThrowIfNull(_createNewGameButton);
+        ArgumentNullException.ThrowIfNull(_loadGameButton);
+        ArgumentNullException.ThrowIfNull(_goBackButton);
     }
 
     private void ConnectSignals()
     {
-        CreateNewGame.ChangeSceneRequested += OnCreateNewGameChangeSceneRequested;
-        LoadGame.ChangeSceneRequested += OnLoadGameChangeSceneRequested;
-        GoBack.ChangeSceneRequested += OnGoBackChangeSceneRequested;
+        _createNewGameButton.ChangeSceneRequested += OnCreateNewGameButtonChangeSceneRequested;
+        _loadGameButton.ChangeSceneRequested += OnLoadGameButtonChangeSceneRequested;
+        _goBackButton.ChangeSceneRequested += OnGoBackButtonChangeSceneRequested;
     }
 
     public override void _Ready()
@@ -40,21 +40,21 @@ public partial class LocalPlayMenu : Control
         ConnectSignals();
     }
 
-    private void OnCreateNewGameChangeSceneRequested(string path)
+    private void OnCreateNewGameButtonChangeSceneRequested(string path)
     {
         ArgumentNullException.ThrowIfNull(path);
         EmitSignal(SignalName.CreateNewGameRequested, path);
         GetTree().CallDeferred(SceneTree.MethodName.ChangeSceneToFile, path);
     }
 
-    private void OnLoadGameChangeSceneRequested(string path)
+    private void OnLoadGameButtonChangeSceneRequested(string path)
     {
         ArgumentNullException.ThrowIfNull(path);
         EmitSignal(SignalName.LoadGameRequested, path);
         GetTree().CallDeferred(SceneTree.MethodName.ChangeSceneToFile, path);
     }
 
-    private void OnGoBackChangeSceneRequested(string path)
+    private void OnGoBackButtonChangeSceneRequested(string path)
     {
         ArgumentNullException.ThrowIfNull(path);
         EmitSignal(SignalName.GoBackRequested, path);

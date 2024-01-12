@@ -16,53 +16,53 @@ public partial class RemotePlayMenu : Control
 
     [ExportCategory("Nodes")]
     [Export]
-    private CreateLobbyButton CreateLobby = null!;
+    private CreateLobbyButton _createLobbyButton = null!;
     [Export]
-    private JoinLobbyButton JoinLobby = null!;
+    private JoinLobbyButton _joinLobbyButton = null!;
     [Export]
-    private GoBackButton GoBack = null!;
+    private GoBackButton _goBackButton = null!;
     [Export]
-    private LineEdit PlayerNameField = null!;
+    private LineEdit _playerNameField = null!;
 
     private void VerifyExports()
     {
-        ArgumentNullException.ThrowIfNull(CreateLobby);
-        ArgumentNullException.ThrowIfNull(JoinLobby);
-        ArgumentNullException.ThrowIfNull(GoBack);
-        ArgumentNullException.ThrowIfNull(PlayerNameField);
+        ArgumentNullException.ThrowIfNull(_createLobbyButton);
+        ArgumentNullException.ThrowIfNull(_joinLobbyButton);
+        ArgumentNullException.ThrowIfNull(_goBackButton);
+        ArgumentNullException.ThrowIfNull(_playerNameField);
     }
 
     private void ConnectSignals()
     {
-        CreateLobby.CreateLobbyButtonPressed += OnCreateLobbyCreateLobbyButtonPressed;
-        JoinLobby.JoinLobbyButtonPressed += OnJoinLobbyJoinLobbyButtonPressed;
-        JoinLobby.LobbyNumberWasInvalid += OnJoinLobbyLobbyNumberWasInvalid;
-        GoBack.ChangeSceneRequested += OnGoBackChangeSceneRequested;
+        _createLobbyButton.CreateLobbyButtonPressed += OnCreateLobbyButtonCreateLobbyButtonPressed;
+        _joinLobbyButton.JoinLobbyButtonPressed += OnJoinLobbyButtonJoinLobbyButtonPressed;
+        _joinLobbyButton.LobbyNumberWasInvalid += OnJoinLobbyButtonLobbyNumberWasInvalid;
+        _goBackButton.ChangeSceneRequested += OnGoBackButtonChangeSceneRequested;
     }
 
     public override void _Ready()
     {
         VerifyExports();
         ConnectSignals();
-        PlayerNameField.MaxLength = Globals.NAME_LENGTH_LIMIT;
+        _playerNameField.MaxLength = Globals.NAME_LENGTH_LIMIT;
     }
 
-    private void OnCreateLobbyCreateLobbyButtonPressed()
+    private void OnCreateLobbyButtonCreateLobbyButtonPressed()
     {
-        EmitSignal(SignalName.CreateLobbyRequested, PlayerNameField?.Text ?? "");
+        EmitSignal(SignalName.CreateLobbyRequested, _playerNameField?.Text ?? "");
     }
 
-    private void OnJoinLobbyJoinLobbyButtonPressed(uint lobbyId)
+    private void OnJoinLobbyButtonJoinLobbyButtonPressed(uint lobbyId)
     {
-        EmitSignal(SignalName.JoinLobbyRequested, lobbyId, PlayerNameField?.Text ?? "");
+        EmitSignal(SignalName.JoinLobbyRequested, lobbyId, _playerNameField?.Text ?? "");
     }
 
-    private void OnJoinLobbyLobbyNumberWasInvalid()
+    private void OnJoinLobbyButtonLobbyNumberWasInvalid()
     {
         EmitSignal(SignalName.LobbyNumberWasInvalid);
     }
 
-    private void OnGoBackChangeSceneRequested(string path)
+    private void OnGoBackButtonChangeSceneRequested(string path)
     {
         ArgumentNullException.ThrowIfNull(path);
         EmitSignal(SignalName.GoBackRequested, path);

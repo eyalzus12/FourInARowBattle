@@ -13,7 +13,7 @@ public partial class DescriptionLabel : Label
     private readonly static Dictionary<PackedScene, string> DescriptionCache = new();
 
     [Export]
-    private GameTurnEnum ActiveOnTurn;
+    private GameTurnEnum _activeOnTurn;
 
     private string? _description = null;
 
@@ -29,7 +29,7 @@ public partial class DescriptionLabel : Label
     {
         ArgumentNullException.ThrowIfNull(description);
 
-        if(turn != ActiveOnTurn) return;
+        if(turn != _activeOnTurn) return;
 
         _description = description;
         UpdateDescription(description);
@@ -40,7 +40,7 @@ public partial class DescriptionLabel : Label
         ArgumentNullException.ThrowIfNull(description);
 
         if(
-            turn != ActiveOnTurn ||
+            turn != _activeOnTurn ||
             description != _description
         ) return;
 

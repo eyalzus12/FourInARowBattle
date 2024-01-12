@@ -16,16 +16,16 @@ public partial class GameMenu : Node2D
     [Export]
     public Game Game{get; private set;} = null!;
     [Export]
-    private SaveGameButton SaveGame = null!;
+    private SaveGameButton _saveGameButton = null!;
     [Export]
-    private LoadGameButton LoadGame = null!;
+    private LoadGameButton _loadGameButton = null!;
     [ExportCategory("")]
     [Export]
-    private bool InteractionEnabled = false;
+    private bool _interactionEnabled = false;
     [Export]
-    private bool LoadingEnabled = false;
+    private bool _loadingEnabled = false;
     [Export]
-    private bool SavingEnabled = false;
+    private bool _savingEnabled = false;
     [Export]
     public Godot.Collections.Array<GameTurnEnum> AllowedTurns
     {
@@ -40,8 +40,8 @@ public partial class GameMenu : Node2D
     private void VerifyExports()
     {
         ArgumentNullException.ThrowIfNull(Game);
-        ArgumentNullException.ThrowIfNull(LoadGame);
-        ArgumentNullException.ThrowIfNull(SaveGame);
+        ArgumentNullException.ThrowIfNull(_loadGameButton);
+        ArgumentNullException.ThrowIfNull(_saveGameButton);
     }
 
     private void ConnectSignals()
@@ -52,13 +52,13 @@ public partial class GameMenu : Node2D
         Game.GhostTokenHidingWanted += OnGameGhostTokenHidingWanted;
         Game.TokenPlaceAttempted += OnGameTokenPlaceAttempted;
         Game.RefillAttempted += OnGameRefillAttempted;
-        LoadGame.GameLoadRequested += OnLoadGameGameLoadRequested;
-        SaveGame.GameSaveRequested += OnSaveGameGameSaveRequested;
+        _loadGameButton.GameLoadRequested += OnLoadGameButtonGameLoadRequested;
+        _saveGameButton.GameSaveRequested += OnSaveGameButtonGameSaveRequested;
     }
 
     private void InitGame()
     {
-        if(InteractionEnabled)
+        if(_interactionEnabled)
         {
             Game.SetupDropDetectors();
             Game.SetDetectorsDisabled(!_allowedTurns.Contains(Game.Turn));
@@ -71,61 +71,61 @@ public partial class GameMenu : Node2D
         VerifyExports();
         ConnectSignals();
         InitGame();
-        SaveGame.Disabled = !SavingEnabled;
-        SaveGame.Visible = SavingEnabled;
-        LoadGame.Disabled = !LoadingEnabled;
-        LoadGame.Visible = LoadingEnabled;
+        _saveGameButton.Disabled = !_savingEnabled;
+        _saveGameButton.Visible = _savingEnabled;
+        _loadGameButton.Disabled = !_loadingEnabled;
+        _loadGameButton.Visible = _loadingEnabled;
     }
 
     private void OnGameGameBoardTokenFinishedDrop()
     {
-        SaveGame.Disabled = false;
+        _saveGameButton.Disabled = false;
     }
 
     private void OnGameGameBoardTokenStartedDrop()
     {
-        SaveGame.Disabled = !SavingEnabled;
+        _saveGameButton.Disabled = !_savingEnabled;
     }
 
     private void OnGameGhostTokenRenderWanted(Texture2D texture, Color color, int col)
     {
         ArgumentNullException.ThrowIfNull(texture);
-        if(!InteractionEnabled || !_allowedTurns.Contains(Game.Turn)) return;
+        if(!_interactionEnabled || !_allowedTurns.Contains(Game.Turn)) return;
         Game.RenderGhostToken(texture, color, col);
     }
 
     private void OnGameGhostTokenHidingWanted()
     {
-        if(!InteractionEnabled || !_allowedTurns.Contains(Game.Turn)) return;
+        if(!_interactionEnabled || !_allowedTurns.Contains(Game.Turn)) return;
         Game.HideGhostToken();
     }
 
     private void OnGameTokenPlaceAttempted(int column, PackedScene scene)
     {
         ArgumentNullException.ThrowIfNull(scene);
-        if(!InteractionEnabled || !_allowedTurns.Contains(Game.Turn)) return;
+        if(!_interactionEnabled || !_allowedTurns.Contains(Game.Turn)) return;
         EmitSignal(SignalName.TokenPlaceAttempted, column, scene);
     }
 
     private void OnGameRefillAttempted()
     {
-        if(!InteractionEnabled || !_allowedTurns.Contains(Game.Turn)) return;
+        if(!_interactionEnabled || !_allowedTurns.Contains(Game.Turn)) return;
         EmitSignal(SignalName.RefillAttempted);
     }
 
-    private void OnLoadGameGameLoadRequested(string path)
+    private void OnLoadGameButtonGameLoadRequested(string path)
     {
         ArgumentNullException.ThrowIfNull(path);
-        if(!LoadingEnabled) return;
+        if(!_loadingEnabled) return;
         GameData data = ResourceLoader.Load<GameData>(path, cacheMode: ResourceLoader.CacheMode.Replace);
         Game.DeserializeFrom(data);
         InitGame();
     }
 
-    private void OnSaveGameGameSaveRequested(string path)
+    private void OnSaveGameButtonGameSaveRequested(string path)
     {
         ArgumentNullException.ThrowIfNull(path);
-        if(!SavingEnabled) return;
+        if(!_savingEnabled) return;
         GameData data = Game.SerializeTo();
         Error err = ResourceSaver.Save(data, path, ResourceSaver.SaverFlags.Compress);
         if(err != Error.Ok)
@@ -138,7 +138,7 @@ public partial class GameMenu : Node2D
     {
         ArgumentNullException.ThrowIfNull(token);
         ErrorCodeEnum? err = Game.PlaceToken(column, token);
-        if(InteractionEnabled && err is not null)
+        if(_interactionEnabled && err is null)
         {
             Game.SetDetectorsDisabled(!_allowedTurns.Contains(Game.Turn));
         }
@@ -148,7 +148,7 @@ public partial class GameMenu : Node2D
     public ErrorCodeEnum? Refill()
     {
         ErrorCodeEnum? err = Game.DoRefill();
-        if(InteractionEnabled && err is not null)
+        if(_interactionEnabled && err is null)
         {
             Game.SetDetectorsDisabled(!_allowedTurns.Contains(Game.Turn));
         }

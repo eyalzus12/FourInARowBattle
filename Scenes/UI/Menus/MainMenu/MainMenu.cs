@@ -14,24 +14,24 @@ public partial class MainMenu : Control
 
     [ExportCategory("Nodes")]
     [Export]
-    private ChangeSceneOnPressButton LocalPlayButton = null!;
+    private ChangeSceneOnPressButton _localPlayButton = null!;
     [Export]
-    private ChangeSceneOnPressButton RemotePlayButton = null!;
+    private ChangeSceneOnPressButton _remotePlayButton = null!;
     [Export]
-    private ChangeSceneOnPressButton HostServerButton = null!;
+    private ChangeSceneOnPressButton _hostServerButton = null!;
 
     private void VerifyExports()
     {
-        ArgumentNullException.ThrowIfNull(LocalPlayButton);
-        ArgumentNullException.ThrowIfNull(RemotePlayButton);
-        ArgumentNullException.ThrowIfNull(HostServerButton);
+        ArgumentNullException.ThrowIfNull(_localPlayButton);
+        ArgumentNullException.ThrowIfNull(_remotePlayButton);
+        ArgumentNullException.ThrowIfNull(_hostServerButton);
     }
 
     private void ConnectSignals()
     {
-        LocalPlayButton.ChangeSceneRequested += OnLocalPlayButtonChangeSceneRequested;
-        RemotePlayButton.ChangeSceneRequested += OnRemotePlayButtonChangeSceneRequested;
-        HostServerButton.ChangeSceneRequested += OnHostServerButtonChangeSceneRequested;
+        _localPlayButton.ChangeSceneRequested += OnLocalPlayButtonChangeSceneRequested;
+        _remotePlayButton.ChangeSceneRequested += OnRemotePlayButtonChangeSceneRequested;
+        _hostServerButton.ChangeSceneRequested += OnHostServerButtonChangeSceneRequested;
     }
 
     public override void _Ready()

@@ -34,12 +34,12 @@ public partial class GameServer : Node
 
     [ExportCategory("Nodes")]
     [Export]
-    private WebSocketServer Server = null!;
+    private WebSocketServer _server = null!;
     [ExportCategory("")]
     [Export]
-    private PackedScene GameScene = null!;
+    private PackedScene _gameScene = null!;
     [Export]
-    public bool RefuseNewConnections{get => Server.RefuseNewConnections; set => Server.RefuseNewConnections = value;}
+    public bool RefuseNewConnections{get => _server.RefuseNewConnections; set => _server.RefuseNewConnections = value;}
 
     private readonly Deque<byte> _buffer = new();
 
@@ -48,15 +48,15 @@ public partial class GameServer : Node
 
     private void VerifyExports()
     {
-        ArgumentNullException.ThrowIfNull(Server);
-        ArgumentNullException.ThrowIfNull(GameScene);
+        ArgumentNullException.ThrowIfNull(_server);
+        ArgumentNullException.ThrowIfNull(_gameScene);
     }
 
     private void ConnectSignals()
     {
-        Server.PacketReceived += OnWebSocketServerPacketReceived;
-        Server.ClientConnected += OnWebSocketClientConnected;
-        Server.ClientDisconnected += OnWebSocketClientDisconnected;
+        _server.PacketReceived += OnWebSocketServerPacketReceived;
+        _server.ClientConnected += OnWebSocketClientConnected;
+        _server.ClientDisconnected += OnWebSocketClientDisconnected;
     }
 
     public override void _Ready()
@@ -67,14 +67,14 @@ public partial class GameServer : Node
 
     public Error Listen(ushort port)
     {
-        Error err = Server.Listen(port);
+        Error err = _server.Listen(port);
         if(err != Error.Ok) return err;
         return Error.Ok;
     }
 
     public void Stop()
     {
-        if(!Server.Listening) return;
+        if(!_server.Listening) return;
 
         foreach(Lobby lobby in _lobbies.Values)
         {
@@ -86,7 +86,7 @@ public partial class GameServer : Node
             SendPacket(player.Id, new Packet_ServerClosing());
         }
 
-        Server.Stop();
+        _server.Stop();
     }
 
     public override void _Notification(int what)
@@ -125,7 +125,7 @@ public partial class GameServer : Node
     public void SendPacket(int peerId, AbstractPacket packet)
     {
         ArgumentNullException.ThrowIfNull(packet);
-        Server.SendPacket(peerId, packet.ToByteArray());
+        _server.SendPacket(peerId, packet.ToByteArray());
     }
 
     public void HandlePacket(int peerId, AbstractPacket packet)
@@ -167,10 +167,8 @@ public partial class GameServer : Node
                 HandlePacket_GameActionRefill(peerId, _packet);
                 break;
             default:
-            {
                 GD.PushError($"Server did not expect packet of type {packet.GetType().Name} from {peerId}");
                 break;
-            }
         }
     }
 
@@ -352,7 +350,7 @@ public partial class GameServer : Node
         start game here
         */
         GD.Print($"game will now started in lobby {lobby.Id}");
-        lobby.ActiveGame = Autoloads.ScenePool.GetScene<GameMenu>(GameScene!);
+        lobby.ActiveGame = Autoloads.ScenePool.GetScene<GameMenu>(_gameScene!);
         AddChild(lobby.ActiveGame);
         bool which = GD.RandRange(0, 1) == 0; //decide which player is first
         lobby.Turns = new GameTurnEnum[]{which ? GameTurnEnum.Player1 : GameTurnEnum.Player2, which ? GameTurnEnum.Player2 : GameTurnEnum.Player1};

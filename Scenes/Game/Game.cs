@@ -20,9 +20,9 @@ public partial class Game : Node2D
     private TokenCounterButton? _selectedButton = null;
 
     public GameTurnEnum Turn{get; set;} = GameTurnEnum.Player1;
-    public Color TurnColor => Turn.GameTurnToColor();
+    private Color TurnColor => Turn.GameTurnToColor();
 
-    public GameTurnEnum NextTurn => Turn switch
+    private GameTurnEnum NextTurn => Turn switch
     {
         GameTurnEnum.Player1 => GameTurnEnum.Player2,
         GameTurnEnum.Player2 => GameTurnEnum.Player1,
@@ -33,21 +33,21 @@ public partial class Game : Node2D
     [Export]
     public Board GameBoard{get; set;} = null!;
     [Export]
-    private Godot.Collections.Array<TokenCounterListControl> CounterLists = new();
+    private Godot.Collections.Array<TokenCounterListControl> _counterLists = new();
     [Export]
-    private Godot.Collections.Array<DescriptionLabel> DescriptionLabels = new();
+    private Godot.Collections.Array<DescriptionLabel> _descriptionLables = new();
     [ExportCategory("")]
     [Export]
-    private float PressDetectorOffset = 200;
+    private float _pressDetectorOffset = 200;
 
     private readonly List<Area2D> _dropDetectors = new();
     private readonly List<CollisionShape2D> _dropDetectorShapes = new();
 
     private int? _dropDetectorIdx;
-    public int? DropDetectorIdx
+    private int? DropDetectorIdx
     {
         get => _dropDetectorIdx;
-        private set
+        set
         {
             _dropDetectorIdx = value;
             if(
@@ -56,7 +56,9 @@ public partial class Game : Node2D
                 _selectedControl.CanTake() &&
                 _selectedButton is not null
             )
-                EmitSignal(SignalName.GhostTokenRenderWanted, TurnColor, (int)value);
+                //a little hack: use the button's icon so we don't have to open up the scene
+                //and fetch the texture
+                EmitSignal(SignalName.GhostTokenRenderWanted, _selectedButton.Icon, TurnColor, (int)value);
             else
                 EmitSignal(SignalName.GhostTokenHidingWanted);
         }
@@ -78,13 +80,13 @@ public partial class Game : Node2D
     private void VerifyExports()
     {
         ArgumentNullException.ThrowIfNull(GameBoard);
-        foreach(TokenCounterListControl clist in CounterLists) ArgumentNullException.ThrowIfNull(clist);
-        foreach(DescriptionLabel label in DescriptionLabels) ArgumentNullException.ThrowIfNull(label);
+        foreach(TokenCounterListControl clist in _counterLists) ArgumentNullException.ThrowIfNull(clist);
+        foreach(DescriptionLabel label in _descriptionLables) ArgumentNullException.ThrowIfNull(label);
     }
 
     private void ConnectSignals()
     {
-        foreach(TokenCounterListControl clist in CounterLists)
+        foreach(TokenCounterListControl clist in _counterLists)
         {
             clist.TokenSelected += OnTokenSelected;
             clist.RefillAttempted += () =>
@@ -93,14 +95,14 @@ public partial class Game : Node2D
             };
             clist.TokenButtonHovered += (GameTurnEnum turn, string description) =>
             {
-                foreach(DescriptionLabel label in DescriptionLabels)
+                foreach(DescriptionLabel label in _descriptionLables)
                 {
                     label.OnTokenHover(turn, description);
                 }
             };
             clist.TokenButtonStoppedHover += (GameTurnEnum turn, string description) =>
             {
-                foreach(DescriptionLabel label in DescriptionLabels)
+                foreach(DescriptionLabel label in _descriptionLables)
                 {
                     label.OnTokenStopHover(turn, description);
                 }
@@ -110,7 +112,7 @@ public partial class Game : Node2D
         //_Ready is called on children before the parent
         //so we can do this to signal the token counters
         //and update their disabled/enabled state
-        foreach(TokenCounterListControl control in CounterLists)
+        foreach(TokenCounterListControl control in _counterLists)
             control.OnTurnChange(Turn);
 
         if(Autoloads.PersistentData.ContinueFromState is not null)
@@ -121,7 +123,7 @@ public partial class Game : Node2D
 
         GameBoard.ScoreIncreased += (GameTurnEnum who, int amount) =>
         {            
-            foreach(TokenCounterListControl counter in CounterLists)
+            foreach(TokenCounterListControl counter in _counterLists)
                 counter.OnAddScore(who, amount);
         };
 
@@ -160,7 +162,7 @@ public partial class Game : Node2D
             Area2D area = new(){Monitorable = false};
             CollisionShape2D shape = new()
             {
-                Shape = new RectangleShape2D(){Size = new(2*GameBoard.SlotRadius, (botMost-topMost).Y + PressDetectorOffset)},
+                Shape = new RectangleShape2D(){Size = new(2*GameBoard.SlotRadius, (botMost-topMost).Y + _pressDetectorOffset)},
                 Disabled = true
             };
             area.AddChild(shape);
@@ -184,7 +186,7 @@ public partial class Game : Node2D
 
     public void HideCountersOfTurns(IReadOnlySet<GameTurnEnum> turns)
     {
-        foreach(TokenCounterListControl clist in CounterLists)
+        foreach(TokenCounterListControl clist in _counterLists)
         {
             clist.Visible = turns.Contains(clist.ActiveOnTurn);
         }
@@ -213,7 +215,7 @@ public partial class Game : Node2D
         }
         //find control
         TokenCounterControl? control = null;
-        foreach(TokenCounterListControl lc in CounterLists)
+        foreach(TokenCounterListControl lc in _counterLists)
         {
             if(lc.ActiveOnTurn != Turn)
                 continue;
@@ -246,7 +248,7 @@ public partial class Game : Node2D
     {
         bool refillFailedBecauseFull = true;
         bool refillFailedBecauseLocked = true;
-        foreach(TokenCounterListControl lc in CounterLists)
+        foreach(TokenCounterListControl lc in _counterLists)
         {
             if(lc.ActiveOnTurn != Turn)
                 continue;
@@ -348,9 +350,10 @@ public partial class Game : Node2D
     {
         Turn = NextTurn;
         _selectedControl = null;
+        _selectedButton = null;
         //force redraw of ghost token
         DropDetectorIdx = _dropDetectorIdx;
-        foreach(TokenCounterListControl counter in CounterLists) counter.OnTurnChange(Turn);
+        foreach(TokenCounterListControl counter in _counterLists) counter.OnTurnChange(Turn);
     }
 
     public bool ValidColumn(int column)
@@ -376,22 +379,23 @@ public partial class Game : Node2D
         ArgumentNullException.ThrowIfNull(data.Board);
 
         _selectedControl = null;
+        _selectedButton = null;
         DropDetectorIdx = null;
         Turn = data.Turn;
-        if(data.Players.Count != CounterLists.Count)
+        if(data.Players.Count != _counterLists.Count)
         {
-            GD.PushError($"Cannot deserialize game data with {data.Players.Count} players into game with {CounterLists.Count} players");
+            GD.PushError($"Cannot deserialize game data with {data.Players.Count} players into game with {_counterLists.Count} players");
             return;
         }
         
         GameBoard.DeserializeFrom(data.Board);
-        for(int i = 0; i < CounterLists.Count; ++i)
+        for(int i = 0; i < _counterLists.Count; ++i)
         {
             ArgumentNullException.ThrowIfNull(data.Players[i]);
-            CounterLists[i].DeserializeFrom(data.Players[i]);
+            _counterLists[i].DeserializeFrom(data.Players[i]);
         }
         //make sure stuff works correctly
-        foreach(TokenCounterListControl counter in CounterLists)
+        foreach(TokenCounterListControl counter in _counterLists)
         {
             counter.OnTurnChange(Turn);
         }
@@ -401,6 +405,6 @@ public partial class Game : Node2D
     {
         Turn = Turn,
         Board = GameBoard.SerializeTo(),
-        Players = CounterLists.Select(c => c.SerializeTo()).ToGodotArray()
+        Players = _counterLists.Select(c => c.SerializeTo()).ToGodotArray()
     };
 }

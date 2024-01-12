@@ -9,21 +9,21 @@
 [ext_resource type="PackedScene" uid="uid://dq62pcxpxm3pr" path="res://Scenes/UI/Menus/LobbyMenu/LobbyMenu.tscn" id="5_w2fpg"]
 [ext_resource type="Theme" uid="uid://qdeiddbstwpc" path="res://Resources/Themes/LabelWithOutlineTheme.tres" id="6_o8jko"]
 
-[node name="GameClientMenu" type="Node" node_paths=PackedStringArray("Client", "RemotePlayMenu", "LobbyMenu", "GameMenu", "StatusLabel", "NoticePopup", "ErrorPopup")]
+[node name="GameClientMenu" type="Node" node_paths=PackedStringArray("_client", "_remotePlayMenu", "_lobbyMenu", "_gameMenu", "_statusLabel", "_noticePopup", "_errorPopup")]
 script = ExtResource("1_shirc")
-Client = NodePath("GameClient")
-MainMenu = "res://Scenes/UI/Menus/MainMenu/MainMenu.tscn"
-RemotePlayMenu = NodePath("CanvasLayer/RemotePlayScene")
-LobbyMenu = NodePath("CanvasLayer/LobbyScene")
-GameMenu = NodePath("GameMenu")
-StatusLabel = NodePath("CanvasLayer/StatusLabel")
-NoticePopup = NodePath("NoticePopup")
-ErrorPopup = NodePath("ErrorPopup")
-InitialState = ExtResource("2_cm8wa")
+_client = NodePath("GameClient")
+_mainMenu = "res://Scenes/UI/Menus/MainMenu/MainMenu.tscn"
+_remotePlayMenu = NodePath("CanvasLayer/RemotePlayScene")
+_lobbyMenu = NodePath("CanvasLayer/LobbyScene")
+_gameMenu = NodePath("GameMenu")
+_statusLabel = NodePath("CanvasLayer/StatusLabel")
+_noticePopup = NodePath("NoticePopup")
+_errorPopup = NodePath("ErrorPopup")
+_initialState = ExtResource("2_cm8wa")
 
-[node name="GameClient" type="Node" parent="." node_paths=PackedStringArray("Client")]
+[node name="GameClient" type="Node" parent="." node_paths=PackedStringArray("_client")]
 script = ExtResource("2_qp1rk")
-Client = NodePath("WebSocketClient")
+_client = NodePath("WebSocketClient")
 
 [node name="WebSocketClient" type="Node" parent="GameClient"]
 script = ExtResource("2_n1vdk")
@@ -31,8 +31,6 @@ script = ExtResource("2_n1vdk")
 [node name="GameMenu" parent="." instance=ExtResource("5_i2lhf")]
 process_mode = 4
 visible = false
-InteractionEnabled = true
-SavingEnabled = true
 AllowedTurns = Array[int]([])
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]

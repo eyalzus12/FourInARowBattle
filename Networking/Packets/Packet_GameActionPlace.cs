@@ -21,9 +21,9 @@ public partial class Packet_GameActionPlace : AbstractPacket
     {
         byte[] stringBuffer = ScenePath.ToUtf8Buffer();
         byte[] buffer = new byte[1 + 1 + 4 + stringBuffer.Length];
-        buffer.StoreBigEndianU8((byte)PacketType, 0);
-        buffer.StoreBigEndianU8(Column, 1);
-        buffer.StoreBigEndianU32((uint)stringBuffer.Length, 2);
+        buffer.WriteBigEndian((byte)PacketType, 0);
+        buffer.WriteBigEndian(Column, 1);
+        buffer.WriteBigEndian((uint)stringBuffer.Length, 2);
         buffer.StoreBuffer(stringBuffer, 8);
         return buffer;
     }

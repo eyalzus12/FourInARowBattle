@@ -14,11 +14,12 @@ public partial class WebSocketClient : Node
     public delegate void PacketReceivedEventHandler(byte[] packet);
 
     [Export]
-    public string[] HandshakeHeaders{get; set;} = Array.Empty<string>();
+    private string[] _handshakeHeaders = Array.Empty<string>();
     [Export]
-    public string[] SupportedProtocols{get; set;} = Array.Empty<string>();
+    private string[] _supportedProtocols = Array.Empty<string>();
 
-    public TlsOptions? TlsOptions{get; set;} = null;
+    private TlsOptions? _tlsOptions = null;
+
     private WebSocketPeer _socket = new();
     private WebSocketPeer.State _lastState = WebSocketPeer.State.Closed;
 
@@ -28,9 +29,9 @@ public partial class WebSocketClient : Node
     {
         ArgumentNullException.ThrowIfNull(url);
 
-        _socket.HandshakeHeaders = HandshakeHeaders;
-        _socket.SupportedProtocols = SupportedProtocols;
-        Error err = _socket.ConnectToUrl(url, TlsOptions);
+        _socket.HandshakeHeaders = _handshakeHeaders;
+        _socket.SupportedProtocols = _supportedProtocols;
+        Error err = _socket.ConnectToUrl(url, _tlsOptions);
         if(err != Error.Ok)
         {
             GD.PushError($"Error {err} while attempting to connect to url {url}");

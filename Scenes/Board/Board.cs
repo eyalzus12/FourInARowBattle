@@ -17,44 +17,42 @@ public partial class Board : Node2D
 
     [ExportCategory("Nodes")]
     [Export]
-    private Control BoardBase = null!;
+    private Control _boardBase = null!;
     [ExportCategory("")]
     [Export]
     public int Rows{get; set;} = 6;
     [Export]
     public int Columns{get; set;} = 7;
     [Export]
-    private int WinRequirement = 4;
+    private int _winRequirement = 4;
     [Export]
-    private float LeftMargin = 32;
+    private float _leftMargin = 32;
     [Export]
-    private float RightMargin = 32;
+    private float _rightMargin = 32;
     [Export]
-    private float TopMargin = 32;
+    private float _topMargin = 32;
     [Export]
-    private float BottomMargin = 32;
+    private float _bottomMargin = 32;
     [Export]
     public float SlotRadius{get; set;} = 24;
     [Export]
-    private float TokenRadius = 21;
+    private float _tokenRadius = 21;
     [Export]
-    private float DropStartOffset = 500;
+    private float _dropStartOffset = 500;
     [Export]
-    private float GhostTokenAlpha = 0.5f;
+    private float _ghostTokenAlpha = 0.5f;
     [Export]
-    private float TokenDropSpeed = 1000;
-    [Export]
-    private Texture2D HoleMaskTexture = null!;
+    private Texture2D _holeMaskTexture = null!;
 
-    private Vector2 HoleScale => 2 * SlotRadius * Vector2.One / HoleMaskTexture.GetSize();
-    private Vector2 TokenScale => 2 * TokenRadius * Vector2.One / HoleMaskTexture.GetSize();
+    private Vector2 HoleScale => 2 * SlotRadius * Vector2.One / _holeMaskTexture.GetSize();
+    private Vector2 TokenScale => 2 * _tokenRadius * Vector2.One / _holeMaskTexture.GetSize();
 
-    private TokenBase?[,] TokenGrid = null!;
+    private TokenBase?[,] _tokenGrid = null!;
 
     private Node2D? _maskGroup = null;
 
-    private Vector2 BoardPosition => BoardBase.GlobalPosition + new Vector2(LeftMargin,TopMargin);
-    private Vector2 BoardSize => BoardBase.Size - new Vector2(RightMargin,BottomMargin);
+    private Vector2 BoardPosition => _boardBase.GlobalPosition + new Vector2(_leftMargin,_topMargin);
+    private Vector2 BoardSize => _boardBase.Size - new Vector2(_rightMargin,_bottomMargin);
 
     private Vector2 HoleJump => BoardSize / new Vector2(Columns+1, Rows+1);
     private Vector2 CenterOffset => SlotRadius * Vector2.One;
@@ -85,12 +83,12 @@ public partial class Board : Node2D
 
     private void VerifyExports()
     {
-        ArgumentNullException.ThrowIfNull(BoardBase);
+        ArgumentNullException.ThrowIfNull(_boardBase);
     }
 
     public override void _Ready()
     {
-        TokenGrid = new TokenBase?[Rows,Columns];
+        _tokenGrid = new TokenBase?[Rows,Columns];
         CreateHoleMasks();
     }
 
@@ -104,13 +102,13 @@ public partial class Board : Node2D
             {
                 int row = (int)_row;
                 Vector2 center = ToLocal(HolePosition(row+1,ghostToken.Column+1));
-                Vector2 newsize = 2 * TokenRadius * Vector2.One;
+                Vector2 newsize = 2 * _tokenRadius * Vector2.One;
                 Vector2 newstart = center - newsize/2;
                 DrawTextureRect(
                     ghostToken.TokenTexture,
                     new Rect2(newstart, newsize),
                     false,
-                    ghostToken.TokenColor with {A = GhostTokenAlpha}
+                    ghostToken.TokenColor with {A = _ghostTokenAlpha}
                 );
             }
         }
@@ -122,13 +120,13 @@ public partial class Board : Node2D
         //add holes
         _maskGroup = new(){Material = new CanvasItemMaterial(){BlendMode = CanvasItemMaterial.BlendModeEnum.Sub}};
         //use AddSibling to ensure correct node order
-        BoardBase.AddSibling(_maskGroup);
+        _boardBase.AddSibling(_maskGroup);
         //add masks
         for(int row = 1; row <= Rows; ++row)
         {
             for(int col = 1; col <= Columns; ++col)
             {
-                Sprite2D holeMask = new(){Texture = HoleMaskTexture, UseParentMaterial = true, Scale = HoleScale};
+                Sprite2D holeMask = new(){Texture = _holeMaskTexture, UseParentMaterial = true, Scale = HoleScale};
                 _maskGroup.AddChild(holeMask);
                 holeMask.GlobalPosition = HolePosition(row,col);
             }
@@ -150,11 +148,11 @@ public partial class Board : Node2D
         t.Scale = TokenScale;
         AddChild(t);
         t.RequestReady();
-        TokenGrid[row,col] = t;
+        _tokenGrid[row,col] = t;
         t.TokenSpawn(this, row, col);
         Vector2 desired = HolePosition(row + 1, col + 1);
         t.DesiredPosition = desired;
-        t.GlobalPosition = desired + Vector2.Up * DropStartOffset;
+        t.GlobalPosition = desired + Vector2.Up * _dropStartOffset;
         AddDroppingToken(t);
         EmitSignal(SignalName.TokenPlaced, t, row, col);
         QueueRedraw();
@@ -183,7 +181,7 @@ public partial class Board : Node2D
         {
             for(int col = 0; col < Columns; ++col)
             {
-                if(TokenGrid[row,col] is not null)
+                if(_tokenGrid[row,col] is not null)
                     CheckSpotWin(row, col, resultCounts, toRemove);
                 else
                     haveFree = true;
@@ -208,8 +206,8 @@ public partial class Board : Node2D
         
         foreach((int row, int col) in toRemove)
         {
-            TokenBase? t = TokenGrid[row,col];
-            TokenGrid[row,col] = null;
+            TokenBase? t = _tokenGrid[row,col];
+            _tokenGrid[row,col] = null;
             if(t.IsInstanceValid())
                 tokensToRemove.Add(t);
         }
@@ -239,21 +237,21 @@ public partial class Board : Node2D
         ArgumentNullException.ThrowIfNull(resultCounts);
         ArgumentNullException.ThrowIfNull(toRemove);
 
-        TokenBase? token = TokenGrid[row,col];
-        if(!token.IsInstanceValid()) TokenGrid[row,col] = token = null;
+        TokenBase? token = _tokenGrid[row,col];
+        if(!token.IsInstanceValid()) _tokenGrid[row,col] = token = null;
         if(token is null || token.Result == GameResultEnum.None) return;
         //if(!token.FinishedDrop) return;
 
         bool foundWin = false;
-        List<(int,int)> currentTokenStreak = new(WinRequirement-1);
+        List<(int,int)> currentTokenStreak = new(_winRequirement-1);
         if(!resultCounts.ContainsKey(token!.Result)) resultCounts[token.Result] = 0;
 
         //check up
-        if(row >= WinRequirement-1)
+        if(row >= _winRequirement-1)
         {
             bool upFail = false;
-            for(int rowOffset = 1; rowOffset < WinRequirement; rowOffset++)
-                if(!token.SameAs(TokenGrid[row-rowOffset,col]))
+            for(int rowOffset = 1; rowOffset < _winRequirement; rowOffset++)
+                if(!token.SameAs(_tokenGrid[row-rowOffset,col]))
                 {
                     upFail = true;
                     currentTokenStreak.Clear();
@@ -272,11 +270,11 @@ public partial class Board : Node2D
             }
         }
         //check left
-        if(col >= WinRequirement-1)
+        if(col >= _winRequirement-1)
         {
             bool leftFail = false;
-            for(int colOffset = 1; colOffset < WinRequirement; colOffset++)
-                if(!token.SameAs(TokenGrid[row,col-colOffset]))
+            for(int colOffset = 1; colOffset < _winRequirement; colOffset++)
+                if(!token.SameAs(_tokenGrid[row,col-colOffset]))
                 {
                     leftFail = true;
                     currentTokenStreak.Clear();
@@ -295,11 +293,11 @@ public partial class Board : Node2D
             }
         }
         //check up left
-        if(row >= WinRequirement-1 && col >= WinRequirement-1)
+        if(row >= _winRequirement-1 && col >= _winRequirement-1)
         {
             bool upLeftFail = false;
-            for(int offset = 1; offset < WinRequirement; offset++)
-                if(!token.SameAs(TokenGrid[row-offset,col-offset]))
+            for(int offset = 1; offset < _winRequirement; offset++)
+                if(!token.SameAs(_tokenGrid[row-offset,col-offset]))
                 {
                     upLeftFail = true;
                     currentTokenStreak.Clear();
@@ -318,11 +316,11 @@ public partial class Board : Node2D
             }
         }
         //check up right
-        if(row >= WinRequirement-1 && col <= Columns-WinRequirement)
+        if(row >= _winRequirement-1 && col <= Columns-_winRequirement)
         {
             bool upRightFail = false;
-            for(int offset = 1; offset < WinRequirement; offset++)
-                if(!token.SameAs(TokenGrid[row-offset,col+offset]))
+            for(int offset = 1; offset < _winRequirement; offset++)
+                if(!token.SameAs(_tokenGrid[row-offset,col+offset]))
                 {
                     upRightFail = true;
                     currentTokenStreak.Clear();
@@ -349,8 +347,8 @@ public partial class Board : Node2D
         int row = 0;
         for(; row < Rows; row++)
         {
-            if(TokenGrid[row,col].IsInstanceValid()) break;
-            TokenGrid[row,col] = null;
+            if(_tokenGrid[row,col].IsInstanceValid()) break;
+            _tokenGrid[row,col] = null;
         }
         if(row == 0) return null;
         return row-1;
@@ -361,8 +359,8 @@ public partial class Board : Node2D
         int row = Rows-1;
         for(; row >= 0; row--)
         {
-            if(TokenGrid[row,col].IsInstanceValid()) break;
-            TokenGrid[row,col] = null;
+            if(_tokenGrid[row,col].IsInstanceValid()) break;
+            _tokenGrid[row,col] = null;
         }
         if(row == Rows-1) return null;
         return row+1;
@@ -381,16 +379,16 @@ public partial class Board : Node2D
         List<TokenBase> tokens = new();
         for(int row = Rows-1; row >= 0; row--)
         {
-            TokenBase? t = TokenGrid[row,col];
+            TokenBase? t = _tokenGrid[row,col];
             if(!t.IsInstanceValid())
-                TokenGrid[row,col] = null;
+                _tokenGrid[row,col] = null;
             else
                 tokens.Add(t);
         }
         int tokenIdx = Rows-1;
         foreach(TokenBase t in tokens)
         {
-            TokenGrid[tokenIdx,col] = t;
+            _tokenGrid[tokenIdx,col] = t;
             t.DesiredPosition = HolePosition(tokenIdx + 1, col + 1);
             t.LocationChanged(tokenIdx + 1, col + 1);
             AddDroppingToken(t);
@@ -398,7 +396,7 @@ public partial class Board : Node2D
         }
         for(; tokenIdx >= 0; tokenIdx--)
         {
-            TokenGrid[tokenIdx,col] = null;
+            _tokenGrid[tokenIdx,col] = null;
         }
         _colGravityLock.Remove(col);
         QueueRedraw();
@@ -410,8 +408,8 @@ public partial class Board : Node2D
         int newRow = Rows-1;
         for(int row = 0; row < Rows; ++row)
         {
-            TokenBase? t = TokenGrid[row,col];
-            if(!t.IsInstanceValid()) t = TokenGrid[row,col] = null;
+            TokenBase? t = _tokenGrid[row,col];
+            if(!t.IsInstanceValid()) t = _tokenGrid[row,col] = null;
             if(t is null) continue;
             newCol[newRow] = t;
             t.DesiredPosition = t.GlobalPosition = HolePosition(newRow + 1, col + 1);
@@ -420,7 +418,7 @@ public partial class Board : Node2D
         }
         for(int row = 0; row < Rows; ++row)
         {
-            TokenGrid[row,col] = (row <= newRow) ? null : newCol[row];
+            _tokenGrid[row,col] = (row <= newRow) ? null : newCol[row];
         }
     }
 
@@ -429,12 +427,12 @@ public partial class Board : Node2D
         TokenBase?[] newRow = new TokenBase?[Columns];
         for(int col = 0; col < Columns; ++col)
         {
-            TokenBase? t = TokenGrid[row,col];
-            if(!t.IsInstanceValid()) TokenGrid[row,col] = null;
+            TokenBase? t = _tokenGrid[row,col];
+            if(!t.IsInstanceValid()) _tokenGrid[row,col] = null;
         }
         for(int col = 0; col < Columns; ++col)
         {
-            TokenBase? t = TokenGrid[row,col];
+            TokenBase? t = _tokenGrid[row,col];
             newRow[Columns-1-col] = t;
             if(t is not null)
             {
@@ -444,7 +442,7 @@ public partial class Board : Node2D
         }
         for(int col = 0; col < Columns; ++col)
         {
-            TokenGrid[row,col] = newRow[col];
+            _tokenGrid[row,col] = newRow[col];
         }
     }
 
@@ -455,13 +453,13 @@ public partial class Board : Node2D
         for(int row = 0; row < Rows; ++row)
             for(int col = 0; col < Columns; ++col)
             {
-                TokenBase? t = TokenGrid[row,col];
-                if(!t.IsInstanceValid()) TokenGrid[row,col] = null;
+                TokenBase? t = _tokenGrid[row,col];
+                if(!t.IsInstanceValid()) _tokenGrid[row,col] = null;
             }
         for(int row = 0; row < Rows; ++row)
             for(int col = 0; col < Columns; ++col)
             {
-                TokenBase? t = TokenGrid[row,col];
+                TokenBase? t = _tokenGrid[row,col];
                 newGrid[Rows-1-row,col] = t;
                 if(t is not null)
                 {
@@ -469,7 +467,7 @@ public partial class Board : Node2D
                     t.LocationChanged(Rows - row, col + 1);
                 }
             }
-        TokenGrid = newGrid;
+        _tokenGrid = newGrid;
     }
 
     public void RotateLeft()
@@ -477,13 +475,13 @@ public partial class Board : Node2D
         //i,j -> Columns-1-j,i
         int oldRows = Rows, oldColumns = Columns; 
         //rotate
-        BoardBase.Position = new Vector2(BoardBase.Position.Y, BoardBase.Position.X);
-        BoardBase.Size = new Vector2(BoardBase.Size.Y, BoardBase.Size.X);
+        _boardBase.Position = new Vector2(_boardBase.Position.Y, _boardBase.Position.X);
+        _boardBase.Size = new Vector2(_boardBase.Size.Y, _boardBase.Size.X);
         for(int row = 0; row < oldRows; ++row)
             for(int col = 0; col < oldColumns; ++col)
             {
-                TokenBase? t = TokenGrid[row,col];
-                if(!t.IsInstanceValid()) TokenGrid[row,col] = null;
+                TokenBase? t = _tokenGrid[row,col];
+                if(!t.IsInstanceValid()) _tokenGrid[row,col] = null;
             }
         //swap
         (Rows,Columns) = (Columns,Rows);
@@ -492,7 +490,7 @@ public partial class Board : Node2D
         for(int row = 0; row < oldRows; ++row)
             for(int col = 0; col < oldColumns; ++col)
             {
-                TokenBase? t = TokenGrid[row,col];
+                TokenBase? t = _tokenGrid[row,col];
                 newGrid[oldColumns-1-col,row] = t;
                 if(t is not null)
                 {
@@ -500,7 +498,7 @@ public partial class Board : Node2D
                     t.LocationChanged(oldColumns - col, row + 1);
                 }
             }
-        TokenGrid = newGrid;
+        _tokenGrid = newGrid;
         CreateHoleMasks();
     }
 
@@ -509,13 +507,13 @@ public partial class Board : Node2D
         //i,j -> j,Rows-1-i
         int oldRows = Rows, oldColumns = Columns; 
         //rotate
-        BoardBase.Position = new Vector2(BoardBase.Position.Y, BoardBase.Position.X);
-        BoardBase.Size = new Vector2(BoardBase.Size.Y, BoardBase.Size.X);
+        _boardBase.Position = new Vector2(_boardBase.Position.Y, _boardBase.Position.X);
+        _boardBase.Size = new Vector2(_boardBase.Size.Y, _boardBase.Size.X);
         for(int row = 0; row < oldRows; ++row)
             for(int col = 0; col < oldColumns; ++col)
             {
-                TokenBase? t = TokenGrid[row,col];
-                if(!t.IsInstanceValid()) TokenGrid[row,col] = null;
+                TokenBase? t = _tokenGrid[row,col];
+                if(!t.IsInstanceValid()) _tokenGrid[row,col] = null;
             }
         //swap
         (Rows,Columns) = (Columns,Rows);
@@ -524,7 +522,7 @@ public partial class Board : Node2D
         for(int row = 0; row < oldRows; ++row)
             for(int col = 0; col < oldColumns; ++col)
             {
-                TokenBase? t = TokenGrid[row,col];
+                TokenBase? t = _tokenGrid[row,col];
                 newGrid[col,oldRows-1-row] = t;
                 if(t is not null)
                 {
@@ -532,14 +530,14 @@ public partial class Board : Node2D
                     t.LocationChanged(col + 1, oldRows - row);
                 }
             }
-        TokenGrid = newGrid;
+        _tokenGrid = newGrid;
         CreateHoleMasks();
     }
 
     public void RemoveToken(int row, int col)
     {
-        TokenBase? t = TokenGrid[row,col];
-        TokenGrid[row,col] = null;
+        TokenBase? t = _tokenGrid[row,col];
+        _tokenGrid[row,col] = null;
         if(t.IsInstanceValid())
         {
             Autoloads.ScenePool.ReturnScene(t);
@@ -564,8 +562,8 @@ public partial class Board : Node2D
         {
             for(int col = 0; col < Columns; ++col)
             {
-                TokenBase? t = TokenGrid[row,col];
-                TokenGrid[row,col] = null;
+                TokenBase? t = _tokenGrid[row,col];
+                _tokenGrid[row,col] = null;
                 if(t.IsInstanceValid())
                     Autoloads.ScenePool.ReturnScene(t);
             }
@@ -573,12 +571,12 @@ public partial class Board : Node2D
 
         Rows = data.Rows;
         Columns = data.Columns;
-        BoardBase.Position = data.BoardPosition;
-        BoardBase.Size = data.BoardSize;
-        WinRequirement = data.WinRequirement;
+        _boardBase.Position = data.BoardPosition;
+        _boardBase.Size = data.BoardSize;
+        _winRequirement = data.WinRequirement;
         CreateHoleMasks();
 
-        TokenGrid = new TokenBase?[Rows,Columns];
+        _tokenGrid = new TokenBase?[Rows,Columns];
         for(int row = 0; row < Rows; ++row)
         {
             if(data.Grid[row].Count != data.Columns)
@@ -592,7 +590,7 @@ public partial class Board : Node2D
                 if(tdata is null) continue;
                 PackedScene scene = ResourceLoader.Load<PackedScene>(tdata.TokenScenePath);
                 TokenBase t = Autoloads.ScenePool.GetScene<TokenBase>(scene);
-                TokenGrid[row,col] = t;
+                _tokenGrid[row,col] = t;
                 t.Scale = TokenScale;
                 AddChild(t);
                 t.DeserializeFrom(this, tdata);
@@ -608,17 +606,17 @@ public partial class Board : Node2D
         {
             Rows = Rows,
             Columns = Columns,
-            WinRequirement = WinRequirement,
+            WinRequirement = _winRequirement,
             Grid = new(),
-            BoardPosition = BoardBase.Position,
-            BoardSize = BoardBase.Size
+            BoardPosition = _boardBase.Position,
+            BoardSize = _boardBase.Size
         };
         for(int row = 0; row < Rows; ++row)
         {
             data.Grid.Add(new Godot.Collections.Array<TokenData?>());
             for(int col = 0; col < Columns; ++col)
             {
-                data.Grid[row].Add(TokenGrid[row,col]?.SerializeTo());
+                data.Grid[row].Add(_tokenGrid[row,col]?.SerializeTo());
             }
         }
         return data;

@@ -11,7 +11,7 @@ outline_color = Color(0, 0, 0, 1)
 shadow_color = Color(0, 0, 0, 1)
 shadow_offset = Vector2(-10, 1)
 
-[node name="MainMenu" type="Control" node_paths=PackedStringArray("LocalPlayButton", "RemotePlayButton", "HostServerButton")]
+[node name="MainMenu" type="Control" node_paths=PackedStringArray("_localPlayButton", "_remotePlayButton", "_hostServerButton")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -20,9 +20,9 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_nxttb")
-LocalPlayButton = NodePath("ButtonsMarginContainer/ButtonsVBoxContainer/LocalPlayMarginContainer/LocalPlay")
-RemotePlayButton = NodePath("ButtonsMarginContainer/ButtonsVBoxContainer/RemotePlayMarginContainer/RemotePlay")
-HostServerButton = NodePath("ButtonsMarginContainer/ButtonsVBoxContainer/GameHostMarginContainer/GameHost")
+_localPlayButton = NodePath("ButtonsMarginContainer/ButtonsVBoxContainer/LocalPlayMarginContainer/LocalPlay")
+_remotePlayButton = NodePath("ButtonsMarginContainer/ButtonsVBoxContainer/RemotePlayMarginContainer/RemotePlay")
+_hostServerButton = NodePath("ButtonsMarginContainer/ButtonsVBoxContainer/GameHostMarginContainer/GameHost")
 
 [node name="ButtonsMarginContainer" type="MarginContainer" parent="."]
 layout_mode = 0
@@ -60,7 +60,7 @@ tooltip_text = "Play locally on the same computer"
 mouse_filter = 1
 text = "Local Play"
 script = ExtResource("1_w7sya")
-ChangeTo = "res://Scenes/UI/Menus/GameMenuLocal/GameMenuLocal.tscn"
+_changeTo = "res://Scenes/UI/Menus/LocalPlayMenu/LocalPlayMenu.tscn"
 
 [node name="RemotePlayMarginContainer" type="MarginContainer" parent="ButtonsMarginContainer/ButtonsVBoxContainer"]
 layout_mode = 2
@@ -75,7 +75,7 @@ tooltip_text = "Play with someone else who is hosting a game"
 mouse_filter = 1
 text = "Remote Play"
 script = ExtResource("1_w7sya")
-ChangeTo = "res://Scenes/UI/Menus/GameClientMenu/GameClientMenu.tscn"
+_changeTo = "res://Scenes/UI/Menus/RemotePlayMenu/RemotePlayMenu.tscn"
 
 [node name="GameHostMarginContainer" type="MarginContainer" parent="ButtonsMarginContainer/ButtonsVBoxContainer"]
 layout_mode = 2
@@ -90,4 +90,4 @@ tooltip_text = "Host a game to be able to play remotely"
 mouse_filter = 1
 text = "Host a Server"
 script = ExtResource("1_w7sya")
-ChangeTo = "res://Scenes/UI/Menus/GameServerMenu/GameServerMenu.tscn"
+_changeTo = "res://Scenes/UI/Menus/GameServerMenu/GameServerMenu.tscn"

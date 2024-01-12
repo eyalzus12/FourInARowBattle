@@ -20,39 +20,39 @@ public partial class LobbyMenu : Control
 
     [ExportCategory("Nodes")]
     [Export]
-    private GoBackButton GoBack = null!;
+    private GoBackButton _goBackButton = null!;
     [Export]
-    private ConfirmationDialog GoBackConfirmationDialog = null!;
+    private ConfirmationDialog _goBackConfirmationDialog = null!;
     [Export]
-    private Label LobbyIdLabel = null!;
+    private Label _lobbyIdLabel = null!;
     [Export]
-    private Label Player1NameLabel = null!;
+    private Label _player1NameLabel = null!;
     [Export]
-    private Label Player2NameLabel = null!;
+    private Label _player2NameLabel = null!;
     [Export]
-    private LobbyGameChallengeMenu GameChallengeSubMenu = null!;
+    private LobbyGameChallengeMenu _gameChallengeSubMenu = null!;
 
     private string? _goBackRequestPath;
 
     private void VerifyExports()
     {
-        ArgumentNullException.ThrowIfNull(GoBack);
-        ArgumentNullException.ThrowIfNull(GoBackConfirmationDialog);
-        ArgumentNullException.ThrowIfNull(LobbyIdLabel);
-        ArgumentNullException.ThrowIfNull(Player1NameLabel);
-        ArgumentNullException.ThrowIfNull(Player2NameLabel);
-        ArgumentNullException.ThrowIfNull(GameChallengeSubMenu);
+        ArgumentNullException.ThrowIfNull(_goBackButton);
+        ArgumentNullException.ThrowIfNull(_goBackConfirmationDialog);
+        ArgumentNullException.ThrowIfNull(_lobbyIdLabel);
+        ArgumentNullException.ThrowIfNull(_player1NameLabel);
+        ArgumentNullException.ThrowIfNull(_player2NameLabel);
+        ArgumentNullException.ThrowIfNull(_gameChallengeSubMenu);
     }
 
     private void ConnectSignals()
     {
-        GoBackConfirmationDialog.Confirmed += OnGoBackConfirmationDialogConfirmed;
+        _goBackConfirmationDialog.Confirmed += OnGoBackConfirmationDialogConfirmed;
         GetWindow().SizeChanged += OnWindowSizeChanged;
-        GoBack.ChangeSceneRequested += OnGoBackButtonChangeSceneRequested;
-        GameChallengeSubMenu.ChallengeSent += OnChallengeSubMenuChallengeSent;
-        GameChallengeSubMenu.ChallengeCanceled += OnChallengeSubMenuChallengeCanceled;
-        GameChallengeSubMenu.ChallengeAccepted += OnChallengeSubMenuChallengeAccepted;
-        GameChallengeSubMenu.ChallengeRejected += OnChallengeSubMenuChallengeRejected;
+        _goBackButton.ChangeSceneRequested += OnGoBackButtonChangeSceneRequested;
+        _gameChallengeSubMenu.ChallengeSent += OnChallengeSubMenuChallengeSent;
+        _gameChallengeSubMenu.ChallengeCanceled += OnChallengeSubMenuChallengeCanceled;
+        _gameChallengeSubMenu.ChallengeAccepted += OnChallengeSubMenuChallengeAccepted;
+        _gameChallengeSubMenu.ChallengeRejected += OnChallengeSubMenuChallengeRejected;
     }
 
     public override void _Ready()
@@ -61,7 +61,7 @@ public partial class LobbyMenu : Control
         ConnectSignals();
     }
 
-    public bool LobbyFull() => Player1NameLabel.Text != "" && Player2NameLabel.Text != "";
+    public bool LobbyFull() => _player1NameLabel.Text != "" && _player2NameLabel.Text != "";
 
     #region Signal Handling
     private void OnGoBackConfirmationDialogConfirmed()
@@ -72,7 +72,7 @@ public partial class LobbyMenu : Control
 
     private void OnWindowSizeChanged()
     {
-        if(GoBackConfirmationDialog.Visible)
+        if(_goBackConfirmationDialog.Visible)
             OnGoBackButtonChangeSceneRequested(_goBackRequestPath!);
     }
 
@@ -82,7 +82,7 @@ public partial class LobbyMenu : Control
         _goBackRequestPath = path;
 
         //Vector2I decorations = GetWindow().GetSizeOfDecorations();
-        GoBackConfirmationDialog.PopupCentered(/*GetWindow().GetVisibleSize() - new Vector2I(0,decorations.Y)*/);
+        _goBackConfirmationDialog.PopupCentered(/*GetWindow().GetVisibleSize() - new Vector2I(0,decorations.Y)*/);
     }
 
     private void OnChallengeSubMenuChallengeSent()
@@ -109,7 +109,7 @@ public partial class LobbyMenu : Control
 
     public void SetLobbyId(uint id)
     {
-        LobbyIdLabel.Text = id.ToString();
+        _lobbyIdLabel.Text = id.ToString();
     }
 
     private Color? _player1OldModulate = null;
@@ -119,37 +119,37 @@ public partial class LobbyMenu : Control
     {
         if(_player2OldModulate is not null)
         {
-            Player2NameLabel.Modulate = (Color)_player2OldModulate;
+            _player2NameLabel.Modulate = (Color)_player2OldModulate;
             _player2OldModulate = null;
         }
 
-        _player1OldModulate ??= Player1NameLabel.Modulate;
-        Player1NameLabel.Modulate = Colors.Blue;
+        _player1OldModulate ??= _player1NameLabel.Modulate;
+        _player1NameLabel.Modulate = Colors.Blue;
     }
 
     public void SetPlayer2Marked()
     {
         if(_player1OldModulate is not null)
         {
-            Player1NameLabel.Modulate = (Color)_player1OldModulate;
+            _player1NameLabel.Modulate = (Color)_player1OldModulate;
             _player1OldModulate = null;
         }
 
-        _player2OldModulate ??= Player2NameLabel.Modulate;
-        Player2NameLabel.Modulate = Colors.Blue;
+        _player2OldModulate ??= _player2NameLabel.Modulate;
+        _player2NameLabel.Modulate = Colors.Blue;
     }
 
     public void ClearMark()
     {
         if(_player1OldModulate is not null)
         {
-            Player1NameLabel.Modulate = (Color)_player1OldModulate;
+            _player1NameLabel.Modulate = (Color)_player1OldModulate;
             _player1OldModulate = null;
         }
 
         if(_player2OldModulate is not null)
         {
-            Player2NameLabel.Modulate = (Color)_player2OldModulate;
+            _player2NameLabel.Modulate = (Color)_player2OldModulate;
             _player2OldModulate = null;
         }
     }
@@ -158,33 +158,33 @@ public partial class LobbyMenu : Control
     {
         ArgumentNullException.ThrowIfNull(name);
         if(name.Length > Globals.NAME_LENGTH_LIMIT) name = name[..Globals.NAME_LENGTH_LIMIT];
-        Player1NameLabel.Text = name;
+        _player1NameLabel.Text = name;
     }
 
     public void SetPlayer2Name(string name)
     {
         ArgumentNullException.ThrowIfNull(name);
         if(name.Length > Globals.NAME_LENGTH_LIMIT) name = name[..Globals.NAME_LENGTH_LIMIT];
-        Player2NameLabel.Text = name;
+        _player2NameLabel.Text = name;
     }
 
     public void SetChallengeState_NoChallenge()
     {
-        GameChallengeSubMenu.SetState_NoChallenge();
+        _gameChallengeSubMenu.SetState_NoChallenge();
     }
 
     public void SetChallengeState_SentChallenge()
     {
-        GameChallengeSubMenu.SetState_SentChallenge();
+        _gameChallengeSubMenu.SetState_SentChallenge();
     }
 
     public void SetChallengeState_GotChallenge()
     {
-        GameChallengeSubMenu.SetState_GotChallenge();
+        _gameChallengeSubMenu.SetState_GotChallenge();
     }
 
     public void SetChallengeState_CannotChallenge()
     {
-        GameChallengeSubMenu.SetState_CannotChallenge();
+        _gameChallengeSubMenu.SetState_CannotChallenge();
     }
 }
