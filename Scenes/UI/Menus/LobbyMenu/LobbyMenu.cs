@@ -9,13 +9,13 @@ public partial class LobbyMenu : Control
     [Signal]
     public delegate void ExitLobbyRequestedEventHandler(string path);
     [Signal]
-    public delegate void ChallengeSentEventHandler();
+    public delegate void ChallengeSentEventHandler(int index);
     [Signal]
-    public delegate void ChallengeCanceledEventHandler();
+    public delegate void ChallengeCanceledEventHandler(int index);
     [Signal]
-    public delegate void ChallengeAcceptedEventHandler();
+    public delegate void ChallengeAcceptedEventHandler(int index);
     [Signal]
-    public delegate void ChallengeRejectedEventHandler();
+    public delegate void ChallengeRejectedEventHandler(int index);
     #endregion
 
     [ExportCategory("Nodes")]
