@@ -646,8 +646,9 @@ public partial class GameServer : Node
             return;
         }
         Player other = (match.Player1 == player) ? match.Player2 : match.Player1;
-        SendPacket(other.Id, new Packet_GameQuitOther());
         QuitMatch(match);
+        SendPacket(player.Id, new Packet_GameQuitOk());
+        SendPacket(other.Id, new Packet_GameQuitOther());
     }
 
     #endregion

@@ -27,12 +27,12 @@ public partial class Packet_ConnectLobbyOk : AbstractPacket
         for(int i = 0; i < Players.Length; ++i)
         {
             string playerName = Players[i].Name;
-            byte[] nameBuffer = playerName.ToUtf8Buffer();
-            if(nameBuffer.Length > Globals.NAME_LENGTH_LIMIT)
+            if(playerName.Length > Globals.NAME_LENGTH_LIMIT)
             {
-                GD.PushError($"Player name has invalid length {nameBuffer.Length}");
-                nameBuffer = nameBuffer.Take(Globals.NAME_LENGTH_LIMIT).ToArray();
+                GD.Print($"Player name has invalid length {playerName.Length}");
+                playerName = new(playerName.Take(Globals.NAME_LENGTH_LIMIT).ToArray());
             }
+            byte[] nameBuffer = playerName.ToUtf8Buffer();
             playerNameBuffers[i] = nameBuffer;
             bufferSize += sizeof(byte) + nameBuffer.Length;
         }

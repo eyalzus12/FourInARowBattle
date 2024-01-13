@@ -31,7 +31,9 @@ public partial class GameClient : Node
     [Signal]
     public delegate void LobbyTimedOutEventHandler();
     [Signal]
-    public delegate void GameEjectedEventHandler();
+    public delegate void GameQuitByOpponentEventHandler();
+    [Signal]
+    public delegate void GameQuitBySelfEventHandler();
     [Signal]
     public delegate void NewGameRequestSentEventHandler(int playerIndex);
     [Signal]
@@ -104,6 +106,7 @@ public partial class GameClient : Node
 
     private Packet_GameActionPlace? _placePacket = null;
     private Packet_GameActionRefill? _refillPacket = null;
+    private Packet_GameQuit? _quitPacket = null;
 
     #endregion
 
@@ -272,6 +275,15 @@ public partial class GameClient : Node
                 break;
             case Packet_GameActionRefillOther _packet:
                 HandlePacket_GameActionRefillOther(_packet);
+                break;
+            case Packet_GameQuitOk _packet:
+                HandlePacket_GameQuitOk(_packet);
+                break;
+            case Packet_GameQuitFail _packet:
+                HandlePacket_GameQuitFail(_packet);
+                break;
+            case Packet_GameQuitOther _packet:
+                HandlePacket_GameQuitOther(_packet);
                 break;
             case Packet_GameFinished _packet:
                 HandlePacket_GameFinished(_packet);
@@ -904,7 +916,7 @@ public partial class GameClient : Node
         if(other == _lobby.Opponent)
         {
             _lobby.Opponent = null;
-            EmitSignal(SignalName.GameEjected);
+            EmitSignal(SignalName.GameQuitByOpponent);
         }
 
         //he is before me
@@ -1052,6 +1064,7 @@ public partial class GameClient : Node
             Desync();
             return;
         }
+        DisplayError($"Placing token failed with error: {ErrorCodeUtils.Humanize(packet.ErrorCode)}");
         _placePacket = null;
     }
 
@@ -1106,6 +1119,7 @@ public partial class GameClient : Node
             Desync();
             return;
         }
+        DisplayError($"Refill failed with error: {ErrorCodeUtils.Humanize(packet.ErrorCode)}");
         _refillPacket = null;
     }
 
@@ -1120,6 +1134,47 @@ public partial class GameClient : Node
             return;
         }
         EmitSignal(SignalName.GameActionRefillReceived);
+    }
+
+    private void HandlePacket_GameQuitOk(Packet_GameQuitOk packet)
+    {
+        ArgumentNullException.ThrowIfNull(packet);
+        GD.Print("Quit ok");
+        if(_quitPacket is null)
+        {
+            GD.Print("But I didn't ask to quit??");
+            Desync();
+            return;
+        }
+
+        _quitPacket = null;
+    }
+
+    private void HandlePacket_GameQuitFail(Packet_GameQuitFail packet)
+    {
+        ArgumentNullException.ThrowIfNull(packet);
+        GD.Print($"Quit failed with error {packet.ErrorCode}");
+        if(_quitPacket is null)
+        {
+            GD.Print("But I didn't ask to quit??");
+            Desync();
+            return;
+        }
+        DisplayError($"Quitting failed with error: {ErrorCodeUtils.Humanize(packet.ErrorCode)}");
+        _quitPacket = null;
+    }
+
+    private void HandlePacket_GameQuitOther(Packet_GameQuitOther packet)
+    {
+        ArgumentNullException.ThrowIfNull(packet);
+        GD.Print("Other player is quitting");
+        if(_lobby is null || _lobby.Opponent is null)
+        {
+            GD.Print("But I'm not in a game??");
+            Desync();
+            return;
+        }
+        EmitSignal(SignalName.GameQuitBySelf);
     }
 
     private void HandlePacket_GameFinished(Packet_GameFinished packet)
@@ -1179,7 +1234,7 @@ public partial class GameClient : Node
         if(_lobby is null || _lobby.Opponent is not null) return;
         if(index < 0 || _lobby.Players.Count <= index || index == _lobby.Index) return;
         Player p = _lobby.Players[index];
-        if(p.Busy || p.ISentRequest || p.IGotRequest) return;
+        if(p.Busy || p.ISentRequest || p.IGotRequest || p.GameRequestPacket is not null) return;
         p.GameRequestPacket = new Packet_NewGameRequest(index);
         SendPacket(p.GameRequestPacket);
     }
@@ -1189,7 +1244,7 @@ public partial class GameClient : Node
         if(_lobby is null || _lobby.Opponent is not null) return;
         if(index < 0 || _lobby.Players.Count <= index) return;
         Player p = _lobby.Players[index];
-        if(!p.IGotRequest) return;
+        if(!p.IGotRequest || p.GameAcceptPacket is not null) return;
         p.GameAcceptPacket = new Packet_NewGameAccept(index);
         SendPacket(p.GameAcceptPacket);
     }
@@ -1199,7 +1254,7 @@ public partial class GameClient : Node
         if(_lobby is null || _lobby.Opponent is not null) return;
         if(index < 0 || _lobby.Players.Count <= index) return;
         Player p = _lobby.Players[index];
-        if(!p.IGotRequest) return;
+        if(!p.IGotRequest || p.GameRejectPacket is not null) return;
         p.GameRejectPacket = new Packet_NewGameReject(index);
         SendPacket(p.GameRejectPacket);
     }
@@ -1209,7 +1264,7 @@ public partial class GameClient : Node
         if(_lobby is null || _lobby.Opponent is not null) return;
         if(index < 0 || _lobby.Players.Count <= index) return;
         Player p = _lobby.Players[index];
-        if(!p.ISentRequest) return;
+        if(!p.ISentRequest || p.GameCancelPacket is not null) return;
         p.GameCancelPacket = new Packet_NewGameCancel(index);
         SendPacket(p.GameCancelPacket);
     }
@@ -1217,16 +1272,23 @@ public partial class GameClient : Node
     public void PlaceToken(byte column, string path)
     {
         ArgumentNullException.ThrowIfNull(path);
-        if(_lobby is null || _lobby.Opponent is null) return;
+        if(_lobby is null || _lobby.Opponent is null || _placePacket is not null) return;
         _placePacket = new Packet_GameActionPlace(column, path);
         SendPacket(_placePacket);
     }
 
     public void Refill()
     {
-        if(_lobby is null || _lobby.Opponent is null) return;
+        if(_lobby is null || _lobby.Opponent is null || _refillPacket is not null) return;
         _refillPacket = new Packet_GameActionRefill();
         SendPacket(_refillPacket);
+    }
+
+    public void QuitGame()
+    {
+        if(_lobby is null || _lobby.Opponent is null || _quitPacket is not null) return;
+        _quitPacket = new Packet_GameQuit();
+        SendPacket(_quitPacket);
     }
 
     public void Desync()

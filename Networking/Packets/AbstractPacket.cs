@@ -37,7 +37,7 @@ public abstract partial class AbstractPacket : RefCounted
             }
             case PacketTypeEnum.INVALID_PACKET:
             {
-                GD.PushError("Received packet type INVALID_PACKET, but that packet type is for internal use only. Use INVALID_PACKET_INFORM to respond to an invalid packet");
+                GD.PushWarning("Received packet type INVALID_PACKET, but that packet type is for internal use only. Use INVALID_PACKET_INFORM to respond to an invalid packet");
                 buffer.PopLeft();
                 packet = new Packet_InvalidPacket(PacketTypeEnum.INVALID_PACKET);
                 return true;
@@ -55,13 +55,14 @@ public abstract partial class AbstractPacket : RefCounted
                 byte size = buffer[1];
                 if(buffer.Count < 2 + size) return false;
                 for(int i = 0; i < 2; ++i) buffer.PopLeft();
-                byte[] name = new byte[size]; for(int i = 0; i < size; ++i) name[i] = buffer.PopLeft();
+                byte[] nameBuffer = new byte[size]; for(int i = 0; i < size; ++i) nameBuffer[i] = buffer.PopLeft();
+                string name = nameBuffer.GetStringFromUtf8();
                 if(name.Length > Globals.NAME_LENGTH_LIMIT)
                 {
                     GD.Print($"Packet has name with invalid length {name.Length}. It will be trimmed.");
-                    name = name.Take(Globals.NAME_LENGTH_LIMIT).ToArray();
+                    name = new(name.Take(Globals.NAME_LENGTH_LIMIT).ToArray());
                 }
-                packet = new Packet_CreateLobbyRequest(name.GetStringFromUtf8());
+                packet = new Packet_CreateLobbyRequest(name);
                 return true;
             }
             case PacketTypeEnum.CREATE_LOBBY_OK:
@@ -86,13 +87,14 @@ public abstract partial class AbstractPacket : RefCounted
                 if(buffer.Count < 6 + size) return false;
                 uint lobbyId = new[]{buffer[1], buffer[2], buffer[3], buffer[4]}.ReadBigEndian<uint>();
                 for(int i = 0; i < 6; ++i) buffer.PopLeft();
-                byte[] name = new byte[size]; for(int i = 0; i < size; ++i) name[i] = buffer.PopLeft();
+                byte[] nameBuffer = new byte[size]; for(int i = 0; i < size; ++i) nameBuffer[i] = buffer.PopLeft();
+                string name = nameBuffer.GetStringFromUtf8();
                 if(name.Length > Globals.NAME_LENGTH_LIMIT)
                 {
                     GD.Print($"Packet has name with invalid length {name.Length}. It will be trimmed.");
-                    name = name.Take(Globals.NAME_LENGTH_LIMIT).ToArray();
+                    name = new(name.Take(Globals.NAME_LENGTH_LIMIT).ToArray());
                 }
-                packet = new Packet_ConnectLobbyRequest(lobbyId, name.GetStringFromUtf8());
+                packet = new Packet_ConnectLobbyRequest(lobbyId, name);
                 return true;
             }
             case PacketTypeEnum.CONNECT_LOBBY_OK:
@@ -127,12 +129,12 @@ public abstract partial class AbstractPacket : RefCounted
                     {
                         nameBuffers[i][j] = buffer.PopLeft();
                     }
-                    if(nameBuffers[i].Length > Globals.NAME_LENGTH_LIMIT)
-                    {
-                        GD.Print($"Packet has name with invalid length {nameBuffers[i].Length}. It will be trimmed.");
-                        nameBuffers[i] = nameBuffers[i].Take(Globals.NAME_LENGTH_LIMIT).ToArray();
-                    }
                     names[i] = nameBuffers[i].GetStringFromUtf8();
+                    if(names[i].Length > Globals.NAME_LENGTH_LIMIT)
+                    {
+                        GD.Print($"Packet has name with invalid length {names[i].Length}. It will be trimmed.");
+                        names[i] = new(names[i].Take(Globals.NAME_LENGTH_LIMIT).ToArray());
+                    }
                 }
                 //read busy bits
                 for(int i = 0; i < packedBusyCount; ++i) packedBusy[i] = buffer.PopLeft();
@@ -157,13 +159,14 @@ public abstract partial class AbstractPacket : RefCounted
                 byte size = buffer[1];
                 if(buffer.Count < 2 + size) return false;
                 for(int i = 0; i < 2; ++i) buffer.PopLeft();
-                byte[] name = new byte[size]; for(int i = 0; i < size; ++i) name[i] = buffer.PopLeft();
+                byte[] nameBuffer = new byte[size]; for(int i = 0; i < size; ++i) nameBuffer[i] = buffer.PopLeft();
+                string name = nameBuffer.GetStringFromUtf8();
                 if(name.Length > Globals.NAME_LENGTH_LIMIT)
                 {
                     GD.Print($"Packet has name with invalid length {name.Length}. It will be trimmed.");
-                    name = name.Take(Globals.NAME_LENGTH_LIMIT).ToArray();
+                    name = new(name.Take(Globals.NAME_LENGTH_LIMIT).ToArray());
                 }
-                packet = new Packet_LobbyNewPlayer(name.GetStringFromUtf8());
+                packet = new Packet_LobbyNewPlayer(name);
                 return true;
             }
             case PacketTypeEnum.NEW_GAME_REQUEST:
@@ -389,6 +392,12 @@ public abstract partial class AbstractPacket : RefCounted
             {
                 buffer.PopLeft();
                 packet = new Packet_GameQuit();
+                return true;
+            }
+            case PacketTypeEnum.GAME_QUIT_OK:
+            {
+                buffer.PopLeft();
+                packet = new Packet_GameQuitOk();
                 return true;
             }
             case PacketTypeEnum.GAME_QUIT_FAIL:

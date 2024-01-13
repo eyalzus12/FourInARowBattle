@@ -130,12 +130,15 @@ public enum PacketTypeEnum : byte
     //quit the current game
     //data: none
     GAME_QUIT = 230,
+    //quitting ok
+    //data: none
+    GAME_QUIT_OK = 231,
     //failed to quit game
     //data: error code(8b)
-    GAME_QUIT_FAIL = 231,
+    GAME_QUIT_FAIL = 232,
     //other player quit game
     //data: none
-    GAME_QUIT_OTHER = 232,
+    GAME_QUIT_OTHER = 233,
     //game finished
     //data: result(8b), player 1 points(32b), player 2 points(32b)
     GAME_FINISHED = 240,

@@ -128,11 +128,6 @@ public partial class LobbyMenu : Control
         }
     }
 
-    public void ClearMark()
-    {
-        SetMark(-1);
-    }
-
     public void ClearPlayers()
     {
         foreach(PlayerSlot slot in _slots)

@@ -9,3 +9,6 @@ _interactionEnabled = true
 _loadingEnabled = true
 _savingEnabled = true
 AllowedTurns = Array[int]([0, 1])
+
+[node name="GoBack" parent="Control" index="3"]
+_changeTo = "res://Scenes/UI/Menus/LocalPlayMenu/LocalPlayMenu.tscn"

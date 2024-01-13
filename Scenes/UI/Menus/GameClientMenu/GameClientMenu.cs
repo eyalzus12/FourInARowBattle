@@ -69,7 +69,8 @@ public partial class GameClientMenu : Node
         _client.LobbyPlayerLeft += OnClientLobbyPlayerLeft;
         _client.LobbyTimeoutWarned += OnClientLobbyTimeoutWarned;
         _client.LobbyTimedOut += OnClientLobbyTimedOut;
-        _client.GameEjected += OnClientGameEjected;
+        _client.GameQuitByOpponent += OnClientGameQuitByOpponent;
+        _client.GameQuitBySelf += OnClientGameQuitBySelf;
         _client.NewGameRequestSent += OnClientNewGameRequestSent;
         _client.NewGameRequestReceived += OnClientNewGameRequestReceived;
         _client.NewGameAcceptSent += OnClientNewGameAcceptSent;
@@ -234,10 +235,15 @@ public partial class GameClientMenu : Node
         _kickingToRemotePlayMenu = true;
     }
 
-    private void OnClientGameEjected()
+    private void OnClientGameQuitByOpponent()
     {
-        DisplayNotice("Other player disconnected. Game ejected");
+        DisplayNotice("Opponent quit");
         _kickingToLobby = true;
+    }
+
+    private void OnClientGameQuitBySelf()
+    {
+        SwitchToLobbyMenu();
     }
 
     private void OnClientNewGameRequestSent(int playerIndex)
@@ -287,7 +293,6 @@ public partial class GameClientMenu : Node
 
     private void OnClientPlayerBecameAvailable(int playerIndex)
     {
-        GD.Print($"index playerIndex avail");
         _lobbyMenu.SetChallengeState(ChallengeStateEnum.NONE, playerIndex);
     }
 
@@ -421,7 +426,7 @@ public partial class GameClientMenu : Node
             GD.PushError($"Attempt to exit lobby into wrong scene {path}");
             return;
         }
-        SwitchToLobbyMenu();
+        _client.QuitGame();
     }
 
     #endregion
@@ -442,7 +447,7 @@ public partial class GameClientMenu : Node
 
     private void HandleLobbyEnter()
     {
-        if(_inLobby) return;
+        if(_inLobby && !_inGame) return;
         _inLobby = true;
         _lobbyMenu.ProcessMode = ProcessModeEnum.Inherit;
         _lobbyMenu.Visible = true;

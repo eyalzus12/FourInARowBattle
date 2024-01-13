@@ -7,9 +7,11 @@
 [ext_resource type="Theme" uid="uid://qdeiddbstwpc" path="res://Resources/Themes/LabelWithOutlineTheme.tres" id="5_6dkay"]
 [ext_resource type="Script" path="res://Logic/Buttons/GoBackButton.cs" id="6_sy12a"]
 
-[node name="GameMenu" type="Node2D" node_paths=PackedStringArray("Game", "_player1Label", "_player2Label", "_saveGameButton", "_loadGameButton")]
+[node name="GameMenu" type="Node2D" node_paths=PackedStringArray("Game", "_quitGameButton", "_confirmQuitDialog", "_player1Label", "_player2Label", "_saveGameButton", "_loadGameButton")]
 script = ExtResource("1_nk18s")
 Game = NodePath("Game")
+_quitGameButton = NodePath("Control/GoBack")
+_confirmQuitDialog = NodePath("ConfirmationDialog")
 _player1Label = NodePath("Control/Player1Label")
 _player2Label = NodePath("Control/Player2Label")
 _saveGameButton = NodePath("Control/HBoxContainer/Save Game")
@@ -66,6 +68,35 @@ offset_bottom = 320.0
 grow_horizontal = 2
 mouse_filter = 2
 
+[node name="Player1Label" type="Label" parent="Control"]
+layout_mode = 2
+offset_left = 136.0
+offset_right = 512.0
+offset_bottom = 56.0
+size_flags_horizontal = 0
+size_flags_vertical = 0
+theme = ExtResource("5_6dkay")
+theme_override_font_sizes/font_size = 18
+vertical_alignment = 1
+clip_text = true
+
+[node name="Player2Label" type="Label" parent="Control"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -511.0
+offset_right = -128.0
+offset_bottom = 56.0
+grow_horizontal = 0
+size_flags_horizontal = 0
+size_flags_vertical = 0
+theme = ExtResource("5_6dkay")
+theme_override_font_sizes/font_size = 18
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+
 [node name="HBoxContainer" type="VBoxContainer" parent="Control"]
 layout_mode = 2
 offset_left = 525.0
@@ -88,35 +119,12 @@ text = "Load Game"
 script = ExtResource("4_2mhhg")
 _loadGamePopup = NodePath("../../../LoadDialog")
 
-[node name="Player1Label" type="Label" parent="Control"]
-layout_mode = 2
-offset_left = 280.0
-offset_right = 457.0
-offset_bottom = 56.0
-size_flags_horizontal = 0
-size_flags_vertical = 0
-theme = ExtResource("5_6dkay")
-theme_override_font_sizes/font_size = 11
-
-[node name="Player2Label" type="Label" parent="Control"]
-layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -448.0
-offset_right = -271.0
-offset_bottom = 56.0
-grow_horizontal = 0
-size_flags_horizontal = 0
-size_flags_vertical = 0
-theme = ExtResource("5_6dkay")
-theme_override_font_sizes/font_size = 11
-horizontal_alignment = 2
-
 [node name="GoBack" type="Button" parent="Control"]
 modulate = Color(1, 0.156863, 0.403922, 1)
+layout_mode = 0
 offset_right = 128.0
 offset_bottom = 56.0
 mouse_filter = 1
 text = "Quit Game"
 script = ExtResource("6_sy12a")
+_changeTo = "res://Scenes/UI/Menus/LobbyMenu/LobbyMenu.tscn"
