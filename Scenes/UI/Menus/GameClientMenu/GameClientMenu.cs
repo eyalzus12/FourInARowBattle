@@ -487,23 +487,23 @@ public partial class GameClientMenu : Node
 
     private void SwitchToRemotePlayMenu()
     {
+        HandleRemotePlayMenuEnter();
         HandleGameExit();
         HandleLobbyExit(true);
-        HandleRemotePlayMenuEnter();
     }
 
     private void SwitchToLobbyMenu()
     {
+        HandleLobbyEnter();
         HandleGameExit();
         HandleRemotePlayMenuExit();
-        HandleLobbyEnter();
     }
 
     private void SwitchToGame()
     {
+        HandleGameEnter();
         HandleRemotePlayMenuExit();
         HandleLobbyExit();
-        HandleGameEnter();
     }
 
     private void DisplayError(string error)
