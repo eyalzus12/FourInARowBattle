@@ -7,9 +7,9 @@ public partial class Packet_NewGameRejected : AbstractPacket
     public override PacketTypeEnum PacketType => PacketTypeEnum.NEW_GAME_REJECTED;
 
     [Export]
-    public int RequestSourceIndex{get; set;}
+    public int RequestSourceIndex{get; private set;}
     [Export]
-    public int RequestTargetIndex{get; set;}
+    public int RequestTargetIndex{get; private set;}
 
     public Packet_NewGameRejected(int requestSourceIndex, int requestTargetIndex)
     {

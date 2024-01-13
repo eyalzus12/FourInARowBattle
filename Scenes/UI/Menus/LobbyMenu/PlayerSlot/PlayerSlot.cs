@@ -133,5 +133,6 @@ public partial class PlayerSlot : Control
                 _rejectChallengeButton.Visible = true;
                 break;
         }
+        State = state;
     }
 }

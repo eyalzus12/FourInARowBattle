@@ -191,13 +191,25 @@ public partial class GameClientMenu : Node
         DisplayError(description);
     }
 
-    private void OnClientLobbyEntered(uint lobbyId, Godot.Collections.Array<string> players, int index)
+    private void OnClientLobbyEntered(uint lobbyId, LobbyPlayerData[] players, int index)
     {
         SwitchToLobbyMenu();
         _lobbyMenu.SetLobbyId(lobbyId);
-        _lobbyMenu.SetPlayerNames(players.ToArray());
+        string[] names = players.Select(p => p.Name).ToArray();
+        _lobbyMenu.SetPlayerNames(names);
         _lobbyMenu.SetMark(index);
-        _lobbyMenu.SetChallengeState(ChallengeStateEnum.CANNOT, index);
+        for(int i = 0; i < players.Length; ++i)
+        {
+            //cannot challenge yourself
+            if(i == index)
+                _lobbyMenu.SetChallengeState(ChallengeStateEnum.CANNOT, i);
+            //cannot challenge busy player
+            else if(players[i].Busy)
+                _lobbyMenu.SetChallengeState(ChallengeStateEnum.CANNOT, i);
+            //can challenge non-busy player
+            else
+                _lobbyMenu.SetChallengeState(ChallengeStateEnum.NONE, i);
+        }
     }
 
     private void OnClientLobbyPlayerJoined(string name)
@@ -274,13 +286,13 @@ public partial class GameClientMenu : Node
 
     private void OnClientPlayerBecameAvailable(int playerIndex)
     {
+        GD.Print($"index playerIndex avail");
         _lobbyMenu.SetChallengeState(ChallengeStateEnum.NONE, playerIndex);
     }
 
     private void OnClientGameStarted(GameTurnEnum turn, int opponentIndex)
     {
-        for(int i = 0; i < _lobbyMenu.PlayerCount; ++i)
-            _lobbyMenu.SetChallengeState(ChallengeStateEnum.NONE, i);
+        _lobbyMenu.SetAllChallengeStatesExceptMark(ChallengeStateEnum.NONE);
         SwitchToGame();
         _gameMenu.AllowedTurns = new(){turn};
         _gameMenu.InitGame();
@@ -400,15 +412,18 @@ public partial class GameClientMenu : Node
 
     private void SwitchToRemotePlayMenu()
     {
+        _inGame = false;
+        if(_inLobby)
+        {
+            _client.DisconnectFromLobby(DisconnectReasonEnum.DESIRE);
+            _lobbyMenu.ClearPlayers();
+        }
+
         _lobbyMenu.ProcessMode = ProcessModeEnum.Disabled;
         _lobbyMenu.Visible = false;
 
         _gameMenu.ProcessMode = ProcessModeEnum.Disabled;
         _gameMenu.Visible = false;
-
-        _inGame = false;
-        if(_inLobby)
-            _client.DisconnectFromLobby(DisconnectReasonEnum.DESIRE);
 
         _remotePlayMenu.ProcessMode = ProcessModeEnum.Inherit;
         _remotePlayMenu.Visible = true;

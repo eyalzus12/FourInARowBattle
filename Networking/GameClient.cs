@@ -21,7 +21,7 @@ public partial class GameClient : Node
     [Signal]
     public delegate void ErrorOccuredEventHandler(string description);
     [Signal]
-    public delegate void LobbyEnteredEventHandler(uint lobbyId, Godot.Collections.Array<string> players, int index);
+    public delegate void LobbyEnteredEventHandler(uint lobbyId, LobbyPlayerData[] players, int index);
     [Signal]
     public delegate void LobbyPlayerLeftEventHandler(int index);
     [Signal]
@@ -237,6 +237,12 @@ public partial class GameClient : Node
             case Packet_NewGameCanceled _packet:
                 HandlePacket_NewGameCanceled(_packet);
                 break;
+            case Packet_LobbyPlayerBusyTrue _packet:
+                HandlePacket_LobbyPlayerBusyTrue(_packet);
+                break;
+            case Packet_LobbyPlayerBusyFalse _packet:
+                HandlePacket_LobbyPlayerBusyFalse(_packet);
+                break;
             case Packet_LobbyDisconnectOther _packet:
                 HandlePacket_LobbyDisconnectOther(_packet);
                 break;
@@ -333,7 +339,7 @@ public partial class GameClient : Node
             Index = 0
         };
 
-        EmitSignal(SignalName.LobbyEntered, packet.LobbyId, _lobby.Players.Select(p => p.Name).ToGodotArray(), _lobby.Index);
+        EmitSignal(SignalName.LobbyEntered, packet.LobbyId, new LobbyPlayerData[]{new(ClientName!, false)}, _lobby.Index);
     }
 
     private void HandlePacket_CreateLobbyFail(Packet_CreateLobbyFail packet)
@@ -354,7 +360,7 @@ public partial class GameClient : Node
     {
         ArgumentNullException.ThrowIfNull(packet);
         ArgumentNullException.ThrowIfNull(packet.Players);
-        GD.Print($"Connected to lobby! Other players: {packet.Players}");
+        GD.Print($"Connected to lobby! Other players: {string.Join(' ', packet.Players.Select(p => p.Name))}");
         if(_lobbyConnectionPacket is null)
         {
             GD.Print("But I didn't ask to connect??");
@@ -366,9 +372,10 @@ public partial class GameClient : Node
         _lobby = new()
         {
             Id = _lobbyConnectionPacket.LobbyId,
-            Players = packet.Players.Select(name => new Player()
+            Players = packet.Players.Select(player => new Player()
             {
-                Name = name,
+                Name = player.Name,
+                Busy = player.Busy,
                 Index = i++
             }).ToList(),
             Index = packet.YourIndex
@@ -778,7 +785,7 @@ public partial class GameClient : Node
         if(sourceIdx != _lobby.Index && targetIdx != _lobby.Index)
             return;
         //my request
-        if(sourceIdx == _lobby.Index)
+        else if(sourceIdx == _lobby.Index)
         {
             Player target = _lobby.Players[targetIdx];
             if(target.GameCancelPacket is null)
@@ -790,7 +797,6 @@ public partial class GameClient : Node
             target.ISentRequest = false;
             EmitSignal(SignalName.NewGameCancelSent, targetIdx);
             target.GameCancelPacket = null;
-            
         }
         //request to me
         else if(targetIdx == _lobby.Index)
@@ -807,10 +813,70 @@ public partial class GameClient : Node
         }
     }
 
+    private void HandlePacket_LobbyPlayerBusyTrue(Packet_LobbyPlayerBusyTrue packet)
+    {
+        ArgumentNullException.ThrowIfNull(packet);
+        GD.Print($"Player {packet.PlayerIndex} became busy");
+        int index = packet.PlayerIndex;
+        if(_lobby is null)
+        {
+            GD.Print("But I'm not in a lobby??");
+            Desync();
+            return;
+        }
+
+        if(index < 0 || _lobby.Players.Count <= index)
+        {
+            GD.Print("But that index is invalid??");
+            Desync();
+            return;
+        }
+
+        //me
+        if(index == _lobby.Index)
+        {
+            return;
+        }
+
+        Player other = _lobby.Players[index];
+        other.Busy = true;
+        EmitSignal(SignalName.PlayerBecameBusy, index);
+    }
+
+    private void HandlePacket_LobbyPlayerBusyFalse(Packet_LobbyPlayerBusyFalse packet)
+    {
+        ArgumentNullException.ThrowIfNull(packet);
+        GD.Print($"Player {packet.PlayerIndex} no longer busy");
+        int index = packet.PlayerIndex;
+        if(_lobby is null)
+        {
+            GD.Print("But I'm not in a lobby??");
+            Desync();
+            return;
+        }
+
+        if(index < 0 || _lobby.Players.Count <= index)
+        {
+            GD.Print("But that index is invalid??");
+            Desync();
+            return;
+        }
+
+        //me
+        if(index == _lobby.Index)
+        {
+            return;
+        }
+
+        Player other = _lobby.Players[index];
+        other.Busy = false;
+        EmitSignal(SignalName.PlayerBecameAvailable, index);
+    }
+
     private void HandlePacket_LobbyDisconnectOther(Packet_LobbyDisconnectOther packet)
     {
         ArgumentNullException.ThrowIfNull(packet);
-        GD.Print($"Other player disconnected: {packet.Reason}");
+        GD.Print($"Player {packet.PlayerIndex} disconnected: {packet.Reason}");
         int index = packet.PlayerIndex;
         if(_lobby is null)
         {
@@ -911,13 +977,7 @@ public partial class GameClient : Node
 
         //im not relevant
         if(player1Idx != _lobby.Index && player2Idx != _lobby.Index)
-        {
-            _lobby.Players[player1Idx].Busy = true;
-            EmitSignal(SignalName.PlayerBecameBusy, player1Idx);
-            _lobby.Players[player2Idx].Busy = true;
-            EmitSignal(SignalName.PlayerBecameBusy, player2Idx);
             return;
-        }
 
         Player other = (player1Idx == _lobby.Index) ? _lobby.Players[player2Idx] : _lobby.Players[player1Idx];
         if(_lobby.Opponent is null)
@@ -1120,7 +1180,7 @@ public partial class GameClient : Node
         if(index < 0 || _lobby.Players.Count <= index || index == _lobby.Index) return;
         Player p = _lobby.Players[index];
         if(p.Busy || p.ISentRequest || p.IGotRequest) return;
-        p.GameRequestPacket = new Packet_NewGameRequest(_lobby.Index);
+        p.GameRequestPacket = new Packet_NewGameRequest(index);
         SendPacket(p.GameRequestPacket);
     }
 
@@ -1130,7 +1190,7 @@ public partial class GameClient : Node
         if(index < 0 || _lobby.Players.Count <= index) return;
         Player p = _lobby.Players[index];
         if(!p.IGotRequest) return;
-        p.GameAcceptPacket = new Packet_NewGameAccept(_lobby.Index);
+        p.GameAcceptPacket = new Packet_NewGameAccept(index);
         SendPacket(p.GameAcceptPacket);
     }
     
@@ -1140,7 +1200,7 @@ public partial class GameClient : Node
         if(index < 0 || _lobby.Players.Count <= index) return;
         Player p = _lobby.Players[index];
         if(!p.IGotRequest) return;
-        p.GameRejectPacket = new Packet_NewGameReject(_lobby.Index);
+        p.GameRejectPacket = new Packet_NewGameReject(index);
         SendPacket(p.GameRejectPacket);
     }
 
@@ -1150,7 +1210,7 @@ public partial class GameClient : Node
         if(index < 0 || _lobby.Players.Count <= index) return;
         Player p = _lobby.Players[index];
         if(!p.ISentRequest) return;
-        p.GameCancelPacket = new Packet_NewGameCancel(_lobby.Index);
+        p.GameCancelPacket = new Packet_NewGameCancel(index);
         SendPacket(p.GameCancelPacket);
     }
     

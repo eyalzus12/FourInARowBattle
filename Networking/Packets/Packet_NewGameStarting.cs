@@ -7,9 +7,9 @@ public partial class Packet_NewGameStarting : AbstractPacket
     public override PacketTypeEnum PacketType => PacketTypeEnum.NEW_GAME_STARTING;
 
     [Export]
-    public int Player1Index{get; set;}
+    public int Player1Index{get; private set;}
     [Export]
-    public int Player2Index{get; set;}
+    public int Player2Index{get; private set;}
 
     public Packet_NewGameStarting(int player1Index, int player2Index)
     {

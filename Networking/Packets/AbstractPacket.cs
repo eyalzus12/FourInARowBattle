@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace FourInARowBattle;
 
-public abstract partial class AbstractPacket : Resource
+public abstract partial class AbstractPacket : RefCounted
 {
     public abstract PacketTypeEnum PacketType{get;}
 
@@ -99,32 +99,49 @@ public abstract partial class AbstractPacket : Resource
             {
                 if(buffer.Count < 9) return false;
                 int playerCount = (int)new[]{buffer[5], buffer[6], buffer[7], buffer[8]}.ReadBigEndian<uint>();
-                if(buffer.Count < 9 + playerCount) return false;
+                int packedBusyCount = (int)Math.Ceiling(playerCount / 8.0);
+                //early "enough space" check
+                if(buffer.Count < 9 + playerCount + packedBusyCount) return false;
                 int index = 9;
+                //ensure enough space for names
                 for(int i = 0; i < playerCount; ++i)
                 {
+                    if(index >= buffer.Count) return false;
                     byte size = buffer[index];
                     index += size + 1;
-                    if(i != playerCount-1 && index >= buffer.Count) return false;
                 }
+                //not enough for busy bits
+                if(index + packedBusyCount > buffer.Count) return false;
+
                 int yourIndex = (int)new[]{buffer[1], buffer[2], buffer[3], buffer[4]}.ReadBigEndian<uint>();
-                byte[][] names = new byte[playerCount][];
+                byte[][] nameBuffers = new byte[playerCount][];
+                string[] names = new string[playerCount];
+                byte[] packedBusy = new byte[packedBusyCount];
                 for(int i = 0; i < 9; ++i) buffer.PopLeft();
+                //read names
                 for(int i = 0; i < playerCount; ++i)
                 {
                     byte size = buffer.PopLeft();
-                    names[i] = new byte[size];
+                    nameBuffers[i] = new byte[size];
                     for(int j = 0; j < size; ++j)
                     {
-                        names[i][j] = buffer.PopLeft();
+                        nameBuffers[i][j] = buffer.PopLeft();
                     }
-                    if(names[i].Length > Globals.NAME_LENGTH_LIMIT)
+                    if(nameBuffers[i].Length > Globals.NAME_LENGTH_LIMIT)
                     {
-                        GD.Print($"Packet has name with invalid length {names[i].Length}. It will be trimmed.");
-                        names[i] = names[i].Take(Globals.NAME_LENGTH_LIMIT).ToArray();
+                        GD.Print($"Packet has name with invalid length {nameBuffers[i].Length}. It will be trimmed.");
+                        nameBuffers[i] = nameBuffers[i].Take(Globals.NAME_LENGTH_LIMIT).ToArray();
                     }
+                    names[i] = nameBuffers[i].GetStringFromUtf8();
                 }
-                packet = new Packet_ConnectLobbyOk(yourIndex, names.Select(name => name.GetStringFromUtf8()).ToArray());
+                //read busy bits
+                for(int i = 0; i < packedBusyCount; ++i) packedBusy[i] = buffer.PopLeft();
+                bool[] busyBits = packedBusy.ReadBits(playerCount, 0);
+                //convert into player list
+                LobbyPlayerData[] players = names
+                    .Zip(busyBits, (string name, bool busy) => new LobbyPlayerData(name, busy))
+                    .ToArray();
+                packet = new Packet_ConnectLobbyOk(yourIndex, players);
                 return true;
             }
             case PacketTypeEnum.CONNECT_LOBBY_FAIL:
@@ -251,6 +268,22 @@ public abstract partial class AbstractPacket : Resource
                 int targetIndex = (int)new[]{buffer[5], buffer[6], buffer[7], buffer[8]}.ReadBigEndian<uint>();
                 for(int i = 0; i < 9; ++ i) buffer.PopLeft();
                 packet = new Packet_NewGameCanceled(sourceIndex, targetIndex);
+                return true;
+            }
+            case PacketTypeEnum.LOBBY_PLAYER_BUSY_TRUE:
+            {
+                if(buffer.Count < 5) return false;
+                int playerIndex = (int)new[]{buffer[1], buffer[2], buffer[3], buffer[4]}.ReadBigEndian<uint>();
+                for(int i = 0; i < 5; ++i) buffer.PopLeft();
+                packet = new Packet_LobbyPlayerBusyTrue(playerIndex);
+                return true;
+            }
+            case PacketTypeEnum.LOBBY_PLAYER_BUSY_FALSE:
+            {
+                if(buffer.Count < 5) return false;
+                int playerIndex = (int)new[]{buffer[1], buffer[2], buffer[3], buffer[4]}.ReadBigEndian<uint>();
+                for(int i = 0; i < 5; ++i) buffer.PopLeft();
+                packet = new Packet_LobbyPlayerBusyFalse(playerIndex);
                 return true;
             }
             case PacketTypeEnum.LOBBY_DISCONNECT:

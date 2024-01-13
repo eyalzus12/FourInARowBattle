@@ -200,7 +200,8 @@ public partial class GameServer : Node
         ArgumentNullException.ThrowIfNull(packet);
         ArgumentNullException.ThrowIfNull(packet.PlayerName);
 
-        if(packet.PlayerName == "") packet.PlayerName = "Guest";
+        string name = packet.PlayerName;
+        if(name == "") name = "Guest";
 
         GD.Print($"{peerId} wants to create lobby. Player name: {packet.PlayerName}");
 
@@ -230,7 +231,8 @@ public partial class GameServer : Node
         ArgumentNullException.ThrowIfNull(packet);
         ArgumentNullException.ThrowIfNull(packet.PlayerName);
 
-        if(packet.PlayerName == "") packet.PlayerName = "Guest";
+        string name = packet.PlayerName;
+        if(name == "") name = "Guest";
         
         GD.Print($"{peerId} wants to connect to lobby {packet.LobbyId} with name {packet.PlayerName}");
 
@@ -251,11 +253,15 @@ public partial class GameServer : Node
 
         lobby.Players.Add(player);
         int index = lobby.Players.Count - 1;
-        string[] names = lobby.Players.Select(player => player.Name).ToArray();
+        IEnumerable<string> names = lobby.Players.Select(player => player.Name);
+        
+        LobbyPlayerData[] data = lobby.Players
+            .Select(player => new LobbyPlayerData(player.Name, player.Match is not null))
+            .ToArray();
         
         player.Lobby = lobby;
         player.Index = index;
-        SendPacket(player.Id, new Packet_ConnectLobbyOk(index, names));
+        SendPacket(player.Id, new Packet_ConnectLobbyOk(index, data));
         foreach(Player other in lobby.Players) if(other != player)
         {
             SendPacket(other.Id, new Packet_LobbyNewPlayer(player.Name));
@@ -267,63 +273,64 @@ public partial class GameServer : Node
         ArgumentNullException.ThrowIfNull(packet);
         GD.Print($"{peerId} try request new game on player number {packet.RequestTargetIndex}");
 
-        int playerIndex = packet.RequestTargetIndex;
+        int targetIdx = packet.RequestTargetIndex;
         if(!_players.TryGetValue(peerId, out Player? player) || player.Lobby is null)
         {
             GD.Print($"{peerId} cannot request game start because they are not in a lobby.");
-            SendPacket(peerId, new Packet_NewGameRequestFail(ErrorCodeEnum.CANNOT_REQUEST_START_NO_LOBBY, playerIndex));
+            SendPacket(peerId, new Packet_NewGameRequestFail(ErrorCodeEnum.CANNOT_REQUEST_START_NO_LOBBY, targetIdx));
             return;
         }
         Lobby lobby = player.Lobby;
-        if(playerIndex == player.Index)
+        if(targetIdx == player.Index)
         {
             GD.Print($"{peerId} cannot request game start on themselves.");
-            SendPacket(peerId, new Packet_NewGameRequestFail(ErrorCodeEnum.CANNOT_REQUEST_START_YOURSELF, playerIndex));
+            SendPacket(peerId, new Packet_NewGameRequestFail(ErrorCodeEnum.CANNOT_REQUEST_START_YOURSELF, targetIdx));
             return;
         }
 
-        if(playerIndex < 0 || lobby.Players.Count <= playerIndex)
+        if(targetIdx < 0 || lobby.Players.Count <= targetIdx)
         {
             GD.Print($"{peerId} cannot request game start with invalid player.");
-            SendPacket(peerId, new Packet_NewGameRequestFail(ErrorCodeEnum.CANNOT_REQUEST_START_INVALID_PLAYER, playerIndex));
+            SendPacket(peerId, new Packet_NewGameRequestFail(ErrorCodeEnum.CANNOT_REQUEST_START_INVALID_PLAYER, targetIdx));
             return;
         }
 
-        Player other = lobby.Players[playerIndex];
+        Player target = lobby.Players[targetIdx];
 
-        if(player.RequestTargets.Contains(other))
+        if(player.RequestTargets.Contains(target))
         {
             GD.Print($"{peerId} cannot request game start because they already did.");
-            SendPacket(peerId, new Packet_NewGameRequestFail(ErrorCodeEnum.CANNOT_REQUEST_START_ALREADY_DID, playerIndex));
+            SendPacket(peerId, new Packet_NewGameRequestFail(ErrorCodeEnum.CANNOT_REQUEST_START_ALREADY_DID, targetIdx));
             return;
         }
 
-        if(player.RequestSources.Contains(other))
+        if(player.RequestSources.Contains(target))
         {
-            GD.Print($"{peerId} cannot request game start because there's already an active request.");
-            SendPacket(peerId, new Packet_NewGameRequestFail(ErrorCodeEnum.CANNOT_REQUEST_START_OTHER_DID, playerIndex));
+            GD.Print($"{peerId} cannot request game start because the other person did.");
+            SendPacket(peerId, new Packet_NewGameRequestFail(ErrorCodeEnum.CANNOT_REQUEST_START_OTHER_DID, targetIdx));
             return;
         }
 
         if(player.Match is not null)
         {
             GD.Print($"{peerId} cannot request game start because they are in the middle of a game.");
-            SendPacket(peerId, new Packet_NewGameRequestFail(ErrorCodeEnum.CANNOT_REQUEST_START_MID_GAME, playerIndex));
+            SendPacket(peerId, new Packet_NewGameRequestFail(ErrorCodeEnum.CANNOT_REQUEST_START_MID_GAME, targetIdx));
             return;
         }
 
-        if(other.Match is not null)
+        if(target.Match is not null)
         {
-            GD.Print($"{peerId} cannot request game start from {playerIndex} because that player is in the middle of a game.");
-            SendPacket(peerId, new Packet_NewGameRequestFail(ErrorCodeEnum.CANNOT_REQUEST_START_MID_GAME_OTHER, playerIndex));
+            GD.Print($"{peerId} cannot request game start from {targetIdx} because that player is in the middle of a game.");
+            SendPacket(peerId, new Packet_NewGameRequestFail(ErrorCodeEnum.CANNOT_REQUEST_START_MID_GAME_OTHER, targetIdx));
             return;
         }
 
-        GD.Print($"{peerId} requested game start to {other.Id}");
-        other.RequestSources.Add(player);
-        player.RequestTargets.Add(player);
-        foreach(Player another in lobby.Players)
-            SendPacket(another.Id, new Packet_NewGameRequested((int)player.Index!, (int)other.Index!));
+        GD.Print($"{peerId} requested game start to {target.Id}");
+        target.RequestSources.Add(player);
+        player.RequestTargets.Add(target);
+        Packet_NewGameRequested requestPacket = new((int)player.Index!, (int)target.Index!);
+        SendPacket(player.Id, requestPacket);
+        SendPacket(target.Id, requestPacket);
     }
 
     private void HandlePacket_NewGameAccept(int peerId, Packet_NewGameAccept packet)
@@ -331,64 +338,75 @@ public partial class GameServer : Node
         ArgumentNullException.ThrowIfNull(packet);
         GD.Print($"{peerId} try approve new game request from player number {packet.RequestSourceIndex}");
 
-        int playerIndex = packet.RequestSourceIndex;
+        int sourceIdx = packet.RequestSourceIndex;
         if(!_players.TryGetValue(peerId, out Player? player) || player.Lobby is null)
         {
             GD.Print($"{peerId} cannot approve game request because they are not in a lobby.");
-            SendPacket(peerId, new Packet_NewGameAcceptFail(ErrorCodeEnum.CANNOT_APPROVE_NOT_IN_LOBBY, playerIndex));
+            SendPacket(peerId, new Packet_NewGameAcceptFail(ErrorCodeEnum.CANNOT_APPROVE_NOT_IN_LOBBY, sourceIdx));
             return;
         }
         Lobby lobby = player.Lobby;
 
-        if(playerIndex < 0 || lobby.Players.Count <= playerIndex)
+        if(sourceIdx < 0 || lobby.Players.Count <= sourceIdx)
         {
             GD.Print($"{peerId} cannot approve game request from invalid player.");
-            SendPacket(peerId, new Packet_NewGameAcceptFail(ErrorCodeEnum.CANNOT_APPROVE_NO_REQUEST, playerIndex));
+            SendPacket(peerId, new Packet_NewGameAcceptFail(ErrorCodeEnum.CANNOT_APPROVE_INVALID_PLAYER, sourceIdx));
             return;
         }
-        Player other = lobby.Players[playerIndex];
+        Player source = lobby.Players[sourceIdx];
 
-        if(!player.RequestTargets.Contains(other))
+        if(!player.RequestSources.Contains(source))
         {
             GD.Print($"{peerId} cannot approve game request because there is no request");
-            SendPacket(peerId, new Packet_NewGameAcceptFail(ErrorCodeEnum.CANNOT_APPROVE_NO_REQUEST, playerIndex));
+            SendPacket(peerId, new Packet_NewGameAcceptFail(ErrorCodeEnum.CANNOT_APPROVE_NO_REQUEST, sourceIdx));
             return;
         }
 
-        GD.Print($"{peerId} approved game request from {other.Id}");
+        GD.Print($"{peerId} approved game request from {source.Id}");
 
-        other.RequestSources.Clear();
-        other.RequestTargets.Clear();
+        source.RequestSources.Clear();
+        source.RequestTargets.Clear();
         player.RequestSources.Clear();
         player.RequestTargets.Clear();
 
+        Packet_NewGameAccepted acceptPacket = new((int)source.Index!, (int)player.Index!);
+        SendPacket(player.Id, acceptPacket);
+        SendPacket(source.Id, acceptPacket);
+
+        Packet_LobbyPlayerBusyTrue sourceBusy = new((int)source.Index!);
+        Packet_LobbyPlayerBusyTrue targetBusy = new((int)player.Index!);
         foreach(Player another in lobby.Players)
         {
-            another.RequestSources.Remove(other);
-            another.RequestSources.Remove(player);
-            another.RequestTargets.Remove(other);
-            another.RequestTargets.Remove(player);
-            SendPacket(another.Id, new Packet_NewGameAccepted((int)other.Index!, (int)player.Index!));
+            if(another != source && another != player)
+            {
+                another.RequestSources.Remove(source);
+                another.RequestSources.Remove(player);
+                another.RequestTargets.Remove(source);
+                another.RequestTargets.Remove(player);
+                SendPacket(another.Id, sourceBusy);
+                SendPacket(another.Id, targetBusy);
+            }
         }
         /*
         start game here
         */
-        GD.Print($"game will now started in lobby {lobby.Id} with {player.Id} and {other.Id}");
+        GD.Print($"game will now started in lobby {lobby.Id} with {player.Id} and {source.Id}");
         bool which = GD.RandRange(0, 1) == 0; //decide which player is first
         Match match = new()
         {
             Lobby = lobby,
             Game = Autoloads.ScenePool.GetScene<GameMenu>(_gameScene!),
-            Player1 = which ? player : other,
-            Player2 = which ? other : player
+            Player1 = which ? player : source,
+            Player2 = which ? source : player
         };
         AddChild(match.Game);
         
         player.Match = match; player.Turn = which ? GameTurnEnum.Player1 : GameTurnEnum.Player2;
-        other.Match = match; other.Turn = which ? GameTurnEnum.Player2 : GameTurnEnum.Player1;
+        source.Match = match; source.Turn = which ? GameTurnEnum.Player2 : GameTurnEnum.Player1;
         
-        foreach(Player another in lobby.Players)
-            SendPacket(another.Id, new Packet_NewGameStarting((int)match.Player1.Index!, (int)match.Player2.Index!));
+        Packet_NewGameStarting gameStart = new((int)match.Player1.Index!, (int)match.Player2.Index!);
+        SendPacket(player.Id, gameStart);
+        SendPacket(source.Id, gameStart);
     }
 
     private void HandlePacket_NewGameReject(int peerId, Packet_NewGameReject packet)
@@ -396,37 +414,38 @@ public partial class GameServer : Node
         ArgumentNullException.ThrowIfNull(packet);
         GD.Print($"{peerId} try reject new game request from player number {packet.RequestSourceIndex}");
 
-        int playerIndex = packet.RequestSourceIndex;
+        int sourceIdx = packet.RequestSourceIndex;
         if(!_players.TryGetValue(peerId, out Player? player) || player.Lobby is null)
         {
             GD.Print($"{peerId} cannot reject game request because they are not in a lobby.");
-            SendPacket(peerId, new Packet_NewGameRejectFail(ErrorCodeEnum.CANNOT_REJECT_NOT_IN_LOBBY, playerIndex));
+            SendPacket(peerId, new Packet_NewGameRejectFail(ErrorCodeEnum.CANNOT_REJECT_NOT_IN_LOBBY, sourceIdx));
             return;
         }
         Lobby lobby = player.Lobby;
 
-        if(playerIndex < 0 || lobby.Players.Count <= playerIndex)
+        if(sourceIdx < 0 || lobby.Players.Count <= sourceIdx)
         {
             GD.Print($"{peerId} cannot reject game request from invalid player.");
-            SendPacket(peerId, new Packet_NewGameAcceptFail(ErrorCodeEnum.CANNOT_REJECT_NO_REQUEST, playerIndex));
+            SendPacket(peerId, new Packet_NewGameAcceptFail(ErrorCodeEnum.CANNOT_REJECT_INVALID_PLAYER, sourceIdx));
             return;
         }
-        Player other = lobby.Players[playerIndex];
+        Player source = lobby.Players[sourceIdx];
 
-        if(!player.RequestTargets.Contains(other))
+        if(!player.RequestSources.Contains(source))
         {
             GD.Print($"{peerId} cannot reject game request because there is no request");
-            SendPacket(peerId, new Packet_NewGameRejectFail(ErrorCodeEnum.CANNOT_REJECT_NO_REQUEST, playerIndex));
+            SendPacket(peerId, new Packet_NewGameRejectFail(ErrorCodeEnum.CANNOT_REJECT_NO_REQUEST, sourceIdx));
             return;
         }
 
-        GD.Print($"{peerId} rejected game request from {other.Id}");
+        GD.Print($"{peerId} rejected game request from {source.Id}");
 
-        other.RequestSources.Remove(player);
-        player.RequestTargets.Remove(other);
+        source.RequestTargets.Remove(player);
+        player.RequestSources.Remove(source);
 
-        foreach(Player another in lobby.Players)
-            SendPacket(another.Id, new Packet_NewGameRejected((int)other.Index!, (int)player.Index!));
+        Packet_NewGameRejected rejectPacket = new((int)source.Index!, (int)player.Index!);
+        SendPacket(player.Id, rejectPacket);
+        SendPacket(source.Id, rejectPacket);
     }
 
     private void HandlePacket_NewGameCancel(int peerId, Packet_NewGameCancel packet)
@@ -434,37 +453,38 @@ public partial class GameServer : Node
         ArgumentNullException.ThrowIfNull(packet);
         GD.Print($"{peerId} try cancel new game request to player number {packet.RequestTargetIndex}");
 
-        int playerIndex = packet.RequestTargetIndex;
+        int targetIdx = packet.RequestTargetIndex;
         if(!_players.TryGetValue(peerId, out Player? player) || player.Lobby is null)
         {
             GD.Print($"{peerId} cannot cancel game request because they are not in a lobby.");
-            SendPacket(peerId, new Packet_NewGameCancelFail(ErrorCodeEnum.CANNOT_CANCEL_NOT_IN_LOBBY, playerIndex));
+            SendPacket(peerId, new Packet_NewGameCancelFail(ErrorCodeEnum.CANNOT_CANCEL_NOT_IN_LOBBY, targetIdx));
             return;
         }
         Lobby lobby = player.Lobby;
 
-        if(playerIndex < 0 || lobby.Players.Count <= playerIndex)
+        if(targetIdx < 0 || lobby.Players.Count <= targetIdx)
         {
             GD.Print($"{peerId} cannot cancel game request to invalid player.");
-            SendPacket(peerId, new Packet_NewGameCancelFail(ErrorCodeEnum.CANNOT_CANCEL_NO_REQUEST, playerIndex));
+            SendPacket(peerId, new Packet_NewGameCancelFail(ErrorCodeEnum.CANNOT_CANCEL_INVALID_PLAYER, targetIdx));
             return;
         }
-        Player other = lobby.Players[playerIndex];
+        Player target = lobby.Players[targetIdx];
 
-        if(!player.RequestTargets.Contains(other))
+        if(!player.RequestTargets.Contains(target))
         {
             GD.Print($"{peerId} cannot cancel game request because there is no request");
-            SendPacket(peerId, new Packet_NewGameCancelFail(ErrorCodeEnum.CANNOT_CANCEL_NO_REQUEST, playerIndex));
+            SendPacket(peerId, new Packet_NewGameCancelFail(ErrorCodeEnum.CANNOT_CANCEL_NO_REQUEST, targetIdx));
             return;
         }
 
-        GD.Print($"{peerId} canceled game request to {other.Id}");
+        GD.Print($"{peerId} canceled game request to {target.Id}");
 
-        other.RequestSources.Remove(player);
-        player.RequestTargets.Remove(other);
-
-        foreach(Player another in lobby.Players)
-            SendPacket(another.Id, new Packet_NewGameCanceled((int)player.Index!, (int)other.Index!));
+        target.RequestSources.Remove(player);
+        player.RequestTargets.Remove(target);
+        
+        Packet_NewGameCanceled cancelPacket = new((int)player.Index!, (int)target.Index!);
+        SendPacket(target.Id, cancelPacket);
+        SendPacket(player.Id, cancelPacket);
     }
 
     private void HandlePacket_LobbyDisconnect(int peerId, Packet_LobbyDisconnect packet)
@@ -613,6 +633,8 @@ public partial class GameServer : Node
         _players.Remove(player.Id);
         Lobby? lobby = player.Lobby;
         if(lobby is null) return;
+        //player was already removed
+        if(!lobby.Players.Contains(player)) return;
 
         Match? match = player.Match;
         if(match is not null)
@@ -621,6 +643,14 @@ public partial class GameServer : Node
             Player opponent = match.Player1 == player ? match.Player2 : match.Player1;
             opponent.Match = null;
             opponent.Turn = null;
+            Packet_LobbyPlayerBusyFalse notBusy = new((int)opponent.Index!);
+            foreach(Player other in lobby.Players)
+            {
+                if(other != opponent && other != player)
+                {
+                    SendPacket(other.Id, notBusy);
+                }
+            }
         }
         player.Match = null;
         player.Turn = null;
@@ -628,15 +658,22 @@ public partial class GameServer : Node
         player.RequestTargets.Clear();
 
         int index = (int)player.Index!;
+        Packet_LobbyDisconnectOther disconnectPacket = new(reason, index);
         foreach(Player other in lobby.Players) if(other != player)
         {
             other.RequestSources.Remove(player);
             other.RequestTargets.Remove(player);
-            SendPacket(other.Id, new Packet_LobbyDisconnectOther(reason, index));
+            SendPacket(other.Id, disconnectPacket);
         }
         player.Index = null;
 
         lobby.Players.RemoveAt(index);
+        //update index
+        for(int i = 0; i < lobby.Players.Count; ++i)
+        {
+            lobby.Players[i].Index = i;
+        }
+
         //lobby is now empty
         if(lobby.Players.Count == 0)
         {

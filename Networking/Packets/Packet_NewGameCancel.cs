@@ -7,7 +7,7 @@ public partial class Packet_NewGameCancel : AbstractPacket
     public override PacketTypeEnum PacketType => PacketTypeEnum.NEW_GAME_CANCEL;
 
     [Export]
-    public int RequestTargetIndex{get; set;}
+    public int RequestTargetIndex{get; private set;}
 
     public Packet_NewGameCancel(int requestTargetIndex)
     {

@@ -5,8 +5,8 @@ public enum PacketTypeEnum : byte
     //similar packet types have similar numberings
     //the goal of the non-uniform numbering is to make garbage packets easier to detect
     //00X       packets with special meaning
-    //01X-06X   lobby management
-    //07X-09X   unused
+    //01X-07X   lobby management
+    //08X-09X   unused
     //10X-13X   connection related
     //14X-19X   unused
     //20X-23X   game related
@@ -54,7 +54,7 @@ public enum PacketTypeEnum : byte
     //accepting game start request failed
     //data: error code(8b), player index(32b)
     NEW_GAME_ACCEPT_FAIL = 041,
-    //player accepted a game request
+    //player accepted a game request. doubles as an approval from the server.
     //data: request source(32b), request target:approver(32b)
     //game will now start
     NEW_GAME_ACCEPTED = 042,
@@ -64,7 +64,7 @@ public enum PacketTypeEnum : byte
     //rejecting game start request failed
     //data: error code(8b), player index(32b)
     NEW_GAME_REJECT_FAIL = 051,
-    //player rejected a game request
+    //player rejected a game request. doubles as an approval from the server.
     //data: request source(32b), request target:rejecter(32b)
     NEW_GAME_REJECTED = 052,
     //cancel new game request
@@ -73,9 +73,15 @@ public enum PacketTypeEnum : byte
     //canceling new game request failed
     //data: error code(8b), player index(32b)
     NEW_GAME_CANCEL_FAIL = 061,
-    //player canceled a game request
+    //player canceled a game request. doubles as an approval from the server.
     //data: request source:canceler(32b), request target(32b)
     NEW_GAME_CANCELED = 062,
+    //player became busy
+    //data: player index(32b)
+    LOBBY_PLAYER_BUSY_TRUE = 070,
+    //player stopped being busy
+    //data: player index(32b)
+    LOBBY_PLAYER_BUSY_FALSE = 071,
     //new player joined lobby
     //data: name length(8b) + name(var) of new player
     LOBBY_NEW_PLAYER = 100,

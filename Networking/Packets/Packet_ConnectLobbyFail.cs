@@ -7,7 +7,7 @@ public partial class Packet_ConnectLobbyFail : AbstractPacket
     public override PacketTypeEnum PacketType => PacketTypeEnum.CONNECT_LOBBY_FAIL;
 
     [Export]
-    public ErrorCodeEnum ErrorCode{get; set;}
+    public ErrorCodeEnum ErrorCode{get; private set;}
 
     public Packet_ConnectLobbyFail(ErrorCodeEnum errorCode)
     {

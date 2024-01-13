@@ -25,12 +25,15 @@ public static class ErrorCodeUtils
         {ErrorCodeEnum.CANNOT_REQUEST_START_OTHER_DID, "Other player already sent a game start request. Accept or reject it."},
 
         {ErrorCodeEnum.CANNOT_APPROVE_NO_REQUEST, "Cannot approve a game request that does not exist."},
+        {ErrorCodeEnum.CANNOT_APPROVE_INVALID_PLAYER, "Cannot approve a game request from an invalid player."},
         {ErrorCodeEnum.CANNOT_APPROVE_NOT_IN_LOBBY, "Cannot approve a game request while not in a lobby."},
 
         {ErrorCodeEnum.CANNOT_REJECT_NO_REQUEST, "Cannot reject a game request that does not exist."},
+        {ErrorCodeEnum.CANNOT_REJECT_INVALID_PLAYER, "Cannot reject a game request from an invalid player."},
         {ErrorCodeEnum.CANNOT_REJECT_NOT_IN_LOBBY, "Cannot reject a game request while not in a lobby."},
 
         {ErrorCodeEnum.CANNOT_CANCEL_NO_REQUEST, "Cannot cancel a game request that does not exist."},
+        {ErrorCodeEnum.CANNOT_CANCEL_INVALID_PLAYER, "Cannot cancel a game request to an invalid player."},
         {ErrorCodeEnum.CANNOT_CANCEL_NOT_IN_LOBBY, "Cannot cancel a game request while not in a lobby."},
 
         {ErrorCodeEnum.CANNOT_PLACE_NOT_IN_GAME, "Cannot place a token while not in a game."},

@@ -7,9 +7,9 @@ public partial class Packet_NewGameRequestFail : AbstractPacket
     public override PacketTypeEnum PacketType => PacketTypeEnum.NEW_GAME_REQUEST_FAIL;
 
     [Export]
-    public ErrorCodeEnum ErrorCode{get; set;}
+    public ErrorCodeEnum ErrorCode{get; private set;}
     [Export]
-    public int RequestTargetIndex{get; set;}
+    public int RequestTargetIndex{get; private set;}
 
     public Packet_NewGameRequestFail(ErrorCodeEnum errorCode, int requestTargetIndex)
     {

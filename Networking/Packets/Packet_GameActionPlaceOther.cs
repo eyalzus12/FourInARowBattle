@@ -7,9 +7,9 @@ public partial class Packet_GameActionPlaceOther : AbstractPacket
     public override PacketTypeEnum PacketType => PacketTypeEnum.GAME_ACTION_PLACE_OTHER;
 
     [Export]
-    public byte Column{get; set;}
+    public byte Column{get; private set;}
     [Export]
-    public string ScenePath{get; set;} = null!;
+    public string ScenePath{get; private set;} = null!;
 
     public Packet_GameActionPlaceOther(byte column, string scenePath)
     {
@@ -24,7 +24,7 @@ public partial class Packet_GameActionPlaceOther : AbstractPacket
         buffer.WriteBigEndian((byte)PacketType, 0, out int index);
         buffer.WriteBigEndian(Column, index, out index);
         buffer.WriteBigEndian((uint)stringBuffer.Length, index, out index);
-        buffer.StoreBuffer(stringBuffer, index, out _);
+        buffer.WriteBuffer(stringBuffer, index, out _);
         return buffer;
     }
 }

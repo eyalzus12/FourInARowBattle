@@ -7,7 +7,7 @@ public partial class Packet_InvalidPacketInform : AbstractPacket
     public override PacketTypeEnum PacketType => PacketTypeEnum.INVALID_PACKET_INFORM;
 
     [Export]
-    public PacketTypeEnum GivenPacketType{get; set;}
+    public PacketTypeEnum GivenPacketType{get; private set;}
 
     public Packet_InvalidPacketInform(PacketTypeEnum givenPacketType)
     {

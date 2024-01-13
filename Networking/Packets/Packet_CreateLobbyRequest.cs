@@ -8,7 +8,7 @@ public partial class Packet_CreateLobbyRequest : AbstractPacket
     public override PacketTypeEnum PacketType => PacketTypeEnum.CREATE_LOBBY_REQUEST;
 
     [Export]
-    public string PlayerName{get; set;} = null!;
+    public string PlayerName{get; private set;} = null!;
 
     public Packet_CreateLobbyRequest(string playerName)
     {
@@ -26,7 +26,7 @@ public partial class Packet_CreateLobbyRequest : AbstractPacket
         byte[] buffer = new byte[sizeof(byte) + sizeof(byte) + stringBuffer.Length];
         buffer.WriteBigEndian((byte)PacketType, 0, out int index);
         buffer.WriteBigEndian((byte)stringBuffer.Length, index, out index);
-        buffer.StoreBuffer(stringBuffer, index, out _);
+        buffer.WriteBuffer(stringBuffer, index, out _);
         return buffer;
     }
 }

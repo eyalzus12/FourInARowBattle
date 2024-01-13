@@ -8,7 +8,7 @@ public partial class Packet_GameActionRefillFail : AbstractPacket
     public override PacketTypeEnum PacketType => PacketTypeEnum.GAME_ACTION_REFILL_FAIL;
 
     [Export]
-    public ErrorCodeEnum ErrorCode{get; set;}
+    public ErrorCodeEnum ErrorCode{get; private set;}
 
     public Packet_GameActionRefillFail(ErrorCodeEnum errorCode)
     {

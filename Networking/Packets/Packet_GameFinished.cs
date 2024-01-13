@@ -7,11 +7,11 @@ public partial class Packet_GameFinished : AbstractPacket
     public override PacketTypeEnum PacketType => PacketTypeEnum.GAME_FINISHED;
 
     [Export]
-    public GameResultEnum Result{get; set;}
+    public GameResultEnum Result{get; private set;}
     [Export]
-    public int Player1Score{get; set;}
+    public int Player1Score{get; private set;}
     [Export]
-    public int Player2Score{get; set;}
+    public int Player2Score{get; private set;}
 
     public Packet_GameFinished(GameResultEnum result, int player1Score, int player2Score)
     {

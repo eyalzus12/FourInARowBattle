@@ -7,7 +7,7 @@ public partial class Packet_LobbyTimeoutWarning : AbstractPacket
     public override PacketTypeEnum PacketType => PacketTypeEnum.LOBBY_TIMEOUT_WARNING;
 
     [Export]
-    public int SecondsRemaining{get; set;}
+    public int SecondsRemaining{get; private set;}
 
     public Packet_LobbyTimeoutWarning(int secondsRemaining)
     {

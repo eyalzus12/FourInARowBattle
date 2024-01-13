@@ -7,7 +7,7 @@ public partial class Packet_LobbyDisconnect : AbstractPacket
     public override PacketTypeEnum PacketType => PacketTypeEnum.LOBBY_DISCONNECT;
 
     [Export]
-    public DisconnectReasonEnum Reason{get; set;}
+    public DisconnectReasonEnum Reason{get; private set;}
 
     public Packet_LobbyDisconnect(DisconnectReasonEnum reason)
     {

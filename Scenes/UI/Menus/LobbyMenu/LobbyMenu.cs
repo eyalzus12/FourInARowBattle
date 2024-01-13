@@ -52,10 +52,6 @@ public partial class LobbyMenu : Control
         GetWindow().SizeChanged += OnWindowSizeChanged;
         _goBackConfirmationDialog.Confirmed += OnGoBackConfirmationDialogConfirmed;
         _goBackButton.ChangeSceneRequested += OnGoBackButtonChangeSceneRequested;
-        for(int i = 0; i < _slots.Count; ++i)
-        {
-            ConnectSlotSignals(_slots[i]);
-        }
     }
 
     private void ConnectSlotSignals(PlayerSlot slot)
@@ -136,11 +132,21 @@ public partial class LobbyMenu : Control
         SetMark(-1);
     }
 
+    public void ClearPlayers()
+    {
+        foreach(PlayerSlot slot in _slots)
+        {
+            Autoloads.ScenePool.ReturnScene(slot);
+        }
+        _slots.Clear();
+    }
+
     public void AddPlayer(string name)
     {
         ArgumentNullException.ThrowIfNull(name);
         PlayerSlot slot = Autoloads.ScenePool.GetScene<PlayerSlot>(_playerSlotScene);
         _playerSlotsBase.AddChild(slot);
+        ConnectSlotSignals(slot);
         slot.SetState(ChallengeStateEnum.NONE);
         slot.PlayerName = name;
         _slots.Add(slot);
@@ -166,5 +172,18 @@ public partial class LobbyMenu : Control
     public void SetChallengeState(ChallengeStateEnum state, int index)
     {
         _slots[index].SetState(state);
+    }
+
+    public void SetAllChallengeStates(ChallengeStateEnum state)
+    {
+        foreach(PlayerSlot slot in _slots)
+            slot.SetState(state);
+    }
+
+    public void SetAllChallengeStatesExceptMark(ChallengeStateEnum state)
+    {
+        foreach(PlayerSlot slot in _slots)
+            if(!slot.Marked)
+                slot.SetState(state);
     }
 }

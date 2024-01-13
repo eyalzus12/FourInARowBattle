@@ -7,7 +7,7 @@ public partial class Packet_CreateLobbyOk : AbstractPacket
     public override PacketTypeEnum PacketType => PacketTypeEnum.CREATE_LOBBY_OK;
 
     [Export]
-    public uint LobbyId{get; set;}
+    public uint LobbyId{get; private set;}
 
     public Packet_CreateLobbyOk(uint lobbyId)
     {
