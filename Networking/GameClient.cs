@@ -1146,7 +1146,7 @@ public partial class GameClient : Node
             Desync();
             return;
         }
-
+        EmitSignal(SignalName.GameQuitBySelf);
         _quitPacket = null;
     }
 
@@ -1174,7 +1174,7 @@ public partial class GameClient : Node
             Desync();
             return;
         }
-        EmitSignal(SignalName.GameQuitBySelf);
+        EmitSignal(SignalName.GameQuitByOpponent);
     }
 
     private void HandlePacket_GameFinished(Packet_GameFinished packet)
