@@ -190,7 +190,6 @@ public partial class Game : Node2D
 
     public void SetDetectorsDisabled(bool disabled)
     {
-        DropDetectorIdx = null;
         foreach(CollisionShape2D col in _dropDetectorShapes)
             col.SetDeferredDisabled(disabled);
     }
@@ -284,12 +283,10 @@ public partial class Game : Node2D
     public override void _UnhandledInput(InputEvent @event)
     {
         ArgumentNullException.ThrowIfNull(@event);
-        //if(Autoloads.PersistentData.HeadlessMode) return;
 
         if(
             @event.IsJustPressed() && 
             @event is InputEventMouseButton mb &&
-            //!IsTurnDisabled(Turn) &&
             _droppingActive &&
             DropDetectorIdx is not null &&
             _selectedControl is not null &&
@@ -302,59 +299,6 @@ public partial class Game : Node2D
                 EmitSignal(SignalName.TokenPlaceAttempted, (int)DropDetectorIdx, _selectedButton.AssociatedScene);
             }
         }
-
-        /*if(
-            @event.IsJustPressed() &&
-            @event is InputEventKey ek
-        )
-        {
-            bool needGravity = true;
-            bool needNewDetectors = true;
-            switch(ek.Keycode)
-            {
-                case Key.W or Key.S:
-                {
-                    GameBoard.FlipVertical();
-                    //show ghost token in correct position
-                    GameBoard.QueueRedraw();
-                    needNewDetectors = false;
-                }
-                break;
-                case Key.A:
-                {
-                    GameBoard.RotateLeft();
-                }
-                break;
-                case Key.D:
-                {
-                    GameBoard.RotateRight();
-                }
-                break;
-                //debug key
-                case Key.F3:
-                {
-                    Autoloads.ScenePool.CleanPool();
-                }
-                break;
-                default:
-                {
-                    needGravity = false;
-                }
-                break;
-            }
-
-            if(needGravity)
-            {
-                GameBoard.ApplyGravity();
-            }
-
-            if(needNewDetectors)
-            {
-                DropDetectorIdx = null;
-                SetupDropDetectors();
-                SetDetectorsDisabled(false);
-            }
-        }*/
     }
 
     public void PassTurn()
@@ -362,9 +306,9 @@ public partial class Game : Node2D
         Turn = NextTurn;
         _selectedControl = null;
         _selectedButton = null;
+        foreach(TokenCounterListControl counter in _counterLists) counter.OnTurnChange(Turn);
         //force redraw of ghost token
         DropDetectorIdx = _dropDetectorIdx;
-        foreach(TokenCounterListControl counter in _counterLists) counter.OnTurnChange(Turn);
     }
 
     public bool ValidColumn(int column)

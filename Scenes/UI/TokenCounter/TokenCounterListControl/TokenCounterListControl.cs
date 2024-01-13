@@ -160,7 +160,9 @@ public partial class TokenCounterListControl : Control
                 _lastSelection is not null &&
                 _lastSelection.CanTake()
             )
+            {
                 _lastSelection.OnSelectButtonPressed(_lastSelectionButton);
+            }
             //lock refill button if needed
             if(_refillLocked)
             {
