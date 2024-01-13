@@ -111,6 +111,7 @@ offset_bottom = 88.0
 mouse_filter = 1
 text = "Back To Main Menu"
 script = ExtResource("1_pbaxe")
+_changeTo = "res://Scenes/UI/Menus/MainMenu/MainMenu.tscn"
 
 [node name="PlayerName" type="LineEdit" parent="."]
 layout_mode = 1
