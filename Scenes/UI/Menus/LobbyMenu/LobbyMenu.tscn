@@ -68,7 +68,7 @@ dialog_text = "Are you sure you want to exit the lobby?"
 [node name="ScrollContainer" type="ScrollContainer" parent="."]
 custom_minimum_size = Vector2(1152, 100)
 layout_mode = 1
-offset_top = 104.0
+offset_top = 128.0
 offset_right = 1152.0
 offset_bottom = 608.0
 follow_focus = true
