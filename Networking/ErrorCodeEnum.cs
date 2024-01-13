@@ -7,8 +7,8 @@ public enum ErrorCodeEnum : byte
     //00X       errors that should be reserved for testing
     //01X-06X   lobby related errors
     //07X-09X   unused
-    //10X-11X   game related errors
-    //12X-255   unused
+    //10X-12X   game related errors
+    //13X-255   unused
 
     UNKNOWN = 001,
     GENERIC = 002,
@@ -49,4 +49,6 @@ public enum ErrorCodeEnum : byte
     CANNOT_REFILL_NOT_YOUR_TURN = 111,
     CANNOT_REFILL_ALL_FILLED = 112,
     CANNOT_REFILL_TWO_TURN_STREAK = 113,
+
+    CANNOT_QUIT_NOT_IN_GAME = 120,
 }

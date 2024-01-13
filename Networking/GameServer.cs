@@ -176,6 +176,9 @@ public partial class GameServer : Node
             case Packet_GameActionRefill _packet:
                 HandlePacket_GameActionRefill(peerId, _packet);
                 break;
+            case Packet_GameQuit _packet:
+                HandlePaket_GameQuit(peerId, _packet);
+                break;
             default:
                 GD.PushError($"Server did not expect packet of type {packet.GetType().Name} from {peerId}");
                 break;
@@ -203,9 +206,9 @@ public partial class GameServer : Node
         string name = packet.PlayerName;
         if(name == "") name = "Guest";
 
-        GD.Print($"{peerId} wants to create lobby. Player name: {packet.PlayerName}");
+        GD.Print($"{peerId} wants to create lobby. Player name: {name}");
 
-        if(!UpdateName(peerId, packet.PlayerName, out Player? player))
+        if(!UpdateName(peerId, name, out Player? player))
         {
             GD.Print($"{peerId} failed to create lobby. They are already in one.");
             SendPacket(peerId, new Packet_CreateLobbyFail(ErrorCodeEnum.CANNOT_CREATE_WHILE_IN_LOBBY));
@@ -234,9 +237,9 @@ public partial class GameServer : Node
         string name = packet.PlayerName;
         if(name == "") name = "Guest";
         
-        GD.Print($"{peerId} wants to connect to lobby {packet.LobbyId} with name {packet.PlayerName}");
+        GD.Print($"{peerId} wants to connect to lobby {packet.LobbyId} with name {name}");
 
-        if(!UpdateName(peerId, packet.PlayerName, out Player? player))
+        if(!UpdateName(peerId, name, out Player? player))
         {
             GD.Print($"{peerId} failed to connect to lobby. They are already in one.");
             SendPacket(peerId, new Packet_ConnectLobbyFail(ErrorCodeEnum.CANNOT_JOIN_WHILE_IN_LOBBY));
@@ -625,6 +628,28 @@ public partial class GameServer : Node
         SendPacket(other.Id, new Packet_GameActionRefillOther());
     }
 
+    private void HandlePaket_GameQuit(int peerId, Packet_GameQuit packet)
+    {
+        ArgumentNullException.ThrowIfNull(packet);
+        GD.Print($"{peerId} quit game");
+        if(!_players.TryGetValue(peerId, out Player? player) || player.Lobby is null)
+        {
+            GD.Print($"{peerId} failed to quit because they are not in a game");
+            SendPacket(peerId, new Packet_GameQuitFail(ErrorCodeEnum.CANNOT_QUIT_NOT_IN_GAME));
+            return;
+        }
+        Match? match = player.Match;
+        if(match is null)
+        {
+            GD.Print($"{peerId} failed to quit because they are not in a game");
+            SendPacket(peerId, new Packet_GameQuitFail(ErrorCodeEnum.CANNOT_QUIT_NOT_IN_GAME));
+            return;
+        }
+        Player other = (match.Player1 == player) ? match.Player2 : match.Player1;
+        SendPacket(other.Id, new Packet_GameQuitOther());
+        QuitMatch(match);
+    }
+
     #endregion
 
     private void RemovePlayer(int peerId, DisconnectReasonEnum reason)
@@ -638,24 +663,7 @@ public partial class GameServer : Node
 
         Match? match = player.Match;
         if(match is not null)
-        {
-            Autoloads.ScenePool.ReturnScene(match.Game);
-            Player opponent = match.Player1 == player ? match.Player2 : match.Player1;
-            opponent.Match = null;
-            opponent.Turn = null;
-            Packet_LobbyPlayerBusyFalse notBusy = new((int)opponent.Index!);
-            foreach(Player other in lobby.Players)
-            {
-                if(other != opponent && other != player)
-                {
-                    SendPacket(other.Id, notBusy);
-                }
-            }
-        }
-        player.Match = null;
-        player.Turn = null;
-        player.RequestSources.Clear();
-        player.RequestTargets.Clear();
+            QuitMatch(match);
 
         int index = (int)player.Index!;
         Packet_LobbyDisconnectOther disconnectPacket = new(reason, index);
@@ -683,6 +691,31 @@ public partial class GameServer : Node
         {
             lobby.Leader = lobby.Players[0];
         }
+    }
+
+    private void QuitMatch(Match match)
+    {
+        Autoloads.ScenePool.ReturnScene(match.Game);
+        Player player1 = match.Player1;
+        Player player2 = match.Player2;
+        player1.Match = null;
+        player1.Turn = null;
+        player2.Match = null;
+        player2.Turn = null;
+        Packet_LobbyPlayerBusyFalse notBusy1 = new((int)player1.Index!);
+        Packet_LobbyPlayerBusyFalse notBusy2 = new((int)player2.Index!);
+        foreach(Player other in match.Lobby.Players)
+        {
+            if(other != player1 && other != player2)
+            {
+                SendPacket(other.Id, notBusy1);
+                SendPacket(other.Id, notBusy2);
+            }
+        }
+        player1.RequestSources.Clear();
+        player1.RequestTargets.Clear();
+        player2.RequestSources.Clear();
+        player2.RequestTargets.Clear();
     }
 
     private bool UpdateName(int peerId, string name, [NotNullWhen(true)] out Player? player)

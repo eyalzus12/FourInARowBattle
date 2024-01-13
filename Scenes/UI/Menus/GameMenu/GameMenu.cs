@@ -11,10 +11,16 @@ public partial class GameMenu : Node2D
     public delegate void TokenPlaceAttemptedEventHandler(int column, PackedScene token);
     [Signal]
     public delegate void RefillAttemptedEventHandler();
+    [Signal]
+    public delegate void GameQuitRequestedEventHandler(string path);
 
     [ExportCategory("Nodes")]
     [Export]
     public Game Game{get; private set;} = null!;
+    [Export]
+    private GoBackButton _quitGameButton = null!;
+    [Export]
+    private ConfirmationDialog _confirmQuitDialog = null!;
     [Export]
     private Label _player1Label = null!;
     [Export]
@@ -41,6 +47,8 @@ public partial class GameMenu : Node2D
 
     private HashSet<GameTurnEnum> _allowedTurns = new();
 
+    private string? _goBackRequestPath;
+
     private void VerifyExports()
     {
         ArgumentNullException.ThrowIfNull(Game);
@@ -48,10 +56,13 @@ public partial class GameMenu : Node2D
         ArgumentNullException.ThrowIfNull(_player2Label);
         ArgumentNullException.ThrowIfNull(_loadGameButton);
         ArgumentNullException.ThrowIfNull(_saveGameButton);
+        ArgumentNullException.ThrowIfNull(_quitGameButton);
+        ArgumentNullException.ThrowIfNull(_confirmQuitDialog);
     }
 
     private void ConnectSignals()
     {
+        GetWindow().SizeChanged += OnWindowSizeChanged;
         Game.GhostTokenRenderWanted += OnGameGhostTokenRenderWanted;
         Game.GhostTokenHidingWanted += OnGameGhostTokenHidingWanted;
         Game.TokenPlaceAttempted += OnGameTokenPlaceAttempted;
@@ -59,6 +70,8 @@ public partial class GameMenu : Node2D
         Game.TurnChanged += OnGameTurnChanged;
         Game.TokenFinishedDrop += OnGameTokenFinishedDrop;
         Game.TokenStartedDrop += OnGameTokenStartedDrop;
+        _quitGameButton.ChangeSceneRequested += OnQuitButtonPressed;
+        _confirmQuitDialog.Confirmed += OnQuitConfirmed;
         _loadGameButton.GameLoadRequested += OnLoadGameButtonGameLoadRequested;
         _saveGameButton.GameSaveRequested += OnSaveGameButtonGameSaveRequested;
     }
@@ -72,6 +85,12 @@ public partial class GameMenu : Node2D
         _saveGameButton.Visible = _savingEnabled;
         _loadGameButton.Disabled = !_loadingEnabled;
         _loadGameButton.Visible = _loadingEnabled;
+    }
+
+    private void OnWindowSizeChanged()
+    {
+        if(_confirmQuitDialog.Visible)
+            OnQuitButtonPressed(_goBackRequestPath!);
     }
 
     private void OnGameTokenFinishedDrop()
@@ -116,6 +135,19 @@ public partial class GameMenu : Node2D
         {
             Game.SetDetectorsDisabled(!_allowedTurns.Contains(Game.Turn));
         }
+    }
+
+    private void OnQuitButtonPressed(string goBackRequestPath)
+    {
+        ArgumentNullException.ThrowIfNull(goBackRequestPath);
+        _goBackRequestPath = goBackRequestPath;
+        _confirmQuitDialog.PopupCentered();
+    }
+
+    private void OnQuitConfirmed()
+    {
+        if(_goBackRequestPath is null) return;
+        EmitSignal(SignalName.GameQuitRequested, _goBackRequestPath);
     }
 
     private void OnLoadGameButtonGameLoadRequested(string path)

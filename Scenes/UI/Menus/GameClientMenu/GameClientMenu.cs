@@ -97,6 +97,7 @@ public partial class GameClientMenu : Node
         _lobbyMenu.ChallengeRejected += OnLobbyMenuChallengeRejected;
         _gameMenu.TokenPlaceAttempted += OnGameMenuTokenPlaceAttempted;
         _gameMenu.RefillAttempted += OnGameMenuRefillAttempted;
+        _gameMenu.GameQuitRequested += OnGameMenuGameQuitRequested;
     }
 
     public override void _Ready()
@@ -412,57 +413,92 @@ public partial class GameClientMenu : Node
         _client.Refill();
     }
 
+    private void OnGameMenuGameQuitRequested(string path)
+    {
+        ArgumentNullException.ThrowIfNull(path);
+        if(path != _lobbyMenu.SceneFilePath)
+        {
+            GD.PushError($"Attempt to exit lobby into wrong scene {path}");
+            return;
+        }
+        SwitchToLobbyMenu();
+    }
+
     #endregion
     
     #region Menu Operations
 
-    private void SwitchToRemotePlayMenu()
+    private void HandleRemotePlayMenuEnter()
     {
-        _inGame = false;
-        if(_inLobby)
+        _remotePlayMenu.ProcessMode = ProcessModeEnum.Inherit;
+        _remotePlayMenu.Visible = true;
+    }
+
+    private void HandleRemotePlayMenuExit()
+    {
+        _remotePlayMenu.ProcessMode = ProcessModeEnum.Disabled;
+        _remotePlayMenu.Visible = false;
+    }
+
+    private void HandleLobbyEnter()
+    {
+        if(_inLobby) return;
+        _inLobby = true;
+        _lobbyMenu.ProcessMode = ProcessModeEnum.Inherit;
+        _lobbyMenu.Visible = true;
+    }
+
+    private void HandleLobbyExit(bool disconnect = false)
+    {
+        if(!_inLobby) return;
+
+        if(disconnect)
         {
             _client.DisconnectFromLobby(DisconnectReasonEnum.DESIRE);
+            _inLobby = false;
             _lobbyMenu.ClearPlayers();
         }
 
         _lobbyMenu.ProcessMode = ProcessModeEnum.Disabled;
         _lobbyMenu.Visible = false;
+    }
 
+    private void HandleGameEnter()
+    {
+        if(_inGame) return;
+        _inGame = true;
+        _gameMenu.ProcessMode = ProcessModeEnum.Inherit;
+        _gameMenu.Visible = true;
+        _gameMenu.Game.DeserializeFrom(_initialState);
+    }
+
+    private void HandleGameExit()
+    {
+        if(!_inGame) return;
+        _inGame = false;
         _gameMenu.ProcessMode = ProcessModeEnum.Disabled;
         _gameMenu.Visible = false;
+    }
 
-        _remotePlayMenu.ProcessMode = ProcessModeEnum.Inherit;
-        _remotePlayMenu.Visible = true;
+    private void SwitchToRemotePlayMenu()
+    {
+        HandleGameExit();
+        HandleLobbyExit(true);
+        HandleRemotePlayMenuEnter();
     }
 
     private void SwitchToLobbyMenu()
     {
-        _remotePlayMenu.ProcessMode = ProcessModeEnum.Disabled;
-        _remotePlayMenu.Visible = false;
-        
-        _gameMenu.ProcessMode = ProcessModeEnum.Disabled;
-        _gameMenu.Visible = false;
-
-        _lobbyMenu.ProcessMode = ProcessModeEnum.Inherit;
-        _lobbyMenu.Visible = true;
-
-        _inLobby = true;
+        HandleGameExit();
+        HandleRemotePlayMenuExit();
+        HandleLobbyEnter();
     }
 
     private void SwitchToGame()
     {
-        _remotePlayMenu.ProcessMode = ProcessModeEnum.Disabled;
-        _remotePlayMenu.Visible = false;
-
-        _lobbyMenu.ProcessMode = ProcessModeEnum.Disabled;
-        _lobbyMenu.Visible = false;
-        
-        _gameMenu.ProcessMode = ProcessModeEnum.Inherit;
-        _gameMenu.Visible = true;
-
-        _gameMenu.Game.DeserializeFrom(_initialState);
-
-        _inGame = true;
+        HandleRemotePlayMenuExit();
+        HandleLobbyExit();
+        HandleGameEnter();
     }
 
     private void DisplayError(string error)

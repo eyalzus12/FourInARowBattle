@@ -1,3 +1,4 @@
+using System;
 using Godot;
 
 namespace FourInARowBattle;
@@ -8,6 +9,7 @@ public partial class GameMenuLocal : GameMenu
     {
         TokenPlaceAttempted += OnTokenPlaceAttempted;
         RefillAttempted += OnRefillAttempted;
+        GameQuitRequested += OnGameQuitRequested;
     }
 
     public override void _Ready()
@@ -24,5 +26,11 @@ public partial class GameMenuLocal : GameMenu
     private void OnRefillAttempted()
     {
         Refill();
+    }
+
+    private void OnGameQuitRequested(string path)
+    {
+        ArgumentNullException.ThrowIfNull(path);
+        GetTree().CallDeferred(SceneTree.MethodName.ChangeSceneToFile, path);
     }
 }

@@ -9,8 +9,8 @@ public enum PacketTypeEnum : byte
     //08X-09X   unused
     //10X-13X   connection related
     //14X-19X   unused
-    //20X-23X   game related
-    //23X-255   unused
+    //20X-24X   game related
+    //250-255   unused
 
     //dummy message
     //data: none
@@ -127,7 +127,16 @@ public enum PacketTypeEnum : byte
     //other player is refilling
     //date: none
     GAME_ACTION_REFILL_OTHER = 223,
+    //quit the current game
+    //data: none
+    GAME_QUIT = 230,
+    //failed to quit game
+    //data: error code(8b)
+    GAME_QUIT_FAIL = 231,
+    //other player quit game
+    //data: none
+    GAME_QUIT_OTHER = 232,
     //game finished
     //data: result(8b), player 1 points(32b), player 2 points(32b)
-    GAME_FINISHED = 230,
+    GAME_FINISHED = 240,
 }

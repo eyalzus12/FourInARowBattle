@@ -385,6 +385,25 @@ public abstract partial class AbstractPacket : RefCounted
                 packet = new Packet_GameActionRefillOther();
                 return true;
             }
+            case PacketTypeEnum.GAME_QUIT:
+            {
+                buffer.PopLeft();
+                packet = new Packet_GameQuit();
+                return true;
+            }
+            case PacketTypeEnum.GAME_QUIT_FAIL:
+            {
+                if(buffer.Count < 2) return false;
+                buffer.PopLeft();
+                packet = new Packet_GameQuitFail((ErrorCodeEnum)buffer.PopLeft());
+                return true;
+            }
+            case PacketTypeEnum.GAME_QUIT_OTHER:
+            {
+                buffer.PopLeft();
+                packet = new Packet_GameQuitOther();
+                return true;
+            }
             case PacketTypeEnum.GAME_FINISHED:
             {
                 if(buffer.Count < 10) return false;
