@@ -17,11 +17,15 @@ public partial class Game : Node2D
     public delegate void RefillAttemptedEventHandler();
     [Signal]
     public delegate void TurnChangedEventHandler();
+    [Signal]
+    public delegate void TokenStartedDropEventHandler();
+    [Signal]
+    public delegate void TokenFinishedDropEventHandler();
     
     private TokenCounterControl? _selectedControl = null;
     private TokenCounterButton? _selectedButton = null;
 
-    private GameTurnEnum _turn = GameTurnEnum.Player1;
+    private GameTurnEnum _turn = GameTurnEnum.PLAYER1;
     public GameTurnEnum Turn
     {
         get => _turn; 
@@ -35,14 +39,14 @@ public partial class Game : Node2D
 
     private GameTurnEnum NextTurn => Turn switch
     {
-        GameTurnEnum.Player1 => GameTurnEnum.Player2,
-        GameTurnEnum.Player2 => GameTurnEnum.Player1,
+        GameTurnEnum.PLAYER1 => GameTurnEnum.PLAYER2,
+        GameTurnEnum.PLAYER2 => GameTurnEnum.PLAYER1,
         _ => throw new ArgumentException($"Invalid turn {Turn}")
     };
 
     [ExportCategory("Nodes")]
     [Export]
-    public Board GameBoard{get; set;} = null!;
+    private Board _gameBoard = null!;
     [Export]
     private Godot.Collections.Array<TokenCounterListControl> _counterLists = new();
     [Export]
@@ -90,7 +94,7 @@ public partial class Game : Node2D
 
     private void VerifyExports()
     {
-        ArgumentNullException.ThrowIfNull(GameBoard);
+        ArgumentNullException.ThrowIfNull(_gameBoard);
         foreach(TokenCounterListControl clist in _counterLists) ArgumentNullException.ThrowIfNull(clist);
         foreach(DescriptionLabel label in _descriptionLables) ArgumentNullException.ThrowIfNull(label);
     }
@@ -100,24 +104,9 @@ public partial class Game : Node2D
         foreach(TokenCounterListControl clist in _counterLists)
         {
             clist.TokenSelected += OnTokenSelected;
-            clist.RefillAttempted += () =>
-            {
-                EmitSignal(SignalName.RefillAttempted);
-            };
-            clist.TokenButtonHovered += (GameTurnEnum turn, string description) =>
-            {
-                foreach(DescriptionLabel label in _descriptionLables)
-                {
-                    label.OnTokenHover(turn, description);
-                }
-            };
-            clist.TokenButtonStoppedHover += (GameTurnEnum turn, string description) =>
-            {
-                foreach(DescriptionLabel label in _descriptionLables)
-                {
-                    label.OnTokenStopHover(turn, description);
-                }
-            };
+            clist.RefillAttempted += OnRefillAttempted;
+            clist.TokenButtonHovered += OnTokenButtonHovered;
+            clist.TokenButtonStoppedHover += OnTokenButtonStoppedHover;
         }
 
         //_Ready is called on children before the parent
@@ -132,23 +121,9 @@ public partial class Game : Node2D
             Autoloads.PersistentData.ContinueFromState = null;
         }
 
-        GameBoard.ScoreIncreased += (GameTurnEnum who, int amount) =>
-        {            
-            foreach(TokenCounterListControl counter in _counterLists)
-                counter.OnAddScore(who, amount);
-        };
-
-        GameBoard.TokenStartedDrop += () =>
-        {
-            _droppingActive = false;
-            GameBoard.HideGhostToken();
-        };
-
-        GameBoard.TokenFinishedDrop += () =>
-        {
-            _droppingActive = true;
-            DropDetectorIdx = _dropDetectorIdx; //self assign to invoke ghost token display logic
-        };
+        _gameBoard.ScoreIncreased += OnScoreIncreased;
+        _gameBoard.TokenStartedDrop += OnTokenStartedDrop;
+        _gameBoard.TokenFinishedDrop += OnTokenFinishedDrop;
     }
 
     public override void _Ready()
@@ -159,21 +134,78 @@ public partial class Game : Node2D
         _droppingActive = true;
     }
 
+    #region Signal Handling
+    
+    public void OnTokenSelected(TokenCounterControl what, TokenCounterButton who)
+    {
+        ArgumentNullException.ThrowIfNull(what);
+        ArgumentNullException.ThrowIfNull(who);
+        if(what.ActiveOnTurn != Turn || !what.CanTake()) return;
+        _selectedControl = what;
+        _selectedButton = who;
+
+        //force redraw of ghost token
+        DropDetectorIdx = _dropDetectorIdx;
+    }
+
+    private void OnRefillAttempted()
+    {
+        EmitSignal(SignalName.RefillAttempted);
+    }
+
+    private void OnTokenButtonHovered(GameTurnEnum turn, string description)
+    {
+        foreach(DescriptionLabel label in _descriptionLables)
+        {
+            label.OnTokenHover(turn, description);
+        }
+    }
+
+    private void OnTokenButtonStoppedHover(GameTurnEnum turn, string description)
+    {
+        foreach(DescriptionLabel label in _descriptionLables)
+        {
+            label.OnTokenStopHover(turn, description);
+        }
+    }
+
+    private void OnScoreIncreased(GameTurnEnum who, int amount)
+    {            
+        foreach(TokenCounterListControl counter in _counterLists)
+            counter.OnAddScore(who, amount);
+    }
+
+    private void OnTokenStartedDrop()
+    {
+        _droppingActive = false;
+        _gameBoard.HideGhostToken();
+        EmitSignal(SignalName.TokenStartedDrop);
+    }
+
+    private void OnTokenFinishedDrop()
+    {
+        _droppingActive = true;
+        DropDetectorIdx = _dropDetectorIdx; //self assign to invoke ghost token display logic
+        EmitSignal(SignalName.TokenFinishedDrop);
+    }
+
+    #endregion
+
     public void SetupDropDetectors()
     {
         DropDetectorIdx = null;
         foreach(Area2D area in _dropDetectors) area.QueueFree();
         _dropDetectors.Clear();
         _dropDetectorShapes.Clear();
-        for(int col = 1; col <= GameBoard.Columns; ++col)
+        for(int col = 1; col <= _gameBoard.Columns; ++col)
         {
-            Vector2 topMost = GameBoard.HolePosition(0,col);
-            Vector2 botMost = GameBoard.HolePosition(GameBoard.Rows+1,col);
+            Vector2 topMost = _gameBoard.HolePosition(0,col);
+            Vector2 botMost = _gameBoard.HolePosition(_gameBoard.Rows+1,col);
             Vector2 center = (topMost + botMost)/2;
             Area2D area = new(){Monitorable = false};
             CollisionShape2D shape = new()
             {
-                Shape = new RectangleShape2D(){Size = new(2*GameBoard.SlotRadius, (botMost-topMost).Y + _pressDetectorOffset)},
+                Shape = new RectangleShape2D(){Size = new(2*_gameBoard.SlotRadius, (botMost-topMost).Y + _pressDetectorOffset)},
                 Disabled = true
             };
             area.AddChild(shape);
@@ -183,7 +215,7 @@ public partial class Game : Node2D
             _dropDetectorShapes.Add(shape);
             _dropDetectors.Add(area);
             //add the areas directly after the board, so that the save/load buttons take priority
-            GameBoard.AddSibling(area);
+            _gameBoard.AddSibling(area);
             area.GlobalPosition = center;
         }
     }
@@ -205,12 +237,12 @@ public partial class Game : Node2D
     public void RenderGhostToken(Texture2D texture, Color color, int col)
     {
         ArgumentNullException.ThrowIfNull(texture);
-        GameBoard.RenderGhostToken(texture, color, col);
+        _gameBoard.RenderGhostToken(texture, color, col);
     }
 
     public void HideGhostToken()
     {
-        GameBoard.HideGhostToken();
+        _gameBoard.HideGhostToken();
     }
 
     public ErrorCodeEnum? PlaceToken(int column, PackedScene scene)
@@ -244,7 +276,7 @@ public partial class Game : Node2D
         }
 
         token.TokenColor = TurnColor;
-        if(!GameBoard.AddToken(column, token))
+        if(!_gameBoard.AddToken(column, token))
         {
             return ErrorCodeEnum.CANNOT_PLACE_FULL_COLUMN;
         }
@@ -313,19 +345,7 @@ public partial class Game : Node2D
 
     public bool ValidColumn(int column)
     {
-        return 0 <= column && column < GameBoard.Columns;
-    }
-
-    public void OnTokenSelected(TokenCounterControl what, TokenCounterButton who)
-    {
-        ArgumentNullException.ThrowIfNull(what);
-        ArgumentNullException.ThrowIfNull(who);
-        if(what.ActiveOnTurn != Turn || !what.CanTake()) return;
-        _selectedControl = what;
-        _selectedButton = who;
-
-        //force redraw of ghost token
-        DropDetectorIdx = _dropDetectorIdx;
+        return 0 <= column && column < _gameBoard.Columns;
     }
 
     public void DeserializeFrom(GameData data)
@@ -343,7 +363,7 @@ public partial class Game : Node2D
             return;
         }
         
-        GameBoard.DeserializeFrom(data.Board);
+        _gameBoard.DeserializeFrom(data.Board);
         for(int i = 0; i < _counterLists.Count; ++i)
         {
             ArgumentNullException.ThrowIfNull(data.Players[i]);
@@ -359,7 +379,7 @@ public partial class Game : Node2D
     public GameData SerializeTo() => new()
     {
         Turn = Turn,
-        Board = GameBoard.SerializeTo(),
+        Board = _gameBoard.SerializeTo(),
         Players = _counterLists.Select(c => c.SerializeTo()).ToGodotArray()
     };
 }

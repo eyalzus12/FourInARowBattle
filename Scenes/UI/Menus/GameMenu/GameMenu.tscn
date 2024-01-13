@@ -1,13 +1,16 @@
-[gd_scene load_steps=5 format=3 uid="uid://cqb4y6hptd1vu"]
+[gd_scene load_steps=6 format=3 uid="uid://cqb4y6hptd1vu"]
 
 [ext_resource type="Script" path="res://Scenes/UI/Menus/GameMenu/GameMenu.cs" id="1_nk18s"]
 [ext_resource type="PackedScene" uid="uid://dyhkvrlph6p16" path="res://Scenes/Game/Game.tscn" id="2_g8him"]
 [ext_resource type="Script" path="res://Logic/Buttons/SaveGameButton.cs" id="3_ioy0s"]
 [ext_resource type="Script" path="res://Logic/Buttons/LoadGameButton.cs" id="4_2mhhg"]
+[ext_resource type="Theme" uid="uid://qdeiddbstwpc" path="res://Resources/Themes/LabelWithOutlineTheme.tres" id="5_6dkay"]
 
-[node name="GameMenu" type="Node2D" node_paths=PackedStringArray("Game", "_saveGameButton", "_loadGameButton")]
+[node name="GameMenu" type="Node2D" node_paths=PackedStringArray("Game", "_player1Label", "_player2Label", "_saveGameButton", "_loadGameButton")]
 script = ExtResource("1_nk18s")
 Game = NodePath("Game")
+_player1Label = NodePath("Control/Player1Label")
+_player2Label = NodePath("Control/Player2Label")
 _saveGameButton = NodePath("Control/HBoxContainer/Save Game")
 _loadGameButton = NodePath("Control/HBoxContainer/Load Game")
 
@@ -52,14 +55,13 @@ grow_horizontal = 2
 mouse_filter = 2
 
 [node name="HBoxContainer" type="VBoxContainer" parent="Control"]
-layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -58.5
-offset_right = 58.5
+layout_mode = 2
+offset_left = 525.0
+offset_right = 619.0
 offset_bottom = 66.0
 grow_horizontal = 2
+size_flags_horizontal = 4
+size_flags_vertical = 0
 mouse_filter = 2
 
 [node name="Save Game" type="Button" parent="Control/HBoxContainer" node_paths=PackedStringArray("_saveGamePopup")]
@@ -73,3 +75,28 @@ layout_mode = 2
 text = "Load Game"
 script = ExtResource("4_2mhhg")
 _loadGamePopup = NodePath("../../../LoadDialog")
+
+[node name="Player1Label" type="Label" parent="Control"]
+layout_mode = 2
+offset_left = 280.0
+offset_right = 457.0
+offset_bottom = 56.0
+size_flags_horizontal = 0
+size_flags_vertical = 0
+theme = ExtResource("5_6dkay")
+theme_override_font_sizes/font_size = 11
+
+[node name="Player2Label" type="Label" parent="Control"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -448.0
+offset_right = -271.0
+offset_bottom = 56.0
+grow_horizontal = 0
+size_flags_horizontal = 0
+size_flags_vertical = 0
+theme = ExtResource("5_6dkay")
+theme_override_font_sizes/font_size = 11
+horizontal_alignment = 2

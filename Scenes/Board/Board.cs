@@ -146,8 +146,8 @@ public partial class Board : Node2D
         int row = (int)_row;
 
         t.Scale = TokenScale;
-        AddChild(t);
         t.RequestReady();
+        AddChild(t);
         _tokenGrid[row,col] = t;
         t.TokenSpawn(this, row, col);
         Vector2 desired = HolePosition(row + 1, col + 1);
@@ -187,7 +187,7 @@ public partial class Board : Node2D
                     haveFree = true;
             }
         }
-        if(!haveFree) return GameResultEnum.Draw;
+        if(!haveFree) return GameResultEnum.DRAW;
 
         foreach((GameResultEnum result, int count) in resultCounts)
         {
@@ -197,7 +197,6 @@ public partial class Board : Node2D
                 //so we need to convert the result to the turn
                 //for non-player results we just give a nonexistent turn value
                 GameTurnEnum resultTurn = result.GameResultToGameTurn();
-                //Autoloads.EventBus.EmitSignal(EventBus.SignalName.ScoreIncreased, (int)resultTurn, count);
                 EmitSignal(SignalName.ScoreIncreased, (int)resultTurn, count);
             }
         }
@@ -229,7 +228,7 @@ public partial class Board : Node2D
             QueueRedraw();
         }
 
-        return GameResultEnum.None;
+        return GameResultEnum.NONE;
     }
 
     private void CheckSpotWin(int row, int col, Dictionary<GameResultEnum, int> resultCounts, List<(int,int)> toRemove)
@@ -239,7 +238,7 @@ public partial class Board : Node2D
 
         TokenBase? token = _tokenGrid[row,col];
         if(!token.IsInstanceValid()) _tokenGrid[row,col] = token = null;
-        if(token is null || token.Result == GameResultEnum.None) return;
+        if(token is null || token.Result == GameResultEnum.NONE) return;
         //if(!token.FinishedDrop) return;
 
         bool foundWin = false;

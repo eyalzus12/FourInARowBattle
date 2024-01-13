@@ -401,8 +401,8 @@ public partial class GameServer : Node
         };
         AddChild(match.Game);
         
-        player.Match = match; player.Turn = which ? GameTurnEnum.Player1 : GameTurnEnum.Player2;
-        source.Match = match; source.Turn = which ? GameTurnEnum.Player2 : GameTurnEnum.Player1;
+        player.Match = match; player.Turn = which ? GameTurnEnum.PLAYER1 : GameTurnEnum.PLAYER2;
+        source.Match = match; source.Turn = which ? GameTurnEnum.PLAYER2 : GameTurnEnum.PLAYER1;
         
         Packet_NewGameStarting gameStart = new((int)match.Player1.Index!, (int)match.Player2.Index!);
         SendPacket(player.Id, gameStart);

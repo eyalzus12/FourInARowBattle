@@ -294,6 +294,12 @@ public partial class GameClientMenu : Node
     {
         _lobbyMenu.SetAllChallengeStatesExceptMark(ChallengeStateEnum.NONE);
         SwitchToGame();
+        string me = _lobbyMenu.GetMarkedName();
+        string opponent = _lobbyMenu.GetPlayerName(opponentIndex);
+        bool imPlayer1 = turn == GameTurnEnum.PLAYER1;
+        string player1 = imPlayer1 ? me : opponent;
+        string player2 = imPlayer1 ? opponent : me;
+        _gameMenu.SetPlayers(player1, player2, imPlayer1);
         _gameMenu.AllowedTurns = new(){turn};
         _gameMenu.InitGame();
     }

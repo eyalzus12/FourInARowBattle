@@ -16,6 +16,10 @@ public partial class GameMenu : Node2D
     [Export]
     public Game Game{get; private set;} = null!;
     [Export]
+    private Label _player1Label = null!;
+    [Export]
+    private Label _player2Label = null!;
+    [Export]
     private SaveGameButton _saveGameButton = null!;
     [Export]
     private LoadGameButton _loadGameButton = null!;
@@ -40,19 +44,21 @@ public partial class GameMenu : Node2D
     private void VerifyExports()
     {
         ArgumentNullException.ThrowIfNull(Game);
+        ArgumentNullException.ThrowIfNull(_player1Label);
+        ArgumentNullException.ThrowIfNull(_player2Label);
         ArgumentNullException.ThrowIfNull(_loadGameButton);
         ArgumentNullException.ThrowIfNull(_saveGameButton);
     }
 
     private void ConnectSignals()
     {
-        Game.GameBoard.TokenFinishedDrop += OnGameGameBoardTokenFinishedDrop;
-        Game.GameBoard.TokenStartedDrop += OnGameGameBoardTokenStartedDrop;
         Game.GhostTokenRenderWanted += OnGameGhostTokenRenderWanted;
         Game.GhostTokenHidingWanted += OnGameGhostTokenHidingWanted;
         Game.TokenPlaceAttempted += OnGameTokenPlaceAttempted;
         Game.RefillAttempted += OnGameRefillAttempted;
         Game.TurnChanged += OnGameTurnChanged;
+        Game.TokenFinishedDrop += OnGameTokenFinishedDrop;
+        Game.TokenStartedDrop += OnGameTokenStartedDrop;
         _loadGameButton.GameLoadRequested += OnLoadGameButtonGameLoadRequested;
         _saveGameButton.GameSaveRequested += OnSaveGameButtonGameSaveRequested;
     }
@@ -68,12 +74,12 @@ public partial class GameMenu : Node2D
         _loadGameButton.Visible = _loadingEnabled;
     }
 
-    private void OnGameGameBoardTokenFinishedDrop()
+    private void OnGameTokenFinishedDrop()
     {
         _saveGameButton.Disabled = false;
     }
 
-    private void OnGameGameBoardTokenStartedDrop()
+    private void OnGameTokenStartedDrop()
     {
         _saveGameButton.Disabled = !_savingEnabled;
     }
@@ -131,6 +137,16 @@ public partial class GameMenu : Node2D
         {
             GD.PushError($"Got error {err} while trying to save game");
         }
+    }
+
+    public void SetPlayers(string player1, string player2, bool whoAmI)
+    {
+        ArgumentNullException.ThrowIfNull(player1);
+        ArgumentNullException.ThrowIfNull(player2);
+        _player1Label.Text = player1;
+        _player1Label.Modulate = whoAmI ? Colors.Cyan : Colors.White;
+        _player2Label.Text = player2;
+        _player2Label.Modulate = whoAmI ? Colors.White : Colors.Cyan;
     }
 
     public void InitGame()

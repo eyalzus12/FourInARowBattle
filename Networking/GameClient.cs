@@ -1005,7 +1005,7 @@ public partial class GameClient : Node
             another.GameCancelPacket = null;
         }
 
-        GameTurnEnum turn = (player1Idx == _lobby.Index) ? GameTurnEnum.Player1 : GameTurnEnum.Player2;
+        GameTurnEnum turn = (player1Idx == _lobby.Index) ? GameTurnEnum.PLAYER1 : GameTurnEnum.PLAYER2;
         EmitSignal(SignalName.GameStarted, (int)turn, _lobby.Opponent.Index);
     }
 

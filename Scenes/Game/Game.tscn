@@ -13,9 +13,9 @@ font_color = Color(0.67451, 0.67451, 0.67451, 1)
 font_size = 21
 font_color = Color(0.67451, 0.67451, 0.67451, 1)
 
-[node name="Game" type="Node2D" node_paths=PackedStringArray("GameBoard", "_counterLists", "_descriptionLables")]
+[node name="Game" type="Node2D" node_paths=PackedStringArray("_gameBoard", "_counterLists", "_descriptionLables")]
 script = ExtResource("1_uwj10")
-GameBoard = NodePath("Board")
+_gameBoard = NodePath("Board")
 _counterLists = [NodePath("Control/TokenCounterListControl"), NodePath("Control/TokenCounterListControl2")]
 _descriptionLables = [NodePath("Control/Player1TokenDescriptionPanel/Player1TokenDescriptionLabel"), NodePath("Control/Player2TokenDescriptionPanel2/Player2TokenDescriptionLabel")]
 

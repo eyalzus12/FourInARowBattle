@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace FourInARowBattle;
 
@@ -185,5 +186,15 @@ public partial class LobbyMenu : Control
         foreach(PlayerSlot slot in _slots)
             if(!slot.Marked)
                 slot.SetState(state);
+    }
+
+    public string GetPlayerName(int index)
+    {
+        return _slots[index].PlayerName;
+    }
+
+    public string GetMarkedName()
+    {
+        return _slots.Where(s => s.Marked).Single().PlayerName;
     }
 }

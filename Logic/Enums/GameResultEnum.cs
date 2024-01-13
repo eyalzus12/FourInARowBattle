@@ -2,8 +2,8 @@ namespace FourInARowBattle;
 
 public enum GameResultEnum
 {
-    None,
-    Player1Win,
-    Player2Win,
-    Draw
+    NONE,
+    PLAYER1_WIN,
+    PLAYER2_WIN,
+    DRAW
 };

@@ -30,9 +30,9 @@ public partial class TokenBase : Node2D
     {
         get
         {
-            if(TokenColor == Colors.Red) return GameResultEnum.Player1Win;
-            if(TokenColor == Colors.Blue) return GameResultEnum.Player2Win;
-            return GameResultEnum.None;
+            if(TokenColor == Colors.Red) return GameResultEnum.PLAYER1_WIN;
+            if(TokenColor == Colors.Blue) return GameResultEnum.PLAYER2_WIN;
+            return GameResultEnum.NONE;
         }
     }
 
@@ -48,8 +48,14 @@ public partial class TokenBase : Node2D
 
     public override void _Ready()
     {
+        //reset values to ensure proper initialization when out of scene pool
+        Row = -1;
+        Col = -1;
+        Board = null!;
+        DesiredPosition = null;
         _currentSpeed = 0;
         ActivatedPower = false;
+
         //avoid overriding previous modulate
         if(Modulate == Colors.White)
             Modulate = TokenColor;
