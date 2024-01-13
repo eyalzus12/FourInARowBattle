@@ -6,10 +6,6 @@ namespace FourInARowBattle;
 
 public partial class GameClientMenu : Node
 {
-    public const string CONNECTING_STATUS = "Connecting... Please Wait.";
-    public const string CONNECTED_STATUS = "Connected!";
-    public const string DISCONNECTED_STATUS = "Disconnected. Please try again in a few minutes.";
-
     #region Editor-Set Values
 
     [ExportCategory("Nodes")]
@@ -24,8 +20,6 @@ public partial class GameClientMenu : Node
     [Export]
     private GameMenu _gameMenu = null!;
     [Export]
-    private Label _statusLabel = null!;
-    [Export]
     private AcceptDialog _noticePopup = null!;
     [Export]
     private AcceptDialog _errorPopup = null!;
@@ -35,6 +29,7 @@ public partial class GameClientMenu : Node
 
     #endregion
 
+    private bool _waitingToDisconnect = false;
     private bool _inGame = false;
     private bool _inLobby = false;
     private bool _kickingToMainMenu = false;
@@ -47,7 +42,6 @@ public partial class GameClientMenu : Node
         ArgumentNullException.ThrowIfNull(_remotePlayMenu);
         ArgumentNullException.ThrowIfNull(_lobbyMenu);
         ArgumentNullException.ThrowIfNull(_gameMenu);
-        ArgumentNullException.ThrowIfNull(_statusLabel);
         ArgumentNullException.ThrowIfNull(_errorPopup);
         ArgumentNullException.ThrowIfNull(_noticePopup);
         ArgumentNullException.ThrowIfNull(_initialState);
@@ -87,6 +81,8 @@ public partial class GameClientMenu : Node
         _client.GameActionRefillSent += OnClientGameActionRefillSent;
         _client.GameActionRefillReceived += OnClientGameActionRefillReceived;
         _client.GameFinished += OnClientGameFinished;
+        _remotePlayMenu.ServerConnectRequested += OnRemotePlayMenuServerConnectRequested;
+        _remotePlayMenu.ServerDisconnectRequested += OnRemotePlayMenuServerDisconnectRequested;
         _remotePlayMenu.CreateLobbyRequested += OnRemotePlayMenuCreateLobbyRequested;
         _remotePlayMenu.JoinLobbyRequested += OnRemotePlayMenuJoinLobbyRequested;
         _remotePlayMenu.LobbyNumberWasInvalid += OnRemotePlayMenuLobbyNumberWasInvalid;
@@ -105,7 +101,9 @@ public partial class GameClientMenu : Node
     {
         VerifyExports();
         ConnectSignals();
-        _statusLabel.Text = CONNECTING_STATUS;
+
+        _remotePlayMenu.ShowAsDisconnected();
+        SwitchToRemotePlayMenu();
     }
 
 
@@ -164,27 +162,31 @@ public partial class GameClientMenu : Node
     private void OnClientConnected()
     {
         GD.Print("Connected!");
-        SwitchToRemotePlayMenu();
-
-        _statusLabel.Text = CONNECTED_STATUS;
+        _remotePlayMenu.ShowAsConnected();
     }
 
     private void OnClientDisconnected()
     {
         GD.Print("Connection closed");
-        _kickingToMainMenu = true;
-        DisplayError("Connection failed");
 
-        _statusLabel.Text = DISCONNECTED_STATUS;
+        //disconnect is expected
+        if(!_waitingToDisconnect)
+        {
+            DisplayError("Connection failed");
+        }
+
+        SwitchToRemotePlayMenu();
+        _remotePlayMenu.ShowAsDisconnected();
+        _waitingToDisconnect = false;
     }
 
     private void OnClientServerClosed()
     {
         GD.Print("Server closed");
-        _kickingToMainMenu = true;
         DisplayNotice("Server Closed!");
-
-        _statusLabel.Text = DISCONNECTED_STATUS;
+        SwitchToRemotePlayMenu();
+        _remotePlayMenu.ShowAsDisconnecting();
+        _waitingToDisconnect = true;
     }
 
     private void OnClientErrorOccured(string description)
@@ -347,6 +349,21 @@ public partial class GameClientMenu : Node
     private void OnClientGameFinished()
     {
         SwitchToLobbyMenu();
+    }
+
+    private void OnRemotePlayMenuServerConnectRequested(string ip, string port)
+    {
+        ArgumentNullException.ThrowIfNull(ip);
+        ArgumentNullException.ThrowIfNull(port);
+        _client.ConnectToServer(ip, port);
+        _remotePlayMenu.ShowAsConnecting();
+    }
+
+    private void OnRemotePlayMenuServerDisconnectRequested()
+    {
+        _waitingToDisconnect = true;
+        _client.DisconnectFromServer(DisconnectReasonEnum.DESIRE);
+        _remotePlayMenu.ShowAsDisconnected();
     }
 
     private void OnRemotePlayMenuCreateLobbyRequested(string playerName)

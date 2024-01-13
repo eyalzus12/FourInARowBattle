@@ -14,7 +14,7 @@ outline_color = Color(0, 0, 0, 1)
 shadow_color = Color(0, 0, 0, 1)
 shadow_offset = Vector2(-10, 1)
 
-[node name="RemotePlayScene" type="Control" node_paths=PackedStringArray("_createLobbyButton", "_joinLobbyButton", "_goBackButton", "_playerNameField")]
+[node name="RemotePlayScene" type="Control" node_paths=PackedStringArray("_lobbyControlsBase", "_createLobbyButton", "_joinLobbyButton", "_goBackButton", "_playerNameField", "_serverIP", "_serverPort", "_connectToServer", "_disconnectFromServer", "_connectingLabel")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -23,12 +23,26 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_dna4a")
-_createLobbyButton = NodePath("ButtonsMarginContainer/ButtonsVBoxContainer/CreateLobbyMarginContainer/CreateLobbyButton")
-_joinLobbyButton = NodePath("ButtonsMarginContainer/ButtonsVBoxContainer/JoinLobbyMarginContainer/JoinLobbyHBoxContainer/JoinLobbyButton")
+_lobbyControlsBase = NodePath("Control")
+_createLobbyButton = NodePath("Control/ButtonsMarginContainer/ButtonsVBoxContainer/CreateLobbyMarginContainer/CreateLobbyButton")
+_joinLobbyButton = NodePath("Control/ButtonsMarginContainer/ButtonsVBoxContainer/JoinLobbyMarginContainer/JoinLobbyHBoxContainer/JoinLobbyButton")
 _goBackButton = NodePath("GoBack")
-_playerNameField = NodePath("PlayerName")
+_playerNameField = NodePath("Control/PlayerName")
+_serverIP = NodePath("MarginContainer/VBoxContainer/ServerIp")
+_serverPort = NodePath("MarginContainer/VBoxContainer/ServerPort")
+_connectToServer = NodePath("MarginContainer/VBoxContainer/ConnectToServer")
+_disconnectFromServer = NodePath("MarginContainer/VBoxContainer/DisconnectFromServer")
+_connectingLabel = NodePath("MarginContainer/VBoxContainer/ConnectingLabel")
 
-[node name="ButtonsMarginContainer" type="MarginContainer" parent="."]
+[node name="Control" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ButtonsMarginContainer" type="MarginContainer" parent="Control"]
 layout_mode = 0
 offset_right = 1152.0
 offset_bottom = 648.0
@@ -38,26 +52,26 @@ theme_override_constants/margin_top = 100
 theme_override_constants/margin_right = 300
 theme_override_constants/margin_bottom = 100
 
-[node name="ButtonsVBoxContainer" type="VBoxContainer" parent="ButtonsMarginContainer"]
+[node name="ButtonsVBoxContainer" type="VBoxContainer" parent="Control/ButtonsMarginContainer"]
 layout_mode = 2
 mouse_filter = 2
 alignment = 1
 
-[node name="RemotePlayLabel" type="Label" parent="ButtonsMarginContainer/ButtonsVBoxContainer"]
+[node name="RemotePlayLabel" type="Label" parent="Control/ButtonsMarginContainer/ButtonsVBoxContainer"]
 layout_mode = 2
 text = "Remote Play"
 label_settings = SubResource("LabelSettings_xtk36")
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="CreateLobbyMarginContainer" type="MarginContainer" parent="ButtonsMarginContainer/ButtonsVBoxContainer"]
+[node name="CreateLobbyMarginContainer" type="MarginContainer" parent="Control/ButtonsMarginContainer/ButtonsVBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 mouse_filter = 2
 theme_override_constants/margin_top = 10
 theme_override_constants/margin_bottom = 10
 
-[node name="CreateLobbyButton" type="Button" parent="ButtonsMarginContainer/ButtonsVBoxContainer/CreateLobbyMarginContainer"]
+[node name="CreateLobbyButton" type="Button" parent="Control/ButtonsMarginContainer/ButtonsVBoxContainer/CreateLobbyMarginContainer"]
 layout_mode = 2
 tooltip_text = "Play locally on the same computer"
 mouse_filter = 1
@@ -65,23 +79,23 @@ theme_override_font_sizes/font_size = 30
 text = "Create Lobby"
 script = ExtResource("1_xpr3j")
 
-[node name="JoinLobbyMarginContainer" type="MarginContainer" parent="ButtonsMarginContainer/ButtonsVBoxContainer"]
+[node name="JoinLobbyMarginContainer" type="MarginContainer" parent="Control/ButtonsMarginContainer/ButtonsVBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 mouse_filter = 2
 theme_override_constants/margin_top = 10
 theme_override_constants/margin_bottom = 10
 
-[node name="JoinLobbyPanel" type="Panel" parent="ButtonsMarginContainer/ButtonsVBoxContainer/JoinLobbyMarginContainer"]
+[node name="JoinLobbyPanel" type="Panel" parent="Control/ButtonsMarginContainer/ButtonsVBoxContainer/JoinLobbyMarginContainer"]
 layout_mode = 2
 mouse_filter = 2
 
-[node name="JoinLobbyHBoxContainer" type="VBoxContainer" parent="ButtonsMarginContainer/ButtonsVBoxContainer/JoinLobbyMarginContainer"]
+[node name="JoinLobbyHBoxContainer" type="VBoxContainer" parent="Control/ButtonsMarginContainer/ButtonsVBoxContainer/JoinLobbyMarginContainer"]
 layout_mode = 2
 mouse_filter = 2
 alignment = 1
 
-[node name="LobbyIdField" type="LineEdit" parent="ButtonsMarginContainer/ButtonsVBoxContainer/JoinLobbyMarginContainer/JoinLobbyHBoxContainer"]
+[node name="LobbyIdField" type="LineEdit" parent="Control/ButtonsMarginContainer/ButtonsVBoxContainer/JoinLobbyMarginContainer/JoinLobbyHBoxContainer"]
 modulate = Color(0.454902, 1, 1, 1)
 layout_mode = 2
 size_flags_horizontal = 3
@@ -92,7 +106,7 @@ placeholder_text = "Enter Lobby Id"
 max_length = 10
 script = ExtResource("2_ss3jf")
 
-[node name="JoinLobbyButton" type="Button" parent="ButtonsMarginContainer/ButtonsVBoxContainer/JoinLobbyMarginContainer/JoinLobbyHBoxContainer" node_paths=PackedStringArray("_field")]
+[node name="JoinLobbyButton" type="Button" parent="Control/ButtonsMarginContainer/ButtonsVBoxContainer/JoinLobbyMarginContainer/JoinLobbyHBoxContainer" node_paths=PackedStringArray("_field")]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -102,6 +116,18 @@ theme_override_font_sizes/font_size = 30
 text = "Join Lobby"
 script = ExtResource("2_s5kpe")
 _field = NodePath("../LobbyIdField")
+
+[node name="PlayerName" type="LineEdit" parent="Control"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -80.0
+offset_right = 448.0
+grow_vertical = 0
+theme_override_font_sizes/font_size = 24
+placeholder_text = "Enter player name"
+max_length = 32
 
 [node name="GoBack" type="Button" parent="."]
 modulate = Color(1, 0.156863, 0.403922, 1)
@@ -113,14 +139,43 @@ text = "Back To Main Menu"
 script = ExtResource("1_pbaxe")
 _changeTo = "res://Scenes/UI/Menus/MainMenu/MainMenu.tscn"
 
-[node name="PlayerName" type="LineEdit" parent="."]
+[node name="MarginContainer" type="MarginContainer" parent="."]
 layout_mode = 1
-anchors_preset = 2
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_top = -80.0
-offset_right = 448.0
-grow_vertical = 0
-theme_override_font_sizes/font_size = 24
-placeholder_text = "Enter player name"
-max_length = 32
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_top = -196.0
+offset_right = 200.0
+offset_bottom = -50.0
+grow_vertical = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+metadata/_edit_group_ = true
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+
+[node name="ServerIp" type="LineEdit" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+placeholder_text = "Server IP"
+
+[node name="ServerPort" type="LineEdit" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+placeholder_text = "Server Port"
+
+[node name="ConnectToServer" type="Button" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+text = "Connect to server"
+
+[node name="DisconnectFromServer" type="Button" parent="MarginContainer/VBoxContainer"]
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+text = "Disconnect from server"
+
+[node name="ConnectingLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 6

@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://ds8nrnr3kknpc"]
+[gd_scene load_steps=8 format=3 uid="uid://ds8nrnr3kknpc"]
 
 [ext_resource type="Script" path="res://Scenes/UI/Menus/GameClientMenu/GameClientMenu.cs" id="1_shirc"]
 [ext_resource type="Resource" uid="uid://dyponttgtoqyl" path="res://Resources/GameData/InitialGameState.res" id="2_cm8wa"]
@@ -7,16 +7,14 @@
 [ext_resource type="PackedScene" uid="uid://dceaof5l1mq5t" path="res://Scenes/UI/Menus/RemotePlayMenu/RemotePlayMenu.tscn" id="4_bd1wx"]
 [ext_resource type="PackedScene" uid="uid://cqb4y6hptd1vu" path="res://Scenes/UI/Menus/GameMenu/GameMenu.tscn" id="5_i2lhf"]
 [ext_resource type="PackedScene" uid="uid://dq62pcxpxm3pr" path="res://Scenes/UI/Menus/LobbyMenu/LobbyMenu.tscn" id="5_w2fpg"]
-[ext_resource type="Theme" uid="uid://qdeiddbstwpc" path="res://Resources/Themes/LabelWithOutlineTheme.tres" id="6_o8jko"]
 
-[node name="GameClientMenu" type="Node" node_paths=PackedStringArray("_client", "_remotePlayMenu", "_lobbyMenu", "_gameMenu", "_statusLabel", "_noticePopup", "_errorPopup")]
+[node name="GameClientMenu" type="Node" node_paths=PackedStringArray("_client", "_remotePlayMenu", "_lobbyMenu", "_gameMenu", "_noticePopup", "_errorPopup")]
 script = ExtResource("1_shirc")
 _client = NodePath("GameClient")
 _mainMenu = "res://Scenes/UI/Menus/MainMenu/MainMenu.tscn"
 _remotePlayMenu = NodePath("CanvasLayer/RemotePlayScene")
 _lobbyMenu = NodePath("CanvasLayer/LobbyScene")
 _gameMenu = NodePath("GameMenu")
-_statusLabel = NodePath("CanvasLayer/StatusLabel")
 _noticePopup = NodePath("NoticePopup")
 _errorPopup = NodePath("ErrorPopup")
 _initialState = ExtResource("2_cm8wa")
@@ -44,23 +42,6 @@ visible = false
 [node name="LobbyScene" parent="CanvasLayer" instance=ExtResource("5_w2fpg")]
 process_mode = 4
 visible = false
-
-[node name="StatusLabel" type="Label" parent="CanvasLayer"]
-modulate = Color(1, 1, 1, 0.396078)
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -31.0
-offset_top = -17.0
-offset_right = 32.0
-grow_horizontal = 2
-grow_vertical = 0
-theme = ExtResource("6_o8jko")
-theme_override_font_sizes/font_size = 30
-horizontal_alignment = 1
-vertical_alignment = 2
 
 [node name="ErrorPopup" type="AcceptDialog" parent="."]
 snap_2d_transforms_to_pixel = true

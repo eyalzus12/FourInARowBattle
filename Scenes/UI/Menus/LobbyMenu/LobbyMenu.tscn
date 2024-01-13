@@ -53,6 +53,7 @@ text = "Lobby Id:"
 [node name="LobbyIdLabel2" type="Label" parent="LobbyIdMarginContainer/LobbyIdVBoxContainer"]
 layout_mode = 2
 theme = ExtResource("3_5e4re")
+theme_override_colors/font_color = Color(0.509804, 0.509804, 0.509804, 1)
 
 [node name="ConfirmationDialog" type="ConfirmationDialog" parent="."]
 snap_2d_transforms_to_pixel = true

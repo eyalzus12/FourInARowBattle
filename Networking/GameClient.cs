@@ -8,8 +8,6 @@ namespace FourInARowBattle;
 
 public partial class GameClient : Node
 {
-    public const string CONNECTION_URL = "127.0.0.1:1234";
-
     #region Signals
 
     [Signal]
@@ -126,10 +124,23 @@ public partial class GameClient : Node
     {
         VerifyExports();
         ConnectSignals();
-        Error err = _client.ConnectToUrl(CONNECTION_URL);
+    }
+
+    public void ConnectToServer(string ip, string _port)
+    {
+        ArgumentNullException.ThrowIfNull(ip);
+        ArgumentNullException.ThrowIfNull(_port);
+        
+        if(!ushort.TryParse(_port, out ushort port))
+        {
+            DisplayError("Invalid port");
+            return;
+        }
+
+        Error err = _client.ConnectToUrl($"ws://{ip}:{port}");
         if(err != Error.Ok)
         {
-            DisplayError($"Error while trying to connect: {err}");
+            DisplayError($"Connecting to server failed with error: {err}");
         }
     }
 
@@ -161,7 +172,11 @@ public partial class GameClient : Node
 
     private void OnWebSocketClientConnectionClosed()
     {
-        CloseConnection();
+        _lobby = null;
+        _lobbyConnectionPacket = null;
+        _placePacket = null;
+        _refillPacket = null;
+        _quitPacket = null;
         EmitSignal(SignalName.Disconnected);
     }
 
@@ -1211,6 +1226,7 @@ public partial class GameClient : Node
     {
         ArgumentNullException.ThrowIfNull(packet);
         GD.Print("Server closing!");
+        CloseConnection();
         EmitSignal(SignalName.ServerClosed);
     }
 
@@ -1318,12 +1334,12 @@ public partial class GameClient : Node
 
     public void CloseConnection()
     {
-        if(_client.State != WebSocketPeer.State.Open)
-            return;
-        
         _client.Close();
         _lobby = null;
         _lobbyConnectionPacket = null;
+        _placePacket = null;
+        _refillPacket = null;
+        _quitPacket = null;
     }
 
     private void DisplayError(string error)

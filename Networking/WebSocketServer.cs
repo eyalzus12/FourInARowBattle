@@ -87,7 +87,7 @@ public partial class WebSocketServer : Node
         // peerId > 0 -> Send one
         // peerId == 0 -> Send all (Broadcast)
         // peerId < 0 -> Send all excluding one
-        if(peerId < 0)
+        if(peerId <= 0)
         {
             Error? firstErr = null;
             foreach((int id, WebSocketPeer ws) in _peers)

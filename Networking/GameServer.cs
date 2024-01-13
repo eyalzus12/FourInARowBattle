@@ -90,11 +90,19 @@ public partial class GameServer : Node
     {
         if(!_server.Listening) return;
 
+        //free games
         foreach(Player player in _players.Values)
         {
-            if((player.Match?.Game).IsInstanceValid()) player.Match.Game.QueueFree();
-            SendPacket(player.Id, new Packet_ServerClosing());
+            if((player.Match?.Game).IsInstanceValid())
+                player.Match.Game.QueueFree();
         }
+
+        _players.Clear();
+        _lobbies.Clear();
+        _buffer.Clear();
+        
+        //broadcast
+        SendPacket(0, new Packet_ServerClosing());
 
         _server.Stop();
     }
