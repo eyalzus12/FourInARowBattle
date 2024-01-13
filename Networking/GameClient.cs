@@ -159,7 +159,7 @@ public partial class GameClient : Node
         ArgumentNullException.ThrowIfNull(packetBytes);
         _buffer.PushRightRange(packetBytes);
 
-        while(_buffer.Count > 0 && AbstractPacket.TryConstructFrom(_buffer, out AbstractPacket? packet))
+        while(_buffer.Count > 0 && AbstractPacket.TryConstructPacketFrom(_buffer, out AbstractPacket? packet))
         {
             HandlePacket(packet);
         }

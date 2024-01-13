@@ -120,7 +120,7 @@ public partial class GameServer : Node
         ArgumentNullException.ThrowIfNull(packetBytes);
         _buffer.PushRightRange(packetBytes);
 
-        while(_buffer.Count > 0 && AbstractPacket.TryConstructFrom(_buffer, out AbstractPacket? packet))
+        while(_buffer.Count > 0 && AbstractPacket.TryConstructPacketFrom(_buffer, out AbstractPacket? packet))
         {
             HandlePacket(peerId, packet);
         }
@@ -216,7 +216,7 @@ public partial class GameServer : Node
 
         GD.Print($"{peerId} wants to create lobby. Player name: {name}");
 
-        if(!UpdateName(peerId, name, out Player? player))
+        if(!TryUpdateNameAndGetPlayer(peerId, name, out Player? player))
         {
             GD.Print($"{peerId} failed to create lobby. They are already in one.");
             SendPacket(peerId, new Packet_CreateLobbyFail(ErrorCodeEnum.CANNOT_CREATE_WHILE_IN_LOBBY));
@@ -247,7 +247,7 @@ public partial class GameServer : Node
         
         GD.Print($"{peerId} wants to connect to lobby {packet.LobbyId} with name {name}");
 
-        if(!UpdateName(peerId, name, out Player? player))
+        if(!TryUpdateNameAndGetPlayer(peerId, name, out Player? player))
         {
             GD.Print($"{peerId} failed to connect to lobby. They are already in one.");
             SendPacket(peerId, new Packet_ConnectLobbyFail(ErrorCodeEnum.CANNOT_JOIN_WHILE_IN_LOBBY));
@@ -725,7 +725,7 @@ public partial class GameServer : Node
         player2.RequestTargets.Clear();
     }
 
-    private bool UpdateName(int peerId, string name, [NotNullWhen(true)] out Player? player)
+    private bool TryUpdateNameAndGetPlayer(int peerId, string name, [NotNullWhen(true)] out Player? player)
     {
         ArgumentNullException.ThrowIfNull(name);
 
