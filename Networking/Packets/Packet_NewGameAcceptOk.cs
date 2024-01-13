@@ -2,14 +2,14 @@ using Godot;
 
 namespace FourInARowBattle;
 
-public partial class Packet_NewGameCanceled : AbstractPacket
+public partial class Packet_NewGameAcceptOk : AbstractPacket
 {
-    public override PacketTypeEnum PacketType => PacketTypeEnum.NEW_GAME_CANCELED;
+    public override PacketTypeEnum PacketType => PacketTypeEnum.NEW_GAME_ACCEPT_OK;
 
     [Export]
     public int RequestSourceIndex{get; private set;}
 
-    public Packet_NewGameCanceled(int requestSourceIndex)
+    public Packet_NewGameAcceptOk(int requestSourceIndex)
     {
         RequestSourceIndex = requestSourceIndex;
     }

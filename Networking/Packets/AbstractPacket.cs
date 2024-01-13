@@ -172,105 +172,133 @@ public abstract partial class AbstractPacket : RefCounted
             case PacketTypeEnum.NEW_GAME_REQUEST:
             {
                 if(buffer.Count < 5) return false;
-                int playerIndex = (int)new[]{buffer[1], buffer[2], buffer[3], buffer[4]}.ReadBigEndian<uint>();
+                int targetIndex = (int)new[]{buffer[1], buffer[2], buffer[3], buffer[4]}.ReadBigEndian<uint>();
                 for(int i = 0; i < 5; ++ i) buffer.PopLeft();
-                packet = new Packet_NewGameRequest(playerIndex);
+                packet = new Packet_NewGameRequest(targetIndex);
+                return true;
+            }
+            case PacketTypeEnum.NEW_GAME_REQUEST_OK:
+            {
+                if(buffer.Count < 5) return false;
+                int targetIndex = (int)new[]{buffer[1], buffer[2], buffer[3], buffer[4]}.ReadBigEndian<uint>();
+                for(int i = 0; i < 5; ++ i) buffer.PopLeft();
+                packet = new Packet_NewGameRequestOk(targetIndex);
                 return true;
             }
             case PacketTypeEnum.NEW_GAME_REQUEST_FAIL:
             {
                 if(buffer.Count < 6) return false;
                 ErrorCodeEnum errorCode = (ErrorCodeEnum)buffer[1];
-                int playerIndex = (int)new[]{buffer[2], buffer[3], buffer[4], buffer[5]}.ReadBigEndian<uint>();
+                int targetIndex = (int)new[]{buffer[2], buffer[3], buffer[4], buffer[5]}.ReadBigEndian<uint>();
                 for(int i = 0; i < 6; ++ i) buffer.PopLeft();
-                packet = new Packet_NewGameRequestFail(errorCode, playerIndex);
+                packet = new Packet_NewGameRequestFail(errorCode, targetIndex);
                 return true;
             }
             case PacketTypeEnum.NEW_GAME_REQUESTED:
             {
-                if(buffer.Count < 9) return false;
+                if(buffer.Count < 5) return false;
                 int sourceIndex = (int)new[]{buffer[1], buffer[2], buffer[3], buffer[4]}.ReadBigEndian<uint>();
-                int targetIndex = (int)new[]{buffer[5], buffer[6], buffer[7], buffer[8]}.ReadBigEndian<uint>();
-                for(int i = 0; i < 9; ++ i) buffer.PopLeft();
-                packet = new Packet_NewGameRequested(sourceIndex, targetIndex);
+                for(int i = 0; i < 5; ++ i) buffer.PopLeft();
+                packet = new Packet_NewGameRequested(sourceIndex);
                 return true;
             }
             case PacketTypeEnum.NEW_GAME_ACCEPT:
             {
                 if(buffer.Count < 5) return false;
-                int playerIndex = (int)new[]{buffer[1], buffer[2], buffer[3], buffer[4]}.ReadBigEndian<uint>();
+                int sourceIndex = (int)new[]{buffer[1], buffer[2], buffer[3], buffer[4]}.ReadBigEndian<uint>();
                 for(int i = 0; i < 5; ++ i) buffer.PopLeft();
-                packet = new Packet_NewGameAccept(playerIndex);
+                packet = new Packet_NewGameAccept(sourceIndex);
+                return true;
+            }
+            case PacketTypeEnum.NEW_GAME_ACCEPT_OK:
+            {
+                if(buffer.Count < 5) return false;
+                int sourceIndex = (int)new[]{buffer[1], buffer[2], buffer[3], buffer[4]}.ReadBigEndian<uint>();
+                for(int i = 0; i < 5; ++ i) buffer.PopLeft();
+                packet = new Packet_NewGameAcceptOk(sourceIndex);
                 return true;
             }
             case PacketTypeEnum.NEW_GAME_ACCEPT_FAIL:
             {
                 if(buffer.Count < 6) return false;
                 ErrorCodeEnum errorCode = (ErrorCodeEnum)buffer[1];
-                int playerIndex = (int)new[]{buffer[2], buffer[3], buffer[4], buffer[5]}.ReadBigEndian<uint>();
+                int sourceIndex = (int)new[]{buffer[2], buffer[3], buffer[4], buffer[5]}.ReadBigEndian<uint>();
                 for(int i = 0; i < 6; ++ i) buffer.PopLeft();
-                packet = new Packet_NewGameAcceptFail(errorCode, playerIndex);
+                packet = new Packet_NewGameAcceptFail(errorCode, sourceIndex);
                 return true;
             }
             case PacketTypeEnum.NEW_GAME_ACCEPTED:
             {
-                if(buffer.Count < 9) return false;
-                int sourceIndex = (int)new[]{buffer[1], buffer[2], buffer[3], buffer[4]}.ReadBigEndian<uint>();
-                int targetIndex = (int)new[]{buffer[5], buffer[6], buffer[7], buffer[8]}.ReadBigEndian<uint>();
-                for(int i = 0; i < 9; ++ i) buffer.PopLeft();
-                packet = new Packet_NewGameAccepted(sourceIndex, targetIndex);
+                if(buffer.Count < 5) return false;
+                int targetIndex = (int)new[]{buffer[1], buffer[2], buffer[3], buffer[4]}.ReadBigEndian<uint>();
+                for(int i = 0; i < 5; ++ i) buffer.PopLeft();
+                packet = new Packet_NewGameAccepted(targetIndex);
                 return true;
             }
             case PacketTypeEnum.NEW_GAME_REJECT:
             {
                 if(buffer.Count < 5) return false;
-                int playerIndex = (int)new[]{buffer[1], buffer[2], buffer[3], buffer[4]}.ReadBigEndian<uint>();
+                int sourceIndex = (int)new[]{buffer[1], buffer[2], buffer[3], buffer[4]}.ReadBigEndian<uint>();
                 for(int i = 0; i < 5; ++ i) buffer.PopLeft();
-                packet = new Packet_NewGameReject(playerIndex);
+                packet = new Packet_NewGameReject(sourceIndex);
+                return true;
+            }
+            case PacketTypeEnum.NEW_GAME_REJECT_OK:
+            {
+                if(buffer.Count < 5) return false;
+                int sourceIndex = (int)new[]{buffer[1], buffer[2], buffer[3], buffer[4]}.ReadBigEndian<uint>();
+                for(int i = 0; i < 5; ++ i) buffer.PopLeft();
+                packet = new Packet_NewGameRejectOk(sourceIndex);
                 return true;
             }
             case PacketTypeEnum.NEW_GAME_REJECT_FAIL:
             {
                 if(buffer.Count < 6) return false;
                 ErrorCodeEnum errorCode = (ErrorCodeEnum)buffer[1];
-                int playerIndex = (int)new[]{buffer[2], buffer[3], buffer[4], buffer[5]}.ReadBigEndian<uint>();
+                int sourceIndex = (int)new[]{buffer[2], buffer[3], buffer[4], buffer[5]}.ReadBigEndian<uint>();
                 for(int i = 0; i < 6; ++ i) buffer.PopLeft();
-                packet = new Packet_NewGameRejectFail(errorCode, playerIndex);
+                packet = new Packet_NewGameRejectFail(errorCode, sourceIndex);
                 return true;
             }
             case PacketTypeEnum.NEW_GAME_REJECTED:
             {
-                if(buffer.Count < 9) return false;
-                int sourceIndex = (int)new[]{buffer[1], buffer[2], buffer[3], buffer[4]}.ReadBigEndian<uint>();
-                int targetIndex = (int)new[]{buffer[5], buffer[6], buffer[7], buffer[8]}.ReadBigEndian<uint>();
-                for(int i = 0; i < 9; ++ i) buffer.PopLeft();
-                packet = new Packet_NewGameRejected(sourceIndex, targetIndex);
+                if(buffer.Count < 5) return false;
+                int targetIndex = (int)new[]{buffer[1], buffer[2], buffer[3], buffer[4]}.ReadBigEndian<uint>();
+                for(int i = 0; i < 5; ++ i) buffer.PopLeft();
+                packet = new Packet_NewGameRejected(targetIndex);
                 return true;
             }
             case PacketTypeEnum.NEW_GAME_CANCEL:
             {
                 if(buffer.Count < 5) return false;
-                int playerIndex = (int)new[]{buffer[1], buffer[2], buffer[3], buffer[4]}.ReadBigEndian<uint>();
+                int targetIndex = (int)new[]{buffer[1], buffer[2], buffer[3], buffer[4]}.ReadBigEndian<uint>();
                 for(int i = 0; i < 5; ++ i) buffer.PopLeft();
-                packet = new Packet_NewGameCancel(playerIndex);
+                packet = new Packet_NewGameCancel(targetIndex);
+                return true;
+            }
+            case PacketTypeEnum.NEW_GAME_CANCEL_OK:
+            {
+                if(buffer.Count < 5) return false;
+                int targetIndex = (int)new[]{buffer[1], buffer[2], buffer[3], buffer[4]}.ReadBigEndian<uint>();
+                for(int i = 0; i < 5; ++ i) buffer.PopLeft();
+                packet = new Packet_NewGameCancelOk(targetIndex);
                 return true;
             }
             case PacketTypeEnum.NEW_GAME_CANCEL_FAIL:
             {
                 if(buffer.Count < 6) return false;
                 ErrorCodeEnum errorCode = (ErrorCodeEnum)buffer[1];
-                int playerIndex = (int)new[]{buffer[2], buffer[3], buffer[4], buffer[5]}.ReadBigEndian<uint>();
+                int targetIndex = (int)new[]{buffer[2], buffer[3], buffer[4], buffer[5]}.ReadBigEndian<uint>();
                 for(int i = 0; i < 6; ++ i) buffer.PopLeft();
-                packet = new Packet_NewGameCancelFail(errorCode, playerIndex);
+                packet = new Packet_NewGameCancelFail(errorCode, targetIndex);
                 return true;
             }
             case PacketTypeEnum.NEW_GAME_CANCELED:
             {
-                if(buffer.Count < 9) return false;
+                if(buffer.Count < 5) return false;
                 int sourceIndex = (int)new[]{buffer[1], buffer[2], buffer[3], buffer[4]}.ReadBigEndian<uint>();
-                int targetIndex = (int)new[]{buffer[5], buffer[6], buffer[7], buffer[8]}.ReadBigEndian<uint>();
-                for(int i = 0; i < 9; ++ i) buffer.PopLeft();
-                packet = new Packet_NewGameCanceled(sourceIndex, targetIndex);
+                for(int i = 0; i < 5; ++ i) buffer.PopLeft();
+                packet = new Packet_NewGameCanceled(sourceIndex);
                 return true;
             }
             case PacketTypeEnum.LOBBY_PLAYER_BUSY_TRUE:
@@ -321,11 +349,11 @@ public abstract partial class AbstractPacket : RefCounted
             }
             case PacketTypeEnum.NEW_GAME_STARTING:
             {
-                if(buffer.Count < 9) return false;
-                int player1Index = (int)new[]{buffer[1], buffer[2], buffer[3], buffer[4]}.ReadBigEndian<uint>();
-                int player2Index = (int)new[]{buffer[5], buffer[6], buffer[7], buffer[8]}.ReadBigEndian<uint>();
-                for(int i = 0; i < 9; ++ i) buffer.PopLeft();
-                packet = new Packet_NewGameStarting(player1Index, player2Index);
+                if(buffer.Count < 6) return false;
+                GameTurnEnum turn = (GameTurnEnum)buffer[1];
+                int opponentIndex = (int)new[]{buffer[2], buffer[3], buffer[4], buffer[5]}.ReadBigEndian<uint>();
+                for(int i = 0; i < 6; ++ i) buffer.PopLeft();
+                packet = new Packet_NewGameStarting(turn, opponentIndex);
                 return true;
             }
             case PacketTypeEnum.GAME_ACTION_PLACE:

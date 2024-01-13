@@ -21,8 +21,8 @@ public static class ErrorCodeUtils
         {ErrorCodeEnum.CANNOT_REQUEST_START_MID_GAME, "Cannot start a new game in the middle of a game."},
         {ErrorCodeEnum.CANNOT_REQUEST_START_MID_GAME_OTHER, "Cannot start a new game with a player in the middle of a game."},
         {ErrorCodeEnum.CANNOT_REQUEST_START_NO_LOBBY, "Cannot start a new game without being in a lobby."},
-        {ErrorCodeEnum.CANNOT_REQUEST_START_ALREADY_DID, "Game start request was already sent. Please wait."},
-        {ErrorCodeEnum.CANNOT_REQUEST_START_OTHER_DID, "Other player already sent a game start request. Accept or reject it."},
+        {ErrorCodeEnum.CANNOT_REQUEST_START_ALREADY_DID, "Game request was already sent. Please wait."},
+        {ErrorCodeEnum.CANNOT_REQUEST_START_OTHER_DID, "Other player already sent a game request. Accept or reject it."},
 
         {ErrorCodeEnum.CANNOT_APPROVE_NO_REQUEST, "Cannot approve a game request that does not exist."},
         {ErrorCodeEnum.CANNOT_APPROVE_INVALID_PLAYER, "Cannot approve a game request from an invalid player."},
@@ -47,6 +47,8 @@ public static class ErrorCodeUtils
         {ErrorCodeEnum.CANNOT_REFILL_NOT_YOUR_TURN, "Cannot refill as it is not your turn."},
         {ErrorCodeEnum.CANNOT_REFILL_ALL_FILLED, "Cannot refill as all token counters are filled."},
         {ErrorCodeEnum.CANNOT_REFILL_TWO_TURN_STREAK, "Cannot refill for two turns in a row."},
+        
+        {ErrorCodeEnum.CANNOT_QUIT_NOT_IN_GAME, "Cannot quit while not in a game."},
     }.AsReadOnly();
 
     public static string Humanize(ErrorCodeEnum error) =>  _descriptionDict.GetValueOrDefault(error, $"Invalid error code {error}");

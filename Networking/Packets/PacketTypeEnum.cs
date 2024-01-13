@@ -34,48 +34,60 @@ public enum PacketTypeEnum : byte
     //data: lobby id(32b), name length(8b) + name(var)
     CONNECT_LOBBY_REQUEST = 020,
     //server approves lobby connection
-    //data: name length(8b) + names(var array of vars)
+    //data: connecter index(32b) + player count(8b) + names(var array of name length(8b) + name(var)) + busy states(var bit array of busy(1b))
     CONNECT_LOBBY_OK = 021,
     //failed to connect to lobby
     //data: error code(8b)
     CONNECT_LOBBY_FAIL = 022,
     //request to start a game
-    //data: player index(32b)
+    //data: request target(32b)
     NEW_GAME_REQUEST = 030,
-    //request to start a game rejected by server
-    //data: error code(8b), player index(32b)
-    NEW_GAME_REQUEST_FAIL = 031,
+    //request to start a game succeded
+    //data: request target(32b)
+    NEW_GAME_REQUEST_OK = 031,
+    //request to start a game failed
+    //data: error code(8b), request target(32b)
+    NEW_GAME_REQUEST_FAIL = 032,
     //player created a game request
-    //data: request source:requester(32b), request target(32b)
-    NEW_GAME_REQUESTED = 032,
+    //data: request source(32b)
+    NEW_GAME_REQUESTED = 033,
     //approve other players' game start request
-    //data: player index(32b)
+    //data: request source(32b)
     NEW_GAME_ACCEPT = 040,
+    //accepting game start request succeded
+    //data: request source(32b)
+    NEW_GAME_ACCEPT_OK = 041,
     //accepting game start request failed
-    //data: error code(8b), player index(32b)
-    NEW_GAME_ACCEPT_FAIL = 041,
-    //player accepted a game request. doubles as an approval from the server.
-    //data: request source(32b), request target:approver(32b)
+    //data: error code(8b), request source(32b)
+    NEW_GAME_ACCEPT_FAIL = 042,
+    //player accepted a game request
+    //data: request target(32b)
     //game will now start
-    NEW_GAME_ACCEPTED = 042,
+    NEW_GAME_ACCEPTED = 043,
     //reject other players' game start request
-    //data: player index(32b)
+    //data: request source(32b)
     NEW_GAME_REJECT = 050,
+    //rejecting game start request succeeded
+    //data: request source(32b)
+    NEW_GAME_REJECT_OK = 051,
     //rejecting game start request failed
-    //data: error code(8b), player index(32b)
-    NEW_GAME_REJECT_FAIL = 051,
-    //player rejected a game request. doubles as an approval from the server.
-    //data: request source(32b), request target:rejecter(32b)
-    NEW_GAME_REJECTED = 052,
+    //data: error code(8b), request source(32b)
+    NEW_GAME_REJECT_FAIL = 052,
+    //player rejected a game request
+    //data: request target(32b)
+    NEW_GAME_REJECTED = 053,
     //cancel new game request
-    //data: player index(32b)
+    //data: request target(32b)
     NEW_GAME_CANCEL = 060,
+    //canceling new game request succeeded
+    //data: request target(32b)
+    NEW_GAME_CANCEL_OK = 061,
     //canceling new game request failed
-    //data: error code(8b), player index(32b)
-    NEW_GAME_CANCEL_FAIL = 061,
-    //player canceled a game request. doubles as an approval from the server.
-    //data: request source:canceler(32b), request target(32b)
-    NEW_GAME_CANCELED = 062,
+    //data: error code(8b), request target(32b)
+    NEW_GAME_CANCEL_FAIL = 062,
+    //player canceled a game request
+    //data: request source(32b)
+    NEW_GAME_CANCELED = 063,
     //player became busy
     //data: player index(32b)
     LOBBY_PLAYER_BUSY_TRUE = 070,
