@@ -145,6 +145,7 @@ public partial class LobbyMenu : Control
         ConnectSlotSignals(slot);
         slot.SetState(ChallengeStateEnum.NONE);
         slot.PlayerName = name;
+        slot.Marked = false;
         _slots.Add(slot);
     }
 

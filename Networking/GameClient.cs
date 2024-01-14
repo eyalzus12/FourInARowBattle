@@ -445,8 +445,8 @@ public partial class GameClient : Node
     private void HandlePacket_LobbyNewPlayer(Packet_LobbyNewPlayer packet)
     {
         ArgumentNullException.ThrowIfNull(packet);
-        ArgumentNullException.ThrowIfNull(packet.OtherPlayerName);
-        GD.Print($"New player joined lobby: {packet.OtherPlayerName}");
+        ArgumentNullException.ThrowIfNull(packet.PlayerName);
+        GD.Print($"New player joined lobby: {packet.PlayerName}");
         if(_lobby is null)
         {
             GD.Print("But I am not in a lobby??");
@@ -455,11 +455,11 @@ public partial class GameClient : Node
         }
         _lobby.Players.Add(new()
         {
-            Name = packet.OtherPlayerName,
+            Name = packet.PlayerName,
             Index = _lobby.Players.Count
         });
 
-        EmitSignal(SignalName.LobbyPlayerJoined, packet.OtherPlayerName);
+        EmitSignal(SignalName.LobbyPlayerJoined, packet.PlayerName);
     }
 
     private void HandlePacket_NewGameRequestOk(Packet_NewGameRequestOk packet)
