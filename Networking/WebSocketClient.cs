@@ -17,17 +17,21 @@ public partial class WebSocketClient : Node
     private string[] _handshakeHeaders = Array.Empty<string>();
     [Export]
     private string[] _supportedProtocols = Array.Empty<string>();
+    [Export]
+    private bool _useWSS = false;
 
-    private TlsOptions? _tlsOptions = null;
+    private TlsOptions? _tlsOptions = TlsOptions.ClientUnsafe();
 
     private WebSocketPeer _socket = new();
     private WebSocketPeer.State _lastState = WebSocketPeer.State.Closed;
 
     public WebSocketPeer.State State => _socket.GetReadyState();
 
-    public Error ConnectToUrl(string url)
+    public Error ConnectToHost(string ip, ushort port)
     {
-        ArgumentNullException.ThrowIfNull(url);
+        ArgumentNullException.ThrowIfNull(ip);
+
+        string url = $"{(_useWSS ? "wss" : "ws")}://{ip}:{port}";
 
         _socket.HandshakeHeaders = _handshakeHeaders;
         _socket.SupportedProtocols = _supportedProtocols;

@@ -137,7 +137,7 @@ public partial class GameClient : Node
             return Error.InvalidParameter;
         }
 
-        Error err = _client.ConnectToUrl($"ws://{ip}:{port}");
+        Error err = _client.ConnectToHost(ip, port);
         if(err != Error.Ok)
         {
             DisplayError($"Connecting to server failed with error: {err}");
