@@ -404,7 +404,7 @@ public partial class GameServer : Node
         Match match = new()
         {
             Lobby = lobby,
-            Game = Autoloads.ScenePool.GetScene<GameMenu>(_gameScene!),
+            Game = Autoloads.ScenePool.GetScene<GameMenu>(_gameScene),
             Player1 = which ? target : source,
             Player2 = which ? source : target
         };

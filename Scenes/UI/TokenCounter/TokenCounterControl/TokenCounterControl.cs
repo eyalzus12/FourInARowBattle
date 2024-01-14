@@ -74,12 +74,9 @@ public partial class TokenCounterControl : Control
         set
         {
             _activeOnTurn = value;
-            if(IsInsideTree())
+            foreach(TokenCounterButton button in TokenButtons)
             {
-                foreach(TokenCounterButton button in TokenButtons)
-                {
-                    button.Modulate = _activeOnTurn.GameTurnToColor();
-                }
+                button.Modulate = _activeOnTurn.GameTurnToColor();
             }
         }
     }

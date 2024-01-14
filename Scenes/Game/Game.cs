@@ -65,17 +65,19 @@ public partial class Game : Node2D
         set
         {
             _dropDetectorIdx = value;
-            if(
-                value is not null &&
+            if(value is not null &&
                 _selectedControl is not null &&
                 _selectedControl.CanTake() &&
-                _selectedButton is not null
-            )
+                _selectedButton is not null)
+            {
                 //a little hack: use the button's icon so we don't have to open up the scene
                 //and fetch the texture
                 EmitSignal(SignalName.GhostTokenRenderWanted, _selectedButton.Icon, TurnColor, (int)value);
+            }
             else
+            {
                 EmitSignal(SignalName.GhostTokenHidingWanted);
+            }
         }
     }
 
@@ -315,7 +317,7 @@ public partial class Game : Node2D
     public override void _UnhandledInput(InputEvent @event)
     {
         ArgumentNullException.ThrowIfNull(@event);
-
+        
         if(
             @event.IsJustPressed() && 
             @event is InputEventMouseButton mb &&

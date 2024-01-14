@@ -5,11 +5,11 @@
 [ext_resource type="PackedScene" uid="uid://dk1ui8fmw6giq" path="res://Scenes/UI/TokenCounter/TokenCounterListControl/TokenCounterListControl.tscn" id="4_3pt17"]
 [ext_resource type="Script" path="res://Scenes/UI/DescriptionLabel/DescriptionLabel.cs" id="4_8pjqi"]
 
-[sub_resource type="LabelSettings" id="LabelSettings_lkpjc"]
+[sub_resource type="LabelSettings" id="LabelSettings_6s1y4"]
 font_size = 21
 font_color = Color(0.67451, 0.67451, 0.67451, 1)
 
-[sub_resource type="LabelSettings" id="LabelSettings_6s1y4"]
+[sub_resource type="LabelSettings" id="LabelSettings_lkpjc"]
 font_size = 21
 font_color = Color(0.67451, 0.67451, 0.67451, 1)
 
@@ -17,7 +17,7 @@ font_color = Color(0.67451, 0.67451, 0.67451, 1)
 script = ExtResource("1_uwj10")
 _gameBoard = NodePath("Board")
 _counterLists = [NodePath("Control/TokenCounterListControl"), NodePath("Control/TokenCounterListControl2")]
-_descriptionLables = [NodePath("Control/Player1TokenDescriptionPanel/Player1TokenDescriptionLabel"), NodePath("Control/Player2TokenDescriptionPanel2/Player2TokenDescriptionLabel")]
+_descriptionLables = [NodePath("Control/Player1TokenDescriptionPanel/Player1TokenDescriptionLabel"), NodePath("Control/Player2TokenDescriptionPanel/Player2TokenDescriptionLabel")]
 
 [node name="Board" parent="." instance=ExtResource("1_j8y8n")]
 
@@ -31,21 +31,9 @@ grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-mouse_filter = 1
+mouse_filter = 2
 
 [node name="TokenCounterListControl" parent="Control" instance=ExtResource("4_3pt17")]
-layout_mode = 1
-anchors_preset = 4
-anchor_top = 0.5
-anchor_right = 0.0
-anchor_bottom = 0.5
-offset_left = 320.0
-offset_top = -200.0
-offset_right = 568.0
-offset_bottom = 8.0
-grow_horizontal = 1
-
-[node name="TokenCounterListControl2" parent="Control" instance=ExtResource("4_3pt17")]
 layout_mode = 1
 anchors_preset = 6
 anchor_left = 1.0
@@ -56,17 +44,32 @@ offset_top = -200.0
 offset_right = -320.0
 offset_bottom = 8.0
 grow_horizontal = 0
+
+[node name="TokenCounterListControl2" parent="Control" instance=ExtResource("4_3pt17")]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_right = 0.0
+anchor_bottom = 0.5
+offset_left = 320.0
+offset_top = -200.0
+offset_right = 568.0
+offset_bottom = 8.0
+grow_horizontal = 1
 ActiveOnTurn = 1
 
 [node name="Player1TokenDescriptionPanel" type="Panel" parent="Control"]
 layout_mode = 1
-anchors_preset = 2
+anchors_preset = 3
+anchor_left = 1.0
 anchor_top = 1.0
+anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 328.0
-offset_top = 120.0
-offset_right = 576.0
+offset_left = -576.0
+offset_top = 128.0
+offset_right = -328.0
 offset_bottom = 320.0
+grow_horizontal = 0
 grow_vertical = 0
 
 [node name="Player1TokenDescriptionLabel" type="Label" parent="Control/Player1TokenDescriptionPanel"]
@@ -81,26 +84,23 @@ offset_bottom = -8.0
 grow_horizontal = 2
 grow_vertical = 2
 text = "Hover over a token to learn more about it"
-label_settings = SubResource("LabelSettings_lkpjc")
+label_settings = SubResource("LabelSettings_6s1y4")
 autowrap_mode = 2
 script = ExtResource("4_8pjqi")
 metadata/_edit_lock_ = true
 
-[node name="Player2TokenDescriptionPanel2" type="Panel" parent="Control"]
+[node name="Player2TokenDescriptionPanel" type="Panel" parent="Control"]
 layout_mode = 1
-anchors_preset = 3
-anchor_left = 1.0
+anchors_preset = 2
 anchor_top = 1.0
-anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -576.0
-offset_top = 128.0
-offset_right = -328.0
+offset_left = 328.0
+offset_top = 120.0
+offset_right = 576.0
 offset_bottom = 320.0
-grow_horizontal = 0
 grow_vertical = 0
 
-[node name="Player2TokenDescriptionLabel" type="Label" parent="Control/Player2TokenDescriptionPanel2"]
+[node name="Player2TokenDescriptionLabel" type="Label" parent="Control/Player2TokenDescriptionPanel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -112,7 +112,7 @@ offset_bottom = -8.0
 grow_horizontal = 2
 grow_vertical = 2
 text = "Hover over a token to learn more about it"
-label_settings = SubResource("LabelSettings_6s1y4")
+label_settings = SubResource("LabelSettings_lkpjc")
 autowrap_mode = 2
 script = ExtResource("4_8pjqi")
 ActiveOnTurn = 1

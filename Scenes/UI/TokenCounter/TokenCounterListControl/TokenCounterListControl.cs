@@ -47,11 +47,8 @@ public partial class TokenCounterListControl : Control
         private set
         {
             _activeOnTurn = value;
-            if(IsInsideTree())
-            {
-                foreach(TokenCounterControl c in _counters)
-                    c.ActiveOnTurn = _activeOnTurn;
-            }
+            foreach(TokenCounterControl c in _counters)
+                c.ActiveOnTurn = _activeOnTurn;
         }
     }
 
@@ -158,8 +155,7 @@ public partial class TokenCounterListControl : Control
             //force-select previous selection
             if(_lastSelectionButton is not null && 
                 _lastSelection is not null &&
-                _lastSelection.CanTake()
-            )
+                _lastSelection.CanTake())
             {
                 _lastSelection.OnSelectButtonPressed(_lastSelectionButton);
             }
