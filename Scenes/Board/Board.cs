@@ -88,7 +88,7 @@ public partial class Board : Node2D
 
     public override void _Ready()
     {
-        _tokenGrid = new TokenBase?[Rows,Columns];
+        _tokenGrid ??= new TokenBase?[Rows,Columns];
         CreateHoleMasks();
     }
 
@@ -557,14 +557,18 @@ public partial class Board : Node2D
         _droppingTokens.Clear();
         EmitSignal(SignalName.TokenFinishedDrop);
         _ghostToken = null;
-        for(int row = 0; row < Rows; ++row)
+        //if deserialize is called before _Ready, this makes sure we don't access a null grid
+        if(_tokenGrid is not null)
         {
-            for(int col = 0; col < Columns; ++col)
+            for(int row = 0; row < Rows; ++row)
             {
-                TokenBase? t = _tokenGrid[row,col];
-                _tokenGrid[row,col] = null;
-                if(t.IsInstanceValid())
-                    Autoloads.ScenePool.ReturnScene(t);
+                for(int col = 0; col < Columns; ++col)
+                {
+                    TokenBase? t = _tokenGrid[row,col];
+                    _tokenGrid[row,col] = null;
+                    if(t.IsInstanceValid())
+                        Autoloads.ScenePool.ReturnScene(t);
+                }
             }
         }
 

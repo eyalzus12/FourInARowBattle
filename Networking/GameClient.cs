@@ -963,6 +963,7 @@ public partial class GameClient : Node
             _lobby.Index--;
         }
         _lobby.Players.RemoveAt(index);
+        //updated indices
         for(int i = 0; i < _lobby.Players.Count; ++i)
         {
             _lobby.Players[i].Index = i;

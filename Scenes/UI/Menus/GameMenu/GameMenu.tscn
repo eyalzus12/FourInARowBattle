@@ -7,9 +7,9 @@
 [ext_resource type="Theme" uid="uid://qdeiddbstwpc" path="res://Resources/Themes/LabelWithOutlineTheme.tres" id="5_6dkay"]
 [ext_resource type="Script" path="res://Logic/Buttons/GoBackButton.cs" id="6_sy12a"]
 
-[node name="GameMenu" type="Node2D" node_paths=PackedStringArray("Game", "_quitGameButton", "_confirmQuitDialog", "_player1Label", "_player2Label", "_saveGameButton", "_loadGameButton")]
+[node name="GameMenu" type="Node2D" node_paths=PackedStringArray("_game", "_quitGameButton", "_confirmQuitDialog", "_player1Label", "_player2Label", "_saveGameButton", "_loadGameButton")]
 script = ExtResource("1_nk18s")
-Game = NodePath("Game")
+_game = NodePath("Game")
 _quitGameButton = NodePath("Control/GoBack")
 _confirmQuitDialog = NodePath("ConfirmationDialog")
 _player1Label = NodePath("Control/Player1Label")

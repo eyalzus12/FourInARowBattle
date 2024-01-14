@@ -53,6 +53,8 @@ public partial class GameServer : Node
     [Export]
     private PackedScene _gameScene = null!;
     [Export]
+    private GameData _initialState = null!;
+    [Export]
     public bool RefuseNewConnections{get => _server.RefuseNewConnections; set => _server.RefuseNewConnections = value;}
 
     private readonly Deque<byte> _buffer = new();
@@ -64,6 +66,7 @@ public partial class GameServer : Node
     {
         ArgumentNullException.ThrowIfNull(_server);
         ArgumentNullException.ThrowIfNull(_gameScene);
+        ArgumentNullException.ThrowIfNull(_initialState);
     }
 
     private void ConnectSignals()
@@ -409,6 +412,7 @@ public partial class GameServer : Node
             Player2 = which ? source : target
         };
         AddChild(match.Game);
+        match.Game.DeserializeFrom(_initialState);
 
         GameTurnEnum targetTurn = which ? GameTurnEnum.PLAYER1 : GameTurnEnum.PLAYER2;
         GameTurnEnum sourceTurn = which ? GameTurnEnum.PLAYER2 : GameTurnEnum.PLAYER1;

@@ -500,7 +500,7 @@ public partial class GameClientMenu : Node
         _inGame = true;
         _gameMenu.ProcessMode = ProcessModeEnum.Inherit;
         _gameMenu.Visible = true;
-        _gameMenu.Game.DeserializeFrom(_initialState);
+        _gameMenu.DeserializeFrom(_initialState);
     }
 
     private void HandleGameExit()

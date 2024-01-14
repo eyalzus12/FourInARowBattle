@@ -40,6 +40,7 @@ public partial class TokenCounterListControl : Control
         }
     }
 
+    [ExportCategory("")]
     [Export]
     public GameTurnEnum ActiveOnTurn
     {

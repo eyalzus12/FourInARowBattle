@@ -16,7 +16,7 @@ public partial class GameMenu : Node2D
 
     [ExportCategory("Nodes")]
     [Export]
-    public Game Game{get; private set;} = null!;
+    private Game _game = null!;
     [Export]
     private GoBackButton _quitGameButton = null!;
     [Export]
@@ -43,7 +43,7 @@ public partial class GameMenu : Node2D
         set => _allowedTurns = value?.ToHashSet() ?? new();
     }
 
-    public GameTurnEnum Turn => Game.Turn;
+    public GameTurnEnum Turn => _game.Turn;
 
     private HashSet<GameTurnEnum> _allowedTurns = new();
 
@@ -51,7 +51,7 @@ public partial class GameMenu : Node2D
 
     private void VerifyExports()
     {
-        ArgumentNullException.ThrowIfNull(Game);
+        ArgumentNullException.ThrowIfNull(_game);
         ArgumentNullException.ThrowIfNull(_player1Label);
         ArgumentNullException.ThrowIfNull(_player2Label);
         ArgumentNullException.ThrowIfNull(_loadGameButton);
@@ -63,13 +63,13 @@ public partial class GameMenu : Node2D
     private void ConnectSignals()
     {
         GetWindow().SizeChanged += OnWindowSizeChanged;
-        Game.GhostTokenRenderWanted += OnGameGhostTokenRenderWanted;
-        Game.GhostTokenHidingWanted += OnGameGhostTokenHidingWanted;
-        Game.TokenPlaceAttempted += OnGameTokenPlaceAttempted;
-        Game.RefillAttempted += OnGameRefillAttempted;
-        Game.TurnChanged += OnGameTurnChanged;
-        Game.TokenFinishedDrop += OnGameTokenFinishedDrop;
-        Game.TokenStartedDrop += OnGameTokenStartedDrop;
+        _game.GhostTokenRenderWanted += OnGameGhostTokenRenderWanted;
+        _game.GhostTokenHidingWanted += OnGameGhostTokenHidingWanted;
+        _game.TokenPlaceAttempted += OnGameTokenPlaceAttempted;
+        _game.RefillAttempted += OnGameRefillAttempted;
+        _game.TurnChanged += OnGameTurnChanged;
+        _game.TokenFinishedDrop += OnGameTokenFinishedDrop;
+        _game.TokenStartedDrop += OnGameTokenStartedDrop;
         _quitGameButton.ChangeSceneRequested += OnQuitButtonPressed;
         _confirmQuitDialog.Confirmed += OnQuitConfirmed;
         _loadGameButton.GameLoadRequested += OnLoadGameButtonGameLoadRequested;
@@ -106,26 +106,26 @@ public partial class GameMenu : Node2D
     private void OnGameGhostTokenRenderWanted(Texture2D texture, Color color, int col)
     {
         ArgumentNullException.ThrowIfNull(texture);
-        if(!_interactionEnabled || !_allowedTurns.Contains(Game.Turn)) return;
-        Game.RenderGhostToken(texture, color, col);
+        if(!_interactionEnabled || !_allowedTurns.Contains(_game.Turn)) return;
+        _game.RenderGhostToken(texture, color, col);
     }
 
     private void OnGameGhostTokenHidingWanted()
     {
-        if(!_interactionEnabled || !_allowedTurns.Contains(Game.Turn)) return;
-        Game.HideGhostToken();
+        if(!_interactionEnabled || !_allowedTurns.Contains(_game.Turn)) return;
+        _game.HideGhostToken();
     }
 
     private void OnGameTokenPlaceAttempted(int column, PackedScene scene)
     {
         ArgumentNullException.ThrowIfNull(scene);
-        if(!_interactionEnabled || !_allowedTurns.Contains(Game.Turn)) return;
+        if(!_interactionEnabled || !_allowedTurns.Contains(_game.Turn)) return;
         EmitSignal(SignalName.TokenPlaceAttempted, column, scene);
     }
 
     private void OnGameRefillAttempted()
     {
-        if(!_interactionEnabled || !_allowedTurns.Contains(Game.Turn)) return;
+        if(!_interactionEnabled || !_allowedTurns.Contains(_game.Turn)) return;
         EmitSignal(SignalName.RefillAttempted);
     }
 
@@ -133,7 +133,7 @@ public partial class GameMenu : Node2D
     {
         if(_interactionEnabled)
         {
-            Game.SetDetectorsDisabled(!_allowedTurns.Contains(Game.Turn));
+            _game.SetDetectorsDisabled(!_allowedTurns.Contains(_game.Turn));
         }
     }
 
@@ -155,7 +155,7 @@ public partial class GameMenu : Node2D
         ArgumentNullException.ThrowIfNull(path);
         if(!_loadingEnabled) return;
         GameData data = ResourceLoader.Load<GameData>(path, cacheMode: ResourceLoader.CacheMode.Replace);
-        Game.DeserializeFrom(data);
+        _game.DeserializeFrom(data);
         InitGame();
     }
 
@@ -163,7 +163,7 @@ public partial class GameMenu : Node2D
     {
         ArgumentNullException.ThrowIfNull(path);
         if(!_savingEnabled) return;
-        GameData data = Game.SerializeTo();
+        GameData data = _game.SerializeTo();
         Error err = ResourceSaver.Save(data, path, ResourceSaver.SaverFlags.Compress);
         if(err != Error.Ok)
         {
@@ -185,25 +185,30 @@ public partial class GameMenu : Node2D
     {
         if(_interactionEnabled)
         {
-            Game.SetupDropDetectors();
-            Game.SetDetectorsDisabled(!_allowedTurns.Contains(Game.Turn));
+            _game.SetupDropDetectors();
+            _game.SetDetectorsDisabled(!_allowedTurns.Contains(_game.Turn));
         }
-        Game.ForceDisableCountersWithoutApprovedTurns(_allowedTurns);
+        _game.ForceDisableCountersWithoutApprovedTurns(_allowedTurns);
     }
 
     public ErrorCodeEnum? PlaceToken(int column, PackedScene token)
     {
         ArgumentNullException.ThrowIfNull(token);
-        return Game.PlaceToken(column, token);
+        return _game.PlaceToken(column, token);
     }
 
     public ErrorCodeEnum? Refill()
     {
-        return Game.DoRefill();
+        return _game.DoRefill();
     }
 
     public bool ValidColumn(int column)
     {
-        return Game.ValidColumn(column);
+        return _game.ValidColumn(column);
+    }
+
+    public void DeserializeFrom(GameData data)
+    {
+        _game.DeserializeFrom(data);
     }
 }

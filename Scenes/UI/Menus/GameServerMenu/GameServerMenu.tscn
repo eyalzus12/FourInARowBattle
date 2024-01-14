@@ -1,8 +1,9 @@
-[gd_scene load_steps=6 format=3 uid="uid://debclaru4ujol"]
+[gd_scene load_steps=7 format=3 uid="uid://debclaru4ujol"]
 
 [ext_resource type="Script" path="res://Scenes/UI/Menus/GameServerMenu/GameServerMenu.cs" id="1_f0143"]
 [ext_resource type="Script" path="res://Networking/GameServer.cs" id="2_0s4yf"]
 [ext_resource type="PackedScene" uid="uid://cqb4y6hptd1vu" path="res://Scenes/UI/Menus/GameMenu/GameMenu.tscn" id="3_ax736"]
+[ext_resource type="Resource" uid="uid://dyponttgtoqyl" path="res://Resources/GameData/InitialGameState.res" id="4_mgrpp"]
 [ext_resource type="Script" path="res://Networking/WebSocketServer.cs" id="4_wyd18"]
 [ext_resource type="Script" path="res://Logic/Buttons/GoBackButton.cs" id="5_uk11p"]
 
@@ -21,6 +22,7 @@ _goBackConfirmationDialog = NodePath("ConfirmationDialog")
 script = ExtResource("2_0s4yf")
 _server = NodePath("WebSocketServer")
 _gameScene = ExtResource("3_ax736")
+_initialState = ExtResource("4_mgrpp")
 
 [node name="WebSocketServer" type="Node" parent="GameServer"]
 script = ExtResource("4_wyd18")

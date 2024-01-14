@@ -14,12 +14,13 @@ public partial class TokenCounterControl : Control
 
     private int _count = 0;
 
+    [ExportCategory("Nodes")]
     [Export]
     public Godot.Collections.Array<TokenCounterButton> TokenButtons{get; private set;} = null!;
-
     [Export]
     private Label _tokenCountLabel = null!;
 
+    [ExportCategory("")]
     [Export]
     private bool _infinite = false;
     [Export]
