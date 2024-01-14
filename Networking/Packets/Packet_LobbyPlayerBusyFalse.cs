@@ -1,12 +1,20 @@
 using System.Diagnostics.CodeAnalysis;
 using DequeNet;
+using Godot;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// A packet used by the server to indicate that a player is no longer in the middle of a game.
+/// </summary>
 public partial class Packet_LobbyPlayerBusyFalse : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.LOBBY_PLAYER_BUSY_FALSE;
 
+    /// <summary>
+    /// The index of the player inside the lobby
+    /// </summary>
+    [Export]
     public int PlayerIndex{get; private set;}
 
     public Packet_LobbyPlayerBusyFalse(int playerIndex)

@@ -43,10 +43,10 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Refill"
 
-[node name="TokenCounterControl" parent="." node_paths=PackedStringArray("TokenButtons", "_tokenCountLabel") instance=ExtResource("1_aopfm")]
+[node name="TokenCounterControl" parent="." node_paths=PackedStringArray("_tokenButtons", "_tokenCountLabel") instance=ExtResource("1_aopfm")]
 layout_mode = 2
 size_flags_vertical = 3
-TokenButtons = [NodePath("HBoxContainer/HBoxContainer_Buttons/Button")]
+_tokenButtons = [NodePath("HBoxContainer/HBoxContainer_Buttons/Button")]
 _tokenCountLabel = NodePath("HBoxContainer/CountLabel")
 _infinite = true
 
@@ -59,10 +59,10 @@ expand_icon = true
 script = ExtResource("4_ardkc")
 AssociatedScene = ExtResource("3_2pshy")
 
-[node name="TokenCounterControl2" parent="." node_paths=PackedStringArray("TokenButtons", "_tokenCountLabel") instance=ExtResource("1_aopfm")]
+[node name="TokenCounterControl2" parent="." node_paths=PackedStringArray("_tokenButtons", "_tokenCountLabel") instance=ExtResource("1_aopfm")]
 layout_mode = 2
 size_flags_vertical = 3
-TokenButtons = [NodePath("HBoxContainer/HBoxContainer_Buttons/Button")]
+_tokenButtons = [NodePath("HBoxContainer/HBoxContainer_Buttons/Button")]
 _tokenCountLabel = NodePath("HBoxContainer/CountLabel")
 _tokenMaxCount = 3
 TokenCount = 3
@@ -76,10 +76,10 @@ expand_icon = true
 script = ExtResource("4_ardkc")
 AssociatedScene = ExtResource("5_oh2y7")
 
-[node name="TokenCounterControl3" parent="." node_paths=PackedStringArray("TokenButtons", "_tokenCountLabel") instance=ExtResource("1_aopfm")]
+[node name="TokenCounterControl3" parent="." node_paths=PackedStringArray("_tokenButtons", "_tokenCountLabel") instance=ExtResource("1_aopfm")]
 layout_mode = 2
 size_flags_vertical = 3
-TokenButtons = [NodePath("HBoxContainer/HBoxContainer_Buttons/Button"), NodePath("HBoxContainer/HBoxContainer_Buttons/Button2")]
+_tokenButtons = [NodePath("HBoxContainer/HBoxContainer_Buttons/Button"), NodePath("HBoxContainer/HBoxContainer_Buttons/Button2")]
 _tokenCountLabel = NodePath("HBoxContainer/CountLabel")
 TokenCount = 5
 
@@ -101,10 +101,10 @@ expand_icon = true
 script = ExtResource("4_ardkc")
 AssociatedScene = ExtResource("8_u52fu")
 
-[node name="TokenCounterControl4" parent="." node_paths=PackedStringArray("TokenButtons", "_tokenCountLabel") instance=ExtResource("1_aopfm")]
+[node name="TokenCounterControl4" parent="." node_paths=PackedStringArray("_tokenButtons", "_tokenCountLabel") instance=ExtResource("1_aopfm")]
 layout_mode = 2
 size_flags_vertical = 3
-TokenButtons = [NodePath("HBoxContainer/HBoxContainer_Buttons/Button")]
+_tokenButtons = [NodePath("HBoxContainer/HBoxContainer_Buttons/Button")]
 _tokenCountLabel = NodePath("HBoxContainer/CountLabel")
 _tokenMaxCount = 2
 TokenCount = 2

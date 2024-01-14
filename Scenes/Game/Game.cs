@@ -5,20 +5,55 @@ using System.Linq;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// This class is the base Game class. The class has signals for the basic actions.
+/// It does not perform those actions itself to allow further checking and control through GameMenu.
+/// 
+/// The game UI has the following hierarchy:
+/// TokenCounterListControl - This class contains a list of tokens counters, and the refill button. Each player has 1.
+/// TokenCounterControl - The individual controls which show the number of tokens and allow selecting the,.
+/// TokenCounterButton - The buttons of the TokenCounterControl.
+/// </summary>
 public partial class Game : Node2D
 {
+    /// <summary>
+    /// Render ghost token desired
+    /// </summary>
+    /// <param name="texture">Token texture</param>
+    /// <param name="color">Token color</param>
+    /// <param name="col">The column</param>
     [Signal]
     public delegate void GhostTokenRenderWantedEventHandler(Texture2D texture, Color color, int col);
+    /// <summary>
+    /// Hide ghost token desired
+    /// </summary>
     [Signal]
     public delegate void GhostTokenHidingWantedEventHandler();
+    /// <summary>
+    /// Placing token desired
+    /// </summary>
+    /// <param name="column">Token column</param>
+    /// <param name="token">Token scene</param>
     [Signal]
     public delegate void TokenPlaceAttemptedEventHandler(int column, PackedScene token);
+    /// <summary>
+    /// Refill desired
+    /// </summary>
     [Signal]
     public delegate void RefillAttemptedEventHandler();
+    /// <summary>
+    /// Turn changed
+    /// </summary>
     [Signal]
     public delegate void TurnChangedEventHandler();
+    /// <summary>
+    /// Token started dropping
+    /// </summary>
     [Signal]
     public delegate void TokenStartedDropEventHandler();
+    /// <summary>
+    /// Token finished dropping
+    /// </summary>
     [Signal]
     public delegate void TokenFinishedDropEventHandler();
     
@@ -26,6 +61,9 @@ public partial class Game : Node2D
     private TokenCounterButton? _selectedButton = null;
 
     private GameTurnEnum _turn = GameTurnEnum.PLAYER1;
+    /// <summary>
+    /// The current game turn
+    /// </summary>
     public GameTurnEnum Turn
     {
         get => _turn; 
@@ -35,6 +73,7 @@ public partial class Game : Node2D
             EmitSignal(SignalName.TurnChanged);
         }
     }
+
     private Color TurnColor => Turn.GameTurnToColor();
 
     private GameTurnEnum NextTurn => Turn switch
@@ -51,6 +90,9 @@ public partial class Game : Node2D
     private Godot.Collections.Array<TokenCounterListControl> _counterLists = new();
     [Export]
     private Godot.Collections.Array<DescriptionLabel> _descriptionLables = new();
+    /// <summary>
+    /// The vertical offset for the press detectors
+    /// </summary>
     [ExportCategory("")]
     [Export]
     private float _pressDetectorOffset = 200;
@@ -59,6 +101,9 @@ public partial class Game : Node2D
     private readonly List<CollisionShape2D> _dropDetectorShapes = new();
 
     private int? _dropDetectorIdx;
+    /// <summary>
+    /// The current hovered column
+    /// </summary>
     private int? DropDetectorIdx
     {
         get => _dropDetectorIdx;
@@ -138,10 +183,16 @@ public partial class Game : Node2D
 
     #region Signal Handling
     
+    /// <summary>
+    /// Token has been selected
+    /// </summary>
+    /// <param name="what">What token counter</param>
+    /// <param name="who">What token button</param>
     public void OnTokenSelected(TokenCounterControl what, TokenCounterButton who)
     {
         ArgumentNullException.ThrowIfNull(what);
         ArgumentNullException.ThrowIfNull(who);
+        //button has wrong turn or not enough tokens
         if(what.ActiveOnTurn != Turn || !what.CanTake()) return;
         _selectedControl = what;
         _selectedButton = who;
@@ -150,11 +201,19 @@ public partial class Game : Node2D
         DropDetectorIdx = _dropDetectorIdx;
     }
 
+    /// <summary>
+    /// Refill button pressed
+    /// </summary>
     private void OnRefillAttempted()
     {
         EmitSignal(SignalName.RefillAttempted);
     }
 
+    /// <summary>
+    /// Token button hovered. Show token description.
+    /// </summary>
+    /// <param name="turn">The turn of the hovered button</param>
+    /// <param name="description">The description of the token</param>
     private void OnTokenButtonHovered(GameTurnEnum turn, string description)
     {
         foreach(DescriptionLabel label in _descriptionLables)
@@ -163,6 +222,11 @@ public partial class Game : Node2D
         }
     }
 
+    /// <summary>
+    /// Token button no longer hovered. Clear token description.
+    /// </summary>
+    /// <param name="turn">The turn of the no-longer-hovered button</param>
+    /// <param name="description">The description of the token</param>
     private void OnTokenButtonStoppedHover(GameTurnEnum turn, string description)
     {
         foreach(DescriptionLabel label in _descriptionLables)
@@ -171,12 +235,20 @@ public partial class Game : Node2D
         }
     }
 
+    /// <summary>
+    /// Score increased
+    /// </summary>
+    /// <param name="who">For who</param>
+    /// <param name="amount">How much</param>
     private void OnScoreIncreased(GameTurnEnum who, int amount)
     {            
         foreach(TokenCounterListControl counter in _counterLists)
             counter.OnAddScore(who, amount);
     }
 
+    /// <summary>
+    /// Token started dropping
+    /// </summary>
     private void OnTokenStartedDrop()
     {
         _droppingActive = false;
@@ -184,6 +256,9 @@ public partial class Game : Node2D
         EmitSignal(SignalName.TokenStartedDrop);
     }
 
+    /// <summary>
+    /// Token stopped dropping
+    /// </summary>
     private void OnTokenFinishedDrop()
     {
         _droppingActive = true;
@@ -193,6 +268,9 @@ public partial class Game : Node2D
 
     #endregion
 
+    /// <summary>
+    /// Setup the areas that detect presses
+    /// </summary>
     public void SetupDropDetectors()
     {
         DropDetectorIdx = null;
@@ -222,12 +300,21 @@ public partial class Game : Node2D
         }
     }
 
+    /// <summary>
+    /// Disable or enable the areas that detect presses
+    /// </summary>
+    /// <param name="disabled">Whether to disable</param>
     public void SetDetectorsDisabled(bool disabled)
     {
         foreach(CollisionShape2D col in _dropDetectorShapes)
             col.SetDeferredDisabled(disabled);
     }
 
+    /// <summary>
+    /// Force disable (disable even if not disabled) the counters that aren't from a certain turn set.
+    /// Used to disable the opponent's buttons when playing remotely.
+    /// </summary>
+    /// <param name="turns">The set of turns</param>
     public void ForceDisableCountersWithoutApprovedTurns(IReadOnlySet<GameTurnEnum> turns)
     {
         foreach(TokenCounterListControl clist in _counterLists)
@@ -236,17 +323,32 @@ public partial class Game : Node2D
         }
     }
 
+    /// <summary>
+    /// Render a ghost token
+    /// </summary>
+    /// <param name="texture">The token texture</param>
+    /// <param name="color">The token color</param>
+    /// <param name="col">The column</param>
     public void RenderGhostToken(Texture2D texture, Color color, int col)
     {
         ArgumentNullException.ThrowIfNull(texture);
         _gameBoard.RenderGhostToken(texture, color, col);
     }
 
+    /// <summary>
+    /// Hide the ghost token
+    /// </summary>
     public void HideGhostToken()
     {
         _gameBoard.HideGhostToken();
     }
 
+    /// <summary>
+    /// Place a token
+    /// </summary>
+    /// <param name="column">The column to place in</param>
+    /// <param name="scene">The scene to place</param>
+    /// <returns>An error code, or null if there's no error</returns>
     public ErrorCodeEnum? PlaceToken(int column, PackedScene scene)
     {
         ArgumentNullException.ThrowIfNull(scene);
@@ -288,6 +390,10 @@ public partial class Game : Node2D
         return null;
     }
 
+    /// <summary>
+    /// Refill
+    /// </summary>
+    /// <returns>An error code or null if there are no errors</returns>
     public ErrorCodeEnum? DoRefill()
     {
         bool refillFailedBecauseFull = true;
@@ -318,23 +424,25 @@ public partial class Game : Node2D
     {
         ArgumentNullException.ThrowIfNull(@event);
         
-        if(
+        //press input
+        if( //left click
             @event.IsJustPressed() && 
             @event is InputEventMouseButton mb &&
+            mb.ButtonIndex == MouseButton.Left &&
+            //can drop that token
             _droppingActive &&
             DropDetectorIdx is not null &&
             _selectedControl is not null &&
             _selectedControl.CanTake() &&
-            _selectedButton is not null
-        )
+            _selectedButton is not null)
         {
-            if(mb.ButtonIndex == MouseButton.Left)
-            {
-                EmitSignal(SignalName.TokenPlaceAttempted, (int)DropDetectorIdx, _selectedButton.AssociatedScene);
-            }
+            EmitSignal(SignalName.TokenPlaceAttempted, (int)DropDetectorIdx, _selectedButton.AssociatedScene);
         }
     }
 
+    /// <summary>
+    /// Pass the current turn
+    /// </summary>
     public void PassTurn()
     {
         Turn = NextTurn;
@@ -345,11 +453,20 @@ public partial class Game : Node2D
         DropDetectorIdx = _dropDetectorIdx;
     }
 
+    /// <summary>
+    /// Check if a column number is valid
+    /// </summary>
+    /// <param name="column">The column</param>
+    /// <returns>Whether it is valid</returns>
     public bool ValidColumn(int column)
     {
         return 0 <= column && column < _gameBoard.Columns;
     }
 
+    /// <summary>
+    /// Load game data
+    /// </summary>
+    /// <param name="data">The game data</param>
     public void DeserializeFrom(GameData data)
     {
         ArgumentNullException.ThrowIfNull(data);
@@ -378,6 +495,10 @@ public partial class Game : Node2D
         }
     }
 
+    /// <summary>
+    /// Save current game state
+    /// </summary>
+    /// <returns>The game state</returns>
     public GameData SerializeTo() => new()
     {
         Turn = Turn,

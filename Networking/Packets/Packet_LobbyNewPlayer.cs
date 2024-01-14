@@ -5,10 +5,16 @@ using Godot;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// A packet used by the server to indicate a new player joined the lobby
+/// </summary>
 public partial class Packet_LobbyNewPlayer : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.LOBBY_NEW_PLAYER;
 
+    /// <summary>
+    /// The name of the new player
+    /// </summary>
     [Export]
     public string PlayerName{get; private set;} = null!;
 

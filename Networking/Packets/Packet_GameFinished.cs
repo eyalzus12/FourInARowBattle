@@ -4,6 +4,9 @@ using DequeNet;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// An unused packet type. Theoretically used by the server to finish the game and tell the players the result.
+/// </summary>
 public partial class Packet_GameFinished : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.GAME_FINISHED;

@@ -4,6 +4,9 @@ using Godot;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// Client wrapper over websocket.
+/// </summary>
 public partial class WebSocketClient : Node
 {
     [Signal]
@@ -19,14 +22,16 @@ public partial class WebSocketClient : Node
     private string[] _supportedProtocols = Array.Empty<string>();
     [Export]
     private bool _useWSS = false;
-
-    private TlsOptions? _tlsOptions = TlsOptions.ClientUnsafe();
-
     private WebSocketPeer _socket = new();
     private WebSocketPeer.State _lastState = WebSocketPeer.State.Closed;
 
     public WebSocketPeer.State State => _socket.GetReadyState();
 
+    /// <summary>
+    /// Connect to a server
+    /// </summary>
+    /// <param name="ip">The server IP</param>
+    /// <param name="port">The port to connect to</param>
     public Error ConnectToHost(string ip, ushort port)
     {
         ArgumentNullException.ThrowIfNull(ip);
@@ -35,7 +40,7 @@ public partial class WebSocketClient : Node
 
         _socket.HandshakeHeaders = _handshakeHeaders;
         _socket.SupportedProtocols = _supportedProtocols;
-        Error err = _socket.ConnectToUrl(url, _tlsOptions);
+        Error err = _socket.ConnectToUrl(url, _useWSS ? TlsOptions.Client() : TlsOptions.ClientUnsafe());
         if(err != Error.Ok)
         {
             GD.PushError($"Error {err} while attempting to connect to url {url}");
@@ -45,6 +50,10 @@ public partial class WebSocketClient : Node
         return Error.Ok;
     }
 
+    /// <summary>
+    /// Send a raw packet
+    /// </summary>
+    /// <param name="packet">The packet to send</param>
     public Error SendPacket(byte[] packet)
     {
         ArgumentNullException.ThrowIfNull(packet);
@@ -52,12 +61,20 @@ public partial class WebSocketClient : Node
         return _socket.PutPacket(packet);
     }
 
+    /// <summary>
+    /// Get a raw packet, or null if none are available.
+    /// </summary>
+    /// <returns>The packet</returns>
     public byte[]? GetPacket()
     {
         if(_socket.GetAvailablePacketCount() < 1) return null;
         return _socket.GetPacket();
     }
 
+    /// <summary>
+    /// Get a raw packet and the packet error.
+    /// </summary>
+    /// <param name="packet">The resulting raw packet</param>
     public Error TryGetPacket(out byte[]? packet)
     {
         packet = null;
@@ -66,17 +83,28 @@ public partial class WebSocketClient : Node
         return _socket.GetPacketError();
     }
 
+    /// <summary>
+    /// Close socket
+    /// </summary>
+    /// <param name="code">Close code</param>
+    /// <param name="reason">Close reason</param>
     public void Close(int code = 1000, string reason = "")
     {
         _socket.Close(code, reason ?? "");
     }
 
+    /// <summary>
+    /// Clear socket state
+    /// </summary>
     public void Clear()
     {
         _socket = new();
         _lastState = _socket.GetReadyState();
     }
 
+    /// <summary>
+    /// Update connection state and get incoming packets
+    /// </summary>
     public void Poll()
     {
         WebSocketPeer.State state = _socket.GetReadyState();

@@ -4,12 +4,21 @@ using DequeNet;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// A packet used by the client to tell the server it is placing a packet
+/// </summary>
 public partial class Packet_GameActionPlace : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.GAME_ACTION_PLACE;
 
+    /// <summary>
+    /// The column to place in
+    /// </summary>
     [Export]
     public byte Column{get; private set;}
+    /// <summary>
+    /// The path to the scene of the placed token
+    /// </summary>
     [Export]
     public string ScenePath{get; private set;} = null!;
 

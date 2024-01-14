@@ -3,8 +3,21 @@ using System;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// Audio stream player extension functions
+/// </summary>
 public static class AudioStreamPlayerExtensions
 {
+    /// <summary>
+    /// Play an audio stream in an audio player with the desired paramaters.
+    /// </summary>
+    /// <param name="player">The player</param>
+    /// <param name="stream">The stream to play</param>
+    /// <param name="bus"></param>
+    /// <param name="maxPolyphony"></param>
+    /// <param name="mixTarget"></param>
+    /// <param name="pitchScale"></param>
+    /// <param name="volumeDb"></param>
     public static void Play(
         this AudioStreamPlayer player, AudioStream stream,
         string bus = "Master",
@@ -26,6 +39,20 @@ public static class AudioStreamPlayerExtensions
         player.Play();
     }
 
+    /// <summary>
+    /// Play an audio stream in an audio player with the desired paramaters.
+    /// </summary>
+    /// <param name="player">The player</param>
+    /// <param name="stream">The stream to play</param>
+    /// <param name="position">The position to play in</param>
+    /// <param name="areaMask"></param>
+    /// <param name="attenuation"></param>
+    /// <param name="bus"></param>
+    /// <param name="maxDistance"></param>
+    /// <param name="maxPolyphony"></param>
+    /// <param name="panningStrength"></param>
+    /// <param name="pitchScale"></param>
+    /// <param name="volumeDb"></param>
     public static void Play(
         this AudioStreamPlayer2D player, AudioStream stream, Vector2 position,
         uint areaMask = 1,
@@ -54,6 +81,28 @@ public static class AudioStreamPlayerExtensions
         player.Play();
     }
 
+    /// <summary>
+    /// Play an audio stream in an audio player with the desired paramaters.
+    /// </summary>
+    /// <param name="player">The player</param>
+    /// <param name="stream">The stream to play</param>
+    /// <param name="position">The position to play in</param>
+    /// <param name="areaMask"></param>
+    /// <param name="attenuationFilterCutoffHz"></param>
+    /// <param name="attenuationFilterDb"></param>
+    /// <param name="attenuationModel"></param>
+    /// <param name="bus"></param>
+    /// <param name="dopplerTracking"></param>
+    /// <param name="emissionAngleDegrees"></param>
+    /// <param name="emissionAngleEnabled"></param>
+    /// <param name="emissionAngleFilterAttenuationDb"></param>
+    /// <param name="maxDb"></param>
+    /// <param name="maxDistance"></param>
+    /// <param name="maxPolyphony"></param>
+    /// <param name="panningStrength"></param>
+    /// <param name="pitchScale"></param>
+    /// <param name="unitSize"></param>
+    /// <param name="volumeDb"></param>
     public static void Play(
         this AudioStreamPlayer3D player, AudioStream stream, Vector3 position,
         uint areaMask = 1,

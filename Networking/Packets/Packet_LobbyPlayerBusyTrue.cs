@@ -1,12 +1,20 @@
 using System.Diagnostics.CodeAnalysis;
 using DequeNet;
+using Godot;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// A packet used by the server to indicate the a player is now in a game
+/// </summary>
 public partial class Packet_LobbyPlayerBusyTrue : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.LOBBY_PLAYER_BUSY_TRUE;
 
+    /// <summary>
+    /// The index of the player inside the lobby
+    /// </summary>
+    [Export]
     public int PlayerIndex{get; private set;}
 
     public Packet_LobbyPlayerBusyTrue(int playerIndex)

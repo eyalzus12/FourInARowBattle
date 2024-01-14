@@ -4,12 +4,21 @@ using DequeNet;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// A packet used by the server to indicate that a new game is starting
+/// </summary>
 public partial class Packet_NewGameStarting : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.NEW_GAME_STARTING;
 
+    /// <summary>
+    /// The player's turn
+    /// </summary>
     [Export]
     public GameTurnEnum Turn{get; private set;}
+    /// <summary>
+    /// The index of their opponent in the lobby
+    /// </summary>
     [Export]
     public int OpponentIndex{get; private set;}
 

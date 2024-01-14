@@ -4,10 +4,16 @@ using DequeNet;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// A packet used by the server to indicate creating lobby failed
+/// </summary>
 public partial class Packet_CreateLobbyFail : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.CREATE_LOBBY_FAIL;
 
+    /// <summary>
+    /// The failure error code
+    /// </summary>
     [Export]
     public ErrorCodeEnum ErrorCode{get; private set;}
 

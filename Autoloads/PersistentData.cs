@@ -2,7 +2,9 @@ using Godot;
 
 namespace FourInARowBattle;
 
-//this class is used to transfer data between scenes when switching between them
+/// <summary>
+/// Class used to transfer information when changing scene
+/// </summary>
 public partial class PersistentData : Node
 {
     public GameData? ContinueFromState{get; set;}

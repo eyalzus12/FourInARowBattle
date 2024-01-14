@@ -7,9 +7,17 @@ using System.Collections.ObjectModel;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// The base class of all packets
+/// </summary>
 public abstract partial class AbstractPacket : RefCounted
 {
     private delegate bool PacketConstructor(Deque<byte> buffer, [NotNullWhen(true)] out AbstractPacket? packet);
+
+    // A big dictionary to map packet types to packet creators.
+    // Since polymorphism on static functions is impossible, this is the best we can do.
+    // Having some unified type (like AbstractFailurePacket) is also not feasible
+    // since we can't invoke the constructor generically.
 
     private static readonly ReadOnlyDictionary<PacketTypeEnum, PacketConstructor> _packetDict =
         new Dictionary<PacketTypeEnum, PacketConstructor>()
@@ -63,12 +71,27 @@ public abstract partial class AbstractPacket : RefCounted
             {PacketTypeEnum.GAME_FINISHED, Packet_GameFinished.TryConstructPacket_GameFinishedFrom},
         }.AsReadOnly();
 
+    /// <summary>
+    /// Packet type getter
+    /// </summary>
+    /// <value>The type of packet</value>
     public abstract PacketTypeEnum PacketType{get;}
+
+    /// <summary>
+    /// Store the packet into a byte array
+    /// </summary>
+    /// <returns>The byte array</returns>
     public abstract byte[] ToByteArray();
 
-    //Attempt to construct a packet from the buffer
-    //If there's a full valid packet, true is returned, packet is the resulting packet, and the used data is taken out of buffer
-    //If there isn't a full valid packet, false is returned and packet is null
+    
+    /// <summary>
+    /// Attempt to construct a packet from the buffer
+    /// If there's a full valid packet, true is returned, packet is the resulting packet, and the used data is taken out of buffer
+    /// If there isn't a full valid packet, false is returned and packet is null
+    /// </summary>
+    /// <param name="buffer">The buffer to read from</param>
+    /// <param name="packet">The out param for the packet</param>
+    /// <returns>Whether construction succeeded</returns>
     public static bool TryConstructPacketFrom(Deque<byte> buffer, [NotNullWhen(true)] out AbstractPacket? packet)
     {
         ArgumentNullException.ThrowIfNull(buffer);
@@ -77,6 +100,12 @@ public abstract partial class AbstractPacket : RefCounted
         return _packetDict.GetValueOrDefault((PacketTypeEnum)buffer[0], CreateInvalidPacket)(buffer, out packet);
     }
 
+    /// <summary>
+    /// Create Packet_InvalidPacket. Used when an invalid packet type was received.
+    /// </summary>
+    /// <param name="buffer">The buffer to create from</param>
+    /// <param name="packet">The resulting packet</param>
+    /// <returns>True</returns>
     private static bool CreateInvalidPacket(Deque<byte> buffer, [NotNullWhen(true)] out AbstractPacket? packet)
     {
         PacketTypeEnum type = (PacketTypeEnum)buffer[0];

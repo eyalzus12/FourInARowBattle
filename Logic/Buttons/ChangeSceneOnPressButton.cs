@@ -2,6 +2,9 @@ using Godot;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// A button used for moving between scenes
+/// </summary>
 public partial class ChangeSceneOnPressButton : BaseButton
 {
     [Signal]

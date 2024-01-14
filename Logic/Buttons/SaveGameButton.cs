@@ -3,6 +3,9 @@ using System;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// A button that on press, opens a menu to save a game state.
+/// </summary>
 public partial class SaveGameButton : Button
 {
     [Signal]

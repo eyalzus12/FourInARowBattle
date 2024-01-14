@@ -4,10 +4,16 @@ using DequeNet;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// A packet used by the server to tell a client the server received an invalid packet.
+/// </summary>
 public partial class Packet_InvalidPacketInform : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.INVALID_PACKET_INFORM;
 
+    /// <summary>
+    /// The type of received packet
+    /// </summary>
     [Export]
     public PacketTypeEnum GivenPacketType{get; private set;}
 

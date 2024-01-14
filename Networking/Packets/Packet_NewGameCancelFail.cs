@@ -4,12 +4,21 @@ using DequeNet;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// A packet used by the server to indicate that canceling a game request failed
+/// </summary>
 public partial class Packet_NewGameCancelFail : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.NEW_GAME_CANCEL_FAIL;
 
+    /// <summary>
+    /// Failure error code
+    /// </summary>
     [Export]
     public ErrorCodeEnum ErrorCode{get; private set;}
+    /// <summary>
+    /// The index of the player that the request was made towards
+    /// </summary>
     [Export]
     public int RequestTargetIndex{get; private set;}
 

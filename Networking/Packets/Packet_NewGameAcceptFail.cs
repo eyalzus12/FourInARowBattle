@@ -4,12 +4,21 @@ using DequeNet;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// A packet used by the server to indicate that accepting a game request failed
+/// </summary>
 public partial class Packet_NewGameAcceptFail : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.NEW_GAME_ACCEPT_FAIL;
 
+    /// <summary>
+    /// The failure error code
+    /// </summary>
     [Export]
     public ErrorCodeEnum ErrorCode{get; private set;}
+    /// <summary>
+    /// The index of the player who made the request
+    /// </summary>
     [Export]
     public int RequestSourceIndex{get; private set;}
 

@@ -4,10 +4,16 @@ using DequeNet;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// A packet used by the client to disconnect from a lobby
+/// </summary>
 public partial class Packet_LobbyDisconnect : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.LOBBY_DISCONNECT;
 
+    /// <summary>
+    /// The reason for disconnecting
+    /// </summary>
     [Export]
     public DisconnectReasonEnum Reason{get; private set;}
 

@@ -1,5 +1,8 @@
 namespace FourInARowBattle;
 
+/// <summary>
+/// Enum for disconnect reason
+/// </summary>
 public enum DisconnectReasonEnum : byte
 {
     //unknown

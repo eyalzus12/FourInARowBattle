@@ -3,6 +3,9 @@ using DequeNet;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// A packet used by the server to indicate that a client's opponent quit the game
+/// </summary>
 public partial class Packet_GameQuitOther : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.GAME_QUIT_OTHER;

@@ -6,12 +6,21 @@ using Godot;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// A packet used by the server to indicate connecting to a lobby succeded
+/// </summary>
 public partial class Packet_ConnectLobbyOk : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.CONNECT_LOBBY_OK;
 
+    /// <summary>
+    /// The joining players' index inside the lobby
+    /// </summary>
     [Export]
     public int YourIndex{get; private set;}
+    /// <summary>
+    /// The names and busy states of the players inside the lobby
+    /// </summary>
     [Export]
     public LobbyPlayerData[] Players{get; private set;} = Array.Empty<LobbyPlayerData>();
 
@@ -24,6 +33,7 @@ public partial class Packet_ConnectLobbyOk : AbstractPacket
     public override byte[] ToByteArray()
     {
         int bufferSize = sizeof(byte) + sizeof(uint) + sizeof(uint);
+        //convert names to byte buffers and calculate size
         byte[][] playerNameBuffers = new byte[Players.Length][];
         for(int i = 0; i < Players.Length; ++i)
         {
@@ -38,17 +48,22 @@ public partial class Packet_ConnectLobbyOk : AbstractPacket
             bufferSize += sizeof(byte) + nameBuffer.Length;
         }
         bool[] busys = Players.Select(p => p.Busy).ToArray();
-        //bit buffer
+        //add packed bit buffer size to size
         bufferSize += (int)Math.Ceiling(Players.Length / 8.0);
         byte[] buffer = new byte[bufferSize];
         buffer.WriteBigEndian((byte)PacketType, 0, out int index);
         buffer.WriteBigEndian((uint)YourIndex, index, out index);
+        //write array size
         buffer.WriteBigEndian((uint)Players.Length, index, out index);
+        //write player names
         for(int i = 0; i < Players.Length; ++i)
         {
+            //write name size
             buffer.WriteBigEndian((byte)playerNameBuffers[i].Length, index, out index);
+            //write name
             buffer.WriteBuffer(playerNameBuffers[i], index, out index);
         }
+        //write packed bit array of busy
         buffer.WriteBits(busys, index, out _);
         return buffer;
     }
@@ -80,12 +95,15 @@ public partial class Packet_ConnectLobbyOk : AbstractPacket
         //read names
         for(int i = 0; i < playerCount; ++i)
         {
+            //read size
             byte size = buffer.PopLeft();
+            //read into buffer
             nameBuffers[i] = new byte[size];
             for(int j = 0; j < size; ++j)
             {
                 nameBuffers[i][j] = buffer.PopLeft();
             }
+            //convert buffer to string
             names[i] = nameBuffers[i].GetStringFromUtf8();
             if(names[i].Length > Globals.NAME_LENGTH_LIMIT)
             {

@@ -1,7 +1,13 @@
 namespace FourInARowBattle;
 
+/// <summary>
+/// A special token that removes the bottom token in its column
+/// </summary>
 public partial class TokenAnvil : TokenBase
 {
+    /// <summary>
+    /// Token finished dropping
+    /// </summary>
     public override void OnDropFinished()
     {
         base.OnDropFinished();

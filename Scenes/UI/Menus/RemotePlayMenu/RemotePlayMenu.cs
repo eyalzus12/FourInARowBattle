@@ -29,7 +29,7 @@ public partial class RemotePlayMenu : Control
     [Export]
     private Control _lobbyControlsBase = null!;
     [Export]
-    private CreateLobbyButton _createLobbyButton = null!;
+    private Button _createLobbyButton = null!;
     [Export]
     private JoinLobbyButton _joinLobbyButton = null!;
     [Export]
@@ -66,7 +66,7 @@ public partial class RemotePlayMenu : Control
 
     private void ConnectSignals()
     {
-        _createLobbyButton.CreateLobbyButtonPressed += OnCreateLobbyButtonCreateLobbyButtonPressed;
+        _createLobbyButton.Pressed += OnCreateLobbyButtonCreateLobbyButtonPressed;
         _joinLobbyButton.JoinLobbyButtonPressed += OnJoinLobbyButtonJoinLobbyButtonPressed;
         _joinLobbyButton.LobbyNumberWasInvalid += OnJoinLobbyButtonLobbyNumberWasInvalid;
         _goBackButton.ChangeSceneRequested += OnGoBackButtonChangeSceneRequested;

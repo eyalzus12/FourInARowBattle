@@ -4,10 +4,16 @@ using Godot;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// A packet used by the server to indicate creating lobby succeded
+/// </summary>
 public partial class Packet_CreateLobbyOk : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.CREATE_LOBBY_OK;
 
+    /// <summary>
+    /// The Id of the created lobby
+    /// </summary>
     [Export]
     public uint LobbyId{get; private set;}
 

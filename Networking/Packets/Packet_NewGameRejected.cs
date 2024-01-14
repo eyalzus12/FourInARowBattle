@@ -4,10 +4,16 @@ using DequeNet;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// A packet used by the server to indicate a game request was rejected
+/// </summary>
 public partial class Packet_NewGameRejected : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.NEW_GAME_REJECTED;
 
+    /// <summary>
+    /// The index of the player who rejected the request
+    /// </summary>
     [Export]
     public int RequestTargetIndex{get; private set;}
 

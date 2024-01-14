@@ -6,12 +6,21 @@ using Godot;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// A packet used by the client to request connecting to a lobby
+/// </summary>
 public partial class Packet_ConnectLobbyRequest : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.CONNECT_LOBBY_REQUEST;
 
+    /// <summary>
+    /// The id of the desired lobby
+    /// </summary>
     [Export]
     public uint LobbyId{get; private set;}
+    /// <summary>
+    /// The name of the joining player
+    /// </summary>
     [Export]
     public string PlayerName{get; private set;} = null!;
 

@@ -4,10 +4,16 @@ using DequeNet;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// Unused packet. Theoretically used by the server to indicate that the lobby will timeout soon.
+/// </summary>
 public partial class Packet_LobbyTimeoutWarning : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.LOBBY_TIMEOUT_WARNING;
 
+    /// <summary>
+    /// How many seconds remain until the timeout
+    /// </summary>
     [Export]
     public int SecondsRemaining{get; private set;}
 

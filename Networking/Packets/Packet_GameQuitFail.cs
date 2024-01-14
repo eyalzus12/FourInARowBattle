@@ -4,10 +4,16 @@ using Godot;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// A packet used by the server to indicate that quitting the game failed
+/// </summary>
 public partial class Packet_GameQuitFail : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.GAME_QUIT_FAIL;
 
+    /// <summary>
+    /// The failure error code
+    /// </summary>
     [Export]
     public ErrorCodeEnum ErrorCode{get; private set;}
 

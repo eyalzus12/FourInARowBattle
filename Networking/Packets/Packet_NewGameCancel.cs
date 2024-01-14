@@ -4,10 +4,16 @@ using DequeNet;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// A packet used by the client to cancel a game request
+/// </summary>
 public partial class Packet_NewGameCancel : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.NEW_GAME_CANCEL;
 
+    /// <summary>
+    /// The index of the player who was sent the request
+    /// </summary>
     [Export]
     public int RequestTargetIndex{get; private set;}
 

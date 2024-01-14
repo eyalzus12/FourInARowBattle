@@ -5,14 +5,36 @@ using Godot.Collections;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// This is a UI element which contains multiple counters, and the refill button
+/// Each player should have one.
+/// </summary>
 public partial class TokenCounterListControl : Control
 {
+    /// <summary>
+    /// Refill was pressed
+    /// </summary>
     [Signal]
     public delegate void RefillAttemptedEventHandler();
+    /// <summary>
+    /// Token was selected
+    /// </summary>
+    /// <param name="what">What counter</param>
+    /// <param name="who">Which button</param>
     [Signal]
     public delegate void TokenSelectedEventHandler(TokenCounterControl what, TokenCounterButton who);
+    /// <summary>
+    /// Token was hovered
+    /// </summary>
+    /// <param name="turn">What game turn</param>
+    /// <param name="description">Token description</param>
     [Signal]
     public delegate void TokenButtonHoveredEventHandler(GameTurnEnum turn, string description);
+    /// <summary>
+    /// Token is no longer hovered
+    /// </summary>
+    /// <param name="turn">What game turn</param>
+    /// <param name="description">Token description</param>
     [Signal]
     public delegate void TokenButtonStoppedHoverEventHandler(GameTurnEnum turn, string description);
 
@@ -25,11 +47,17 @@ public partial class TokenCounterListControl : Control
     private Button _refillButton = null!;
 
     private GameTurnEnum _activeOnTurn;
+    //if true, refilling is locked even if refill is not locked
+    //used to disable opponent refill button in remote play
     private bool _refillForceDisabled = false;
     private bool _refillLocked = false;
     private bool _refillUnlockedNextTurn = false;
 
     private int _currentScore = 0;
+    /// <summary>
+    /// The current score
+    /// </summary>
+    /// <value></value>
     private int CurrentScore
     {
         get => _currentScore;
@@ -40,6 +68,9 @@ public partial class TokenCounterListControl : Control
         }
     }
 
+    /// <summary>
+    /// What turn the counter list is active on
+    /// </summary>
     [ExportCategory("")]
     [Export]
     public GameTurnEnum ActiveOnTurn
@@ -85,6 +116,11 @@ public partial class TokenCounterListControl : Control
         CurrentScore = 0;
     }
 
+    /// <summary>
+    /// Token was selected
+    /// </summary>
+    /// <param name="control">What counter</param>
+    /// <param name="button">What button</param>
     private void OnTokenSelected(TokenCounterControl control, TokenCounterButton button)
     {
         ArgumentNullException.ThrowIfNull(control);
@@ -94,42 +130,63 @@ public partial class TokenCounterListControl : Control
         EmitSignal(SignalName.TokenSelected, control, button);
     }
 
+    /// <summary>
+    /// Token was hovered
+    /// </summary>
+    /// <param name="turn">The counter's turn</param>
+    /// <param name="description">The token description</param>
     private void OnTokenButtonHovered(GameTurnEnum turn, string description)
     {
         ArgumentNullException.ThrowIfNull(description);
         EmitSignal(SignalName.TokenButtonHovered, (int)turn, description);
     }
 
+    /// <summary>
+    /// Token is no longer hovered
+    /// </summary>
+    /// <param name="turn">The counter's turn</param>
+    /// <param name="description">The token description</param>
     private void OnTokenButtonStoppedHover(GameTurnEnum turn, string description)
     {
         ArgumentNullException.ThrowIfNull(description);
         EmitSignal(SignalName.TokenButtonStoppedHover, (int)turn, description);
     }
 
+    /// <summary>
+    /// Refill pressed
+    /// </summary>
     private void OnRefillButtonPressed()
     {
         if(_refillLocked || !AnyCanAdd()) return;
         EmitSignal(SignalName.RefillAttempted);
     }
 
+    /// <summary>
+    /// Refill hovered
+    /// </summary>
     private void OnRefillButtonMouseEntered()
     {
-        EmitSignal(
-            SignalName.TokenButtonHovered,
-            (int)ActiveOnTurn,
-            DescriptionLabel.REFILL_DESCRIPTION
-        );
+        //hack: use the same system for token descriptions for the refill button
+        EmitSignal( SignalName.TokenButtonHovered,
+                    (int)ActiveOnTurn,
+                    DescriptionLabel.REFILL_DESCRIPTION);
     }
 
+    /// <summary>
+    /// Refill no longer hovered
+    /// </summary>
     private void OnRefillButtonMouseExited()
     {
-        EmitSignal(
-            SignalName.TokenButtonStoppedHover, 
-            (int)ActiveOnTurn,
-            DescriptionLabel.REFILL_DESCRIPTION
-        );
+        EmitSignal( SignalName.TokenButtonStoppedHover,
+                    (int)ActiveOnTurn,
+                    DescriptionLabel.REFILL_DESCRIPTION);
     }
 
+    /// <summary>
+    /// Force disable the counters and refill button.
+    /// Used to disable opponent counters in remote play.
+    /// </summary>
+    /// <param name="disabled">Whether to force disable</param>
     public void SetCountersForceDisabled(bool disabled)
     {
         foreach(TokenCounterControl c in _counters)
@@ -139,6 +196,10 @@ public partial class TokenCounterListControl : Control
         _refillForceDisabled = disabled;
     }
 
+    /// <summary>
+    /// Perform a refill
+    /// </summary>
+    /// <returns>Whether a refill was possible</returns>
     public bool DoRefill()
     {
         if(!AnyCanAdd()) return false;
@@ -148,30 +209,37 @@ public partial class TokenCounterListControl : Control
         return true;
     }
 
+    /// <summary>
+    /// Called when the turn changes
+    /// </summary>
+    /// <param name="to">What turn it was changed to</param>
     public void OnTurnChange(GameTurnEnum to)
     {
         //our turn
         if(to == ActiveOnTurn)
         {
             //force-select previous selection
-            if(_lastSelectionButton is not null && 
+            if( _lastSelectionButton is not null &&
                 _lastSelection is not null &&
                 _lastSelection.CanTake())
             {
                 _lastSelection.OnSelectButtonPressed(_lastSelectionButton);
             }
-            //lock refill button if needed
+
+            //refill button is locked. we will unlock it next turn.
             if(_refillLocked)
             {
                 _refillLocked = false;
                 _refillButton.Disabled = true || _refillForceDisabled;
                 _refillUnlockedNextTurn = true;
             }
+            //refill is not locked and we can add to some counter
             else if(AnyCanAdd())
             {
                 _refillButton.Disabled = false || _refillForceDisabled;
                 _refillUnlockedNextTurn = false;
             }
+            //refill is not locked and we can't add to a counter
             else
             {
                 _refillButton.Disabled = true || _refillForceDisabled;
@@ -184,46 +252,60 @@ public partial class TokenCounterListControl : Control
             _refillButton.Disabled = true || _refillForceDisabled;
         }
 
+        //notify children
         foreach(TokenCounterControl c in _counters)
         {
             c.OnTurnChange(to);
         }
     }
 
+    /// <summary>
+    /// Score increased
+    /// </summary>
+    /// <param name="who">For whom</param>
+    /// <param name="amount">How much</param>
     public void OnAddScore(GameTurnEnum who, int amount)
     {
         if(ActiveOnTurn == who)
             CurrentScore += amount;
     }
 
+    /// <summary>
+    /// Check whether any counters can get more tokens
+    /// </summary>
+    /// <returns>Whether any counters can get more tokens</returns>
     public bool AnyCanAdd()
     {
         foreach(TokenCounterControl c in _counters) if(c.CanAdd()) return true;
         return false;
     }
 
+    /// <summary>
+    /// Find counter that has a button with the given scene, or null if none exist
+    /// </summary>
+    /// <param name="scene">The scene</param>
+    /// <returns>The counter with the scene, or null if none exist</returns>
     public TokenCounterControl? FindCounterOfScene(PackedScene scene)
     {
         ArgumentNullException.ThrowIfNull(scene);
         foreach(TokenCounterControl c in _counters)
         {
-            foreach(TokenCounterButton b in c.TokenButtons)
-            {
-                if(b.AssociatedScene == scene)
-                {
-                    return c;
-                }
-            }
+            if(c.HasButtonForScene(scene))
+                return c;
         }
         return null;
     }
 
+    /// <summary>
+    /// Load counter list data
+    /// </summary>
+    /// <param name="data">The data</param>
     public void DeserializeFrom(TokenCounterListData data)
     {
         ArgumentNullException.ThrowIfNull(data);
         _lastSelection = null;
         _lastSelectionButton = null;
-        
+
         CurrentScore = data.Score;
         _refillLocked = data.RefillLocked;
         _refillUnlockedNextTurn = data.RefillUnlockedNextTurn;
@@ -241,6 +323,10 @@ public partial class TokenCounterListControl : Control
             _counters[i].DeserializeFrom(data.Counters[i]);
     }
 
+    /// <summary>
+    /// Save current counter list state
+    /// </summary>
+    /// <returns>The state</returns>
     public TokenCounterListData SerializeTo() => new()
     {
         Score = CurrentScore,

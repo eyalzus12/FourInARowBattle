@@ -5,10 +5,16 @@ using Godot;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// A packet used by the client to request lobby creation from the server
+/// </summary>
 public partial class Packet_CreateLobbyRequest : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.CREATE_LOBBY_REQUEST;
 
+    /// <summary>
+    /// The name of the lobby creator
+    /// </summary>
     [Export]
     public string PlayerName{get; private set;} = null!;
 

@@ -3,6 +3,10 @@ using System;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// A button that when pressed, opens a menu to select a game save file.
+/// Once the file is selected, the save data is stored in PersistentData and the scene is changed as desired
+/// </summary>
 public partial class ChangeSceneAndLoadGameButton : ChangeSceneOnPressButton
 {
     [ExportCategory("Nodes")]

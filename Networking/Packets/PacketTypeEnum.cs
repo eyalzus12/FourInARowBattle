@@ -1,5 +1,8 @@
 namespace FourInARowBattle;
 
+/// <summary>
+/// An enum for packet types. The first byte in a packet.
+/// </summary>
 public enum PacketTypeEnum : byte
 {
     //similar packet types have similar numberings
@@ -12,10 +15,10 @@ public enum PacketTypeEnum : byte
     //20X-24X   game related
     //250-255   unused
 
-    //dummy message
+    //dummy message. used for testing.
     //data: none
     DUMMY = 001,
-    //invalid packet type
+    //invalid packet type. for internal use only.
     //data: given packet type
     INVALID_PACKET = 002,
     //server tells client they sent bad packet
@@ -103,10 +106,10 @@ public enum PacketTypeEnum : byte
     //other player disconnected from lobby
     //data: reason(8b), player index(32b)
     LOBBY_DISCONNECT_OTHER = 111,
-    //lobby will timeout soon
+    //unused. lobby will timeout soon
     //data: seconds remaining(32b)
     LOBBY_TIMEOUT_WARNING = 120,
-    //lobby timed out 
+    //unused. lobby timed out.
     //data: none
     LOBBY_TIMEOUT = 121,
     //server is closing
@@ -151,7 +154,7 @@ public enum PacketTypeEnum : byte
     //other player quit game
     //data: none
     GAME_QUIT_OTHER = 233,
-    //game finished
+    //unused. game finished.
     //data: result(8b), player 1 points(32b), player 2 points(32b)
     GAME_FINISHED = 240,
 }

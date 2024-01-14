@@ -4,6 +4,9 @@ using System.Collections.ObjectModel;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// A helper class to convert error codes to human readable descriptions
+/// </summary>
 public static class ErrorCodeUtils
 {
     private static readonly ReadOnlyDictionary<ErrorCodeEnum, string> _descriptionDict = new Dictionary<ErrorCodeEnum, string>()
@@ -51,5 +54,10 @@ public static class ErrorCodeUtils
         {ErrorCodeEnum.CANNOT_QUIT_NOT_IN_GAME, "Cannot quit while not in a game."},
     }.AsReadOnly();
 
+    /// <summary>
+    /// Convert error code to human readable description
+    /// </summary>
+    /// <param name="error">The error code</param>
+    /// <returns>The description</returns>
     public static string Humanize(ErrorCodeEnum error) =>  _descriptionDict.GetValueOrDefault(error, $"Invalid error code {error}");
 }

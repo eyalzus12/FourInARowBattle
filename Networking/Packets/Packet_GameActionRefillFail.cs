@@ -4,10 +4,16 @@ using Godot;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// A packet used by the server to indicate token refilling failed
+/// </summary>
 public partial class Packet_GameActionRefillFail : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.GAME_ACTION_REFILL_FAIL;
 
+    /// <summary>
+    /// The failure error code
+    /// </summary>
     [Export]
     public ErrorCodeEnum ErrorCode{get; private set;}
 

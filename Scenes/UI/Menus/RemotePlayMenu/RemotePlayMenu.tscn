@@ -1,8 +1,7 @@
-[gd_scene load_steps=7 format=3 uid="uid://dceaof5l1mq5t"]
+[gd_scene load_steps=6 format=3 uid="uid://dceaof5l1mq5t"]
 
 [ext_resource type="Script" path="res://Scenes/UI/Menus/RemotePlayMenu/RemotePlayMenu.cs" id="1_dna4a"]
 [ext_resource type="Script" path="res://Logic/Buttons/GoBackButton.cs" id="1_pbaxe"]
-[ext_resource type="Script" path="res://Logic/Buttons/CreateLobbyButton.cs" id="1_xpr3j"]
 [ext_resource type="Script" path="res://Logic/Buttons/JoinLobbyButton.cs" id="2_s5kpe"]
 [ext_resource type="Script" path="res://Scenes/UI/Menus/RemotePlayMenu/LobbyIdField.cs" id="2_ss3jf"]
 
@@ -87,7 +86,6 @@ tooltip_text = "Play locally on the same computer"
 mouse_filter = 1
 theme_override_font_sizes/font_size = 30
 text = "Create Lobby"
-script = ExtResource("1_xpr3j")
 
 [node name="JoinLobbyMarginContainer" type="MarginContainer" parent="Control/ButtonsMarginContainer/ButtonsVBoxContainer"]
 layout_mode = 2

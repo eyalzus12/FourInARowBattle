@@ -4,12 +4,21 @@ using DequeNet;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// A packet used by the server to tell clients that a player left a lobby
+/// </summary>
 public partial class Packet_LobbyDisconnectOther : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.LOBBY_DISCONNECT_OTHER;
 
+    /// <summary>
+    /// The reason for disconnecting
+    /// </summary>
     [Export]
     public DisconnectReasonEnum Reason{get; private set;}
+    /// <summary>
+    /// The index of the disconnected player inside the lobby
+    /// </summary>
     [Export]
     public int PlayerIndex{get; private set;}
 

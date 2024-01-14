@@ -7,8 +7,17 @@ using System.Linq;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// This class is a mediator between the low level WebSocketServer and high level GameServerMenu.
+///
+/// Because servers have much less interaction needed, this class is mainly
+/// to separate the UI logic.
+/// </summary>
 public partial class GameServer : Node
 {
+    /// <summary>
+    /// An internal class used to store player data
+    /// </summary>
     private sealed class Player
     {
         public Player(int id, string name)
@@ -17,32 +26,78 @@ public partial class GameServer : Node
             Name = name;
             Lobby = null;
         }
-
+        /// <summary>
+        /// The player id
+        /// </summary>
         public int Id{get; init;}
+        /// <summary>
+        /// The player name
+        /// </summary>
         public string Name{get; set;}
 
+        /// <summary>
+        /// The player lobby, if they are in one
+        /// </summary>
         public Lobby? Lobby{get; set;}
+        /// <summary>
+        /// The player index in the lobby, if they are in one
+        /// </summary>
         public int? Index{get; set;}
 
+        /// <summary>
+        /// List of players that sent requests to this player
+        /// </summary>
         public List<Player> RequestSources{get; set;} = new();
+        /// <summary>
+        /// List of players that this player sent requests to
+        /// </summary>
         public List<Player> RequestTargets{get; set;} = new();
 
+        /// <summary>
+        /// The match the player is playing, if they are
+        /// </summary>
         public Match? Match{get; set;}
+        /// <summary>
+        /// The players' turn in the match, if they are in one
+        /// </summary>
         public GameTurnEnum? Turn{get; set;}
     }
 
+    /// <summary>
+    /// An internal class used to store lobby data
+    /// </summary>
     private sealed class Lobby
     {
+        /// <summary>
+        /// The lobby id
+        /// </summary>
         public uint Id{get; init;}
-        public Player Leader{get; set;} = null!;
+        /// <summary>
+        /// The players in the lobby
+        /// </summary>
         public List<Player> Players{get; private set;} = new();
     }
 
+    /// <summary>
+    /// An internal class used to stoer match data
+    /// </summary>
     private sealed class Match
     {
+        /// <summary>
+        /// The lobby the match takes place in
+        /// </summary>
         public Lobby Lobby{get; init;} = null!;
+        /// <summary>
+        /// The game that is being played
+        /// </summary>
         public GameMenu Game{get; init;} = null!;
+        /// <summary>
+        /// Player 1
+        /// </summary>
         public Player Player1{get; init;} = null!;
+        /// <summary>
+        /// Player 2
+        /// </summary>
         public Player Player2{get; init;} = null!;
     }
 
@@ -82,6 +137,10 @@ public partial class GameServer : Node
         ConnectSignals();
     }
 
+    /// <summary>
+    /// Start listening for new connections on the given port
+    /// </summary>
+    /// <param name="port">The port</param>
     public Error Listen(ushort port)
     {
         Error err = _server.Listen(port);
@@ -93,6 +152,9 @@ public partial class GameServer : Node
         return Error.Ok;
     }
 
+    /// <summary>
+    /// Stop listening for new connections
+    /// </summary>
     public void Stop()
     {
         if(!_server.Listening) return;
@@ -107,7 +169,7 @@ public partial class GameServer : Node
         _players.Clear();
         _lobbies.Clear();
         _buffer.Clear();
-        
+
         //broadcast
         SendPacket(0, new Packet_ServerClosing());
 
@@ -122,23 +184,37 @@ public partial class GameServer : Node
         }
     }
 
+    /// <summary>
+    /// Received packet
+    /// </summary>
+    /// <param name="peerId">The id of the peer that sent the packet</param>
+    /// <param name="packetBytes">The packet bytes</param>
     private void OnWebSocketServerPacketReceived(int peerId, byte[] packetBytes)
     {
         ArgumentNullException.ThrowIfNull(packetBytes);
+        //add to buffer
         _buffer.PushRightRange(packetBytes);
-
+        //create packets while possible
         while(_buffer.Count > 0 && AbstractPacket.TryConstructPacketFrom(_buffer, out AbstractPacket? packet))
         {
             HandlePacket(peerId, packet);
         }
     }
 
+    /// <summary>
+    /// New client connected
+    /// </summary>
+    /// <param name="peerId">The id of the new client</param>
     private void OnWebSocketClientConnected(int peerId)
     {
         GD.Print($"New client {peerId}");
         _players[peerId] = new Player(peerId, "");
     }
 
+    /// <summary>
+    /// Client disconnected
+    /// </summary>
+    /// <param name="peerId">The id of the disconnected client</param>
     private void OnWebSocketClientDisconnected(int peerId)
     {
         GD.Print($"Client {peerId} disconnected");
@@ -147,12 +223,22 @@ public partial class GameServer : Node
 
     #region Packet Handling
 
-    public void SendPacket(int peerId, AbstractPacket packet)
+    /// <summary>
+    /// Send a packet
+    /// </summary>
+    /// <param name="peerId">The id to send to</param>
+    /// <param name="packet">The packet to send</param>
+    private void SendPacket(int peerId, AbstractPacket packet)
     {
         ArgumentNullException.ThrowIfNull(packet);
         _server.SendPacket(peerId, packet.ToByteArray());
     }
 
+    /// <summary>
+    /// Handle a packet
+    /// </summary>
+    /// <param name="peerId">The id that sent the packet</param>
+    /// <param name="packet">The packet</param>
     public void HandlePacket(int peerId, AbstractPacket packet)
     {
         ArgumentNullException.ThrowIfNull(packet);
@@ -200,12 +286,22 @@ public partial class GameServer : Node
         }
     }
 
+    /// <summary>
+    /// Handle dummy packet
+    /// </summary>
+    /// <param name="peerId">The sender</param>
+    /// <param name="packet">The packet</param>
     private static void HandlePacket_Dummy(int peerId, Packet_Dummy packet)
     {
         ArgumentNullException.ThrowIfNull(packet);
         GD.Print($"Got dummy packet from {peerId}");
     }
 
+    /// <summary>
+    /// Handle invalid packet
+    /// </summary>
+    /// <param name="peerId">The sender</param>
+    /// <param name="packet">The packet</param>
     private void HandlePacket_InvalidPacket(int peerId, Packet_InvalidPacket packet)
     {
         ArgumentNullException.ThrowIfNull(packet);
@@ -213,6 +309,11 @@ public partial class GameServer : Node
         SendPacket(peerId, new Packet_InvalidPacketInform(packet.GivenPacketType));
     }
 
+    /// <summary>
+    /// Handle lobby creation request
+    /// </summary>
+    /// <param name="peerId">The sender</param>
+    /// <param name="packet">The packet</param>
     private void HandlePacket_CreateLobbyRequest(int peerId, Packet_CreateLobbyRequest packet)
     {
         ArgumentNullException.ThrowIfNull(packet);
@@ -234,7 +335,6 @@ public partial class GameServer : Node
         uint id; do{id = GD.Randi();} while(_lobbies.ContainsKey(id));
         Lobby lobby = new(){Id = id};
         lobby.Players.Add(player);
-        lobby.Leader = player;
         player.Lobby = lobby;
         player.Index = 0;
         _lobbies[id] = lobby;
@@ -244,6 +344,11 @@ public partial class GameServer : Node
         SendPacket(peerId, new Packet_CreateLobbyOk(id));
     }
 
+    /// <summary>
+    /// Handle lobby connection request
+    /// </summary>
+    /// <param name="peerId">The sender</param>
+    /// <param name="packet">The packet</param>
     private void HandlePacket_ConnectLobbyRequest(int peerId, Packet_ConnectLobbyRequest packet)
     {
         ArgumentNullException.ThrowIfNull(packet);
@@ -251,7 +356,7 @@ public partial class GameServer : Node
 
         string name = packet.PlayerName;
         if(name == "") name = "Guest";
-        
+
         GD.Print($"{peerId} wants to connect to lobby {packet.LobbyId} with name {name}");
 
         if(!TryUpdateNameAndGetPlayer(peerId, name, out Player? player))
@@ -272,20 +377,27 @@ public partial class GameServer : Node
         lobby.Players.Add(player);
         int index = lobby.Players.Count - 1;
         IEnumerable<string> names = lobby.Players.Select(player => player.Name);
-        
+        //create lobby data
         LobbyPlayerData[] data = lobby.Players
             .Select(player => new LobbyPlayerData(player.Name, player.Match is not null))
             .ToArray();
-        
+
         player.Lobby = lobby;
         player.Index = index;
+        //send approval to player
         SendPacket(player.Id, new Packet_ConnectLobbyOk(index, data));
         foreach(Player other in lobby.Players) if(other != player)
         {
+            //inform others of new player
             SendPacket(other.Id, new Packet_LobbyNewPlayer(player.Name));
         }
     }
 
+    /// <summary>
+    /// Handle game request being sent
+    /// </summary>
+    /// <param name="peerId">The sender</param>
+    /// <param name="packet">The packet</param>
     private void HandlePacket_NewGameRequest(int peerId, Packet_NewGameRequest packet)
     {
         ArgumentNullException.ThrowIfNull(packet);
@@ -350,6 +462,11 @@ public partial class GameServer : Node
         SendPacket(target.Id, new Packet_NewGameRequested((int)source.Index!));
     }
 
+    /// <summary>
+    /// Handle game request accept
+    /// </summary>
+    /// <param name="peerId">The sender</param>
+    /// <param name="packet">The packet</param>
     private void HandlePacket_NewGameAccept(int peerId, Packet_NewGameAccept packet)
     {
         ArgumentNullException.ThrowIfNull(packet);
@@ -381,14 +498,16 @@ public partial class GameServer : Node
 
         GD.Print($"{peerId} approved game request from {source.Id}");
 
+        //clear requestse
         source.RequestSources.Clear();
         source.RequestTargets.Clear();
         target.RequestSources.Clear();
         target.RequestTargets.Clear();
-
+        //send approvals
         SendPacket(source.Id, new Packet_NewGameAccepted((int)target.Index!));
         SendPacket(target.Id, new Packet_NewGameAcceptOk((int)source.Index!));
-
+        
+        //tell other players in lobby that those players become busy
         Packet_LobbyPlayerBusyTrue sourceBusy = new((int)source.Index!);
         Packet_LobbyPlayerBusyTrue targetBusy = new((int)target.Index!);
         foreach(Player another in lobby.Players)
@@ -403,11 +522,13 @@ public partial class GameServer : Node
                 SendPacket(another.Id, targetBusy);
             }
         }
-        /*
-        start game here
-        */
+
+        //now we start the game
+
         GD.Print($"game will now started in lobby {lobby.Id} with {target.Id} and {source.Id}");
-        bool which = GD.RandRange(0, 1) == 0; //decide which player is first
+        //decide which player is first
+        bool which = GD.RandRange(0, 1) == 0;
+        //create match object
         Match match = new()
         {
             Lobby = lobby,
@@ -415,19 +536,25 @@ public partial class GameServer : Node
             Player1 = which ? target : source,
             Player2 = which ? source : target
         };
+        //add game to scene
         AddChild(match.Game);
+        //set to initial state
         match.Game.DeserializeFrom(_initialState);
 
+        //send game start packets
         GameTurnEnum targetTurn = which ? GameTurnEnum.PLAYER1 : GameTurnEnum.PLAYER2;
         GameTurnEnum sourceTurn = which ? GameTurnEnum.PLAYER2 : GameTurnEnum.PLAYER1;
-
         target.Match = match; target.Turn = targetTurn;
         source.Match = match; source.Turn = sourceTurn;
-        
         SendPacket(source.Id, new Packet_NewGameStarting(sourceTurn, (int)target.Index!));
         SendPacket(target.Id, new Packet_NewGameStarting(targetTurn, (int)source.Index!));
     }
 
+    /// <summary>
+    /// Handle game request reject
+    /// </summary>
+    /// <param name="peerId">The sender</param>
+    /// <param name="packet">The packet</param>
     private void HandlePacket_NewGameReject(int peerId, Packet_NewGameReject packet)
     {
         ArgumentNullException.ThrowIfNull(packet);
@@ -466,6 +593,11 @@ public partial class GameServer : Node
         SendPacket(target.Id, new Packet_NewGameRejectOk((int)source.Index!));
     }
 
+    /// <summary>
+    /// Handle game request cancel
+    /// </summary>
+    /// <param name="peerId">The sender</param>
+    /// <param name="packet">The packet</param>
     private void HandlePacket_NewGameCancel(int peerId, Packet_NewGameCancel packet)
     {
         ArgumentNullException.ThrowIfNull(packet);
@@ -499,11 +631,16 @@ public partial class GameServer : Node
 
         target.RequestSources.Remove(source);
         source.RequestTargets.Remove(target);
-        
+
         SendPacket(source.Id, new Packet_NewGameCancelOk((int)target.Index!));
         SendPacket(target.Id, new Packet_NewGameCanceled((int)source.Index!));
     }
 
+    /// <summary>
+    /// Handle lobby disconnect
+    /// </summary>
+    /// <param name="peerId">The sender</param>
+    /// <param name="packet">The packet</param>
     private void HandlePacket_LobbyDisconnect(int peerId, Packet_LobbyDisconnect packet)
     {
         ArgumentNullException.ThrowIfNull(packet);
@@ -512,6 +649,11 @@ public partial class GameServer : Node
         return;
     }
 
+    /// <summary>
+    /// Handle token placing
+    /// </summary>
+    /// <param name="peerId">The sender</param>
+    /// <param name="packet">The packet</param>
     private void HandlePacket_GameActionPlace(int peerId, Packet_GameActionPlace packet)
     {
         ArgumentNullException.ThrowIfNull(packet);
@@ -568,9 +710,10 @@ public partial class GameServer : Node
             SendPacket(peerId, new Packet_GameActionPlaceFail(ErrorCodeEnum.CANNOT_PLACE_INVALID_TOKEN));
             return;
         }
-    
-        ErrorCodeEnum? placeError = game.PlaceToken(column, scene);
 
+        //try placing the token
+        ErrorCodeEnum? placeError = game.PlaceToken(column, scene);
+        //got an error
         switch(placeError)
         {
             case ErrorCodeEnum.CANNOT_PLACE_INVALID_TOKEN:
@@ -595,6 +738,11 @@ public partial class GameServer : Node
         SendPacket(other.Id, new Packet_GameActionPlaceOther((byte)column, scenePath));
     }
 
+    /// <summary>
+    /// Handle refill
+    /// </summary>
+    /// <param name="peerId">The sender</param>
+    /// <param name="packet">The packet</param>
     private void HandlePacket_GameActionRefill(int peerId, Packet_GameActionRefill packet)
     {
         ArgumentNullException.ThrowIfNull(packet);
@@ -620,9 +768,9 @@ public partial class GameServer : Node
             SendPacket(peerId, new Packet_GameActionRefillFail(ErrorCodeEnum.CANNOT_REFILL_NOT_YOUR_TURN));
             return;
         }
-
+        //try refill
         ErrorCodeEnum? refillError = game.Refill();
-
+        //got error
         switch(refillError)
         {
             case ErrorCodeEnum.CANNOT_REFILL_ALL_FILLED:
@@ -642,6 +790,11 @@ public partial class GameServer : Node
         SendPacket(other.Id, new Packet_GameActionRefillOther());
     }
 
+    /// <summary>
+    /// Handle game quit
+    /// </summary>
+    /// <param name="peerId">The sender</param>
+    /// <param name="packet">The packet</param>
     private void HandlePaket_GameQuit(int peerId, Packet_GameQuit packet)
     {
         ArgumentNullException.ThrowIfNull(packet);
@@ -667,6 +820,11 @@ public partial class GameServer : Node
 
     #endregion
 
+    /// <summary>
+    /// Remove player that disconnected from lobby
+    /// </summary>
+    /// <param name="peerId">The sender</param>
+    /// <param name="reason">The disconnect reason</param>
     private void RemovePlayer(int peerId, DisconnectReasonEnum reason)
     {
         if(!_players.TryGetValue(peerId, out Player? player)) return;
@@ -675,11 +833,11 @@ public partial class GameServer : Node
         if(lobby is null) return;
         //player was already removed
         if(!lobby.Players.Contains(player)) return;
-
+        //got a match. clean up.
         Match? match = player.Match;
         if(match is not null)
             QuitMatch(match);
-
+        //infor, players in lobby
         int index = (int)player.Index!;
         Packet_LobbyDisconnectOther disconnectPacket = new(reason, index);
         foreach(Player other in lobby.Players) if(other != player)
@@ -689,34 +847,36 @@ public partial class GameServer : Node
             SendPacket(other.Id, disconnectPacket);
         }
         player.Index = null;
-
+        //remove from players
         lobby.Players.RemoveAt(index);
         //update index
         for(int i = 0; i < lobby.Players.Count; ++i)
         {
             lobby.Players[i].Index = i;
         }
-
         //lobby is now empty
         if(lobby.Players.Count == 0)
         {
             _lobbies.Remove(lobby.Id);
         }
-        else
-        {
-            lobby.Leader = lobby.Players[0];
-        }
     }
 
+    /// <summary>
+    /// Clean up a match that ended
+    /// </summary>
+    /// <param name="match">The match</param>
     private void QuitMatch(Match match)
     {
+        //dispose game
         Autoloads.ScenePool.ReturnScene(match.Game);
+        //clean references
         Player player1 = match.Player1;
         Player player2 = match.Player2;
         player1.Match = null;
         player1.Turn = null;
         player2.Match = null;
         player2.Turn = null;
+        //inform others they're not busy
         Packet_LobbyPlayerBusyFalse notBusy1 = new((int)player1.Index!);
         Packet_LobbyPlayerBusyFalse notBusy2 = new((int)player2.Index!);
         foreach(Player other in match.Lobby.Players)
@@ -727,12 +887,20 @@ public partial class GameServer : Node
                 SendPacket(other.Id, notBusy2);
             }
         }
+        //clear requests
         player1.RequestSources.Clear();
         player1.RequestTargets.Clear();
         player2.RequestSources.Clear();
         player2.RequestTargets.Clear();
     }
 
+    /// <summary>
+    /// Helper function. Update player name and get it if that player is in a lobby.
+    /// </summary>
+    /// <param name="peerId">The player id</param>
+    /// <param name="name">The player name</param>
+    /// <param name="player">Out param for player</param>
+    /// <returns>Whether the player is in a lobby</returns>
     private bool TryUpdateNameAndGetPlayer(int peerId, string name, [NotNullWhen(true)] out Player? player)
     {
         ArgumentNullException.ThrowIfNull(name);

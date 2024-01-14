@@ -2,14 +2,17 @@ using Godot;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// Class to hold resources used globally, to avoid re-loading them multiple times.
+/// </summary>
 public partial class GlobalResources : Node
 {
-    public AudioStream TEST_LAND{get; private set;} = null!;
+    public AudioStream TOKEN_LAND_SOUND{get; private set;} = null!;
 
     public override void _Ready()
     {
         Autoloads.GlobalResources = this;
 
-        TEST_LAND = ResourceLoader.Load<AudioStream>("res://Resources/Audio/TestLand.ogg");
+        TOKEN_LAND_SOUND = ResourceLoader.Load<AudioStream>("res://Resources/Audio/TokenLand.ogg");
     }
 }

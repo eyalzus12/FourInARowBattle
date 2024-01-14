@@ -3,6 +3,9 @@ using System;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// A button used for lobby joining. Takes lobby id from a field.
+/// </summary>
 public partial class JoinLobbyButton : Button
 {
     [Signal]

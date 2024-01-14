@@ -5,6 +5,12 @@ using System;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// This is a label that show the description of a token, or the refill button.
+/// Because we set the description in the editor, it is an instance value
+/// and we cannot easily grab that from the scene.
+/// So the description label loads instances of that token and caches the description.
+/// </summary>
 public partial class DescriptionLabel : Label
 {
     public const string DEFAULT_TEXT = "Hover over a token to learn more about it";
@@ -12,8 +18,11 @@ public partial class DescriptionLabel : Label
 
     private readonly static Dictionary<PackedScene, string> DescriptionCache = new();
 
+    /// <summary>
+    /// Which player turn the label corresponds to
+    /// </summary>
     [Export]
-    public GameTurnEnum ActiveOnTurn{get; set;}
+    public GameTurnEnum ActiveOnTurn{get; private set;}
 
     private string? _description = null;
 
@@ -25,6 +34,11 @@ public partial class DescriptionLabel : Label
         UpdateDescription(null);
     }
 
+    /// <summary>
+    /// Token hovered
+    /// </summary>
+    /// <param name="turn">The player turn of the token</param>
+    /// <param name="description">The token description</param>
     public void OnTokenHover(GameTurnEnum turn, string description)
     {
         ArgumentNullException.ThrowIfNull(description);
@@ -35,25 +49,27 @@ public partial class DescriptionLabel : Label
         UpdateDescription(description);
     }
 
+    /// <summary>
+    /// Token stop being hovered
+    /// </summary>
+    /// <param name="turn">The player turn of the token</param>
+    /// <param name="description">The token description</param>
     public void OnTokenStopHover(GameTurnEnum turn, string description)
     {
         ArgumentNullException.ThrowIfNull(description);
 
-        if(
-            turn != ActiveOnTurn ||
-            description != _description
-        ) return;
+        if(turn != ActiveOnTurn || description != _description) return;
 
         _description = null;
         UpdateDescription(null);
     }
 
-    /*
-    There is no easy way to find the type of the root node of a PackedScene
-    So we create an instance and cache the result
-    */
 
-    //this method returns null iff it is given null
+    /// <summary>
+    /// Grab the token description from a token scene. Only returns null if the given scene is null.
+    /// </summary>
+    /// <param name="from">The scene</param>
+    /// <returns>The description</returns>
     [return: NotNullIfNotNull(nameof(from))]
     public static string? DescriptionFromScene(PackedScene? from)
     {
@@ -71,6 +87,10 @@ public partial class DescriptionLabel : Label
         }
     }
 
+    /// <summary>
+    /// Update the label description
+    /// </summary>
+    /// <param name="text">The new text</param>
     private void UpdateDescription(string? text)
     {
         Text = text ?? DEFAULT_TEXT;

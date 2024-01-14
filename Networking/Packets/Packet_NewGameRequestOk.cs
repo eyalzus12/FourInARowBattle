@@ -4,10 +4,16 @@ using DequeNet;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// A packet used by the server to indicate that challenging a player succeded
+/// </summary>
 public partial class Packet_NewGameRequestOk : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.NEW_GAME_REQUEST_OK;
 
+    /// <summary>
+    /// The player that was challenged
+    /// </summary>
     [Export]
     public int RequestTargetIndex{get; private set;}
 

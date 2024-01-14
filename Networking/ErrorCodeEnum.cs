@@ -1,5 +1,8 @@
 namespace FourInARowBattle;
 
+/// <summary>
+/// Enum for error codes. See ErrorCodeUtils for a description of each error type.
+/// </summary>
 public enum ErrorCodeEnum : byte
 {
     //similar error codes have similar numberings

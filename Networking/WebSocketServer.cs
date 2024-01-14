@@ -5,16 +5,34 @@ using Godot;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// TCP server wrapper over websocket
+/// </summary>
 public partial class WebSocketServer : Node
 {
     public const int MIN_PEER_ID = 2;
     public const int MAX_PEER_ID = 1 << 30;
-    
+
+    /// <summary>
+    /// Internal class for storing connection-pending peers.
+    /// </summary>
     private sealed class PendingPeer
     {
+        /// <summary>
+        /// The time that connection started
+        /// </summary>
         public ulong ConnectTime{get; set;}
+        /// <summary>
+        /// The tcp stream
+        /// </summary>
         public StreamPeerTcp Tcp{get; set;}
+        /// <summary>
+        /// The connection stream
+        /// </summary>
         public StreamPeer Connection{get; set;}
+        /// <summary>
+        /// The websocket
+        /// </summary>
         public WebSocketPeer? WebSocket{get; set;}
 
         public PendingPeer(StreamPeerTcp tcp)
@@ -64,6 +82,10 @@ public partial class WebSocketServer : Node
     private readonly HashSet<PendingPeer> _pendingPeers = new();
     private readonly Dictionary<int, WebSocketPeer> _peers = new();
 
+    /// <summary>
+    /// Start listening on port
+    /// </summary>
+    /// <param name="port">The port to listen on</param>
     public Error Listen(ushort port)
     {
         if(_tcpServer.IsListening())
@@ -74,6 +96,9 @@ public partial class WebSocketServer : Node
         return _tcpServer.Listen(port);
     }
 
+    /// <summary>
+    /// Stop server
+    /// </summary>
     public void Stop()
     {
         _tcpServer.Stop();
@@ -81,6 +106,11 @@ public partial class WebSocketServer : Node
         _peers.Clear();
     }
 
+    /// <summary>
+    /// Send a packet
+    /// </summary>
+    /// <param name="peerId">The id to send to</param>
+    /// <param name="packet">The packet to send</param>
     public Error SendPacket(int peerId, byte[] packet)
     {
         ArgumentNullException.ThrowIfNull(packet);
@@ -113,6 +143,11 @@ public partial class WebSocketServer : Node
         }
     }
 
+    /// <summary>
+    /// Get a raw packet, or null if none exist
+    /// </summary>
+    /// <param name="peerId">The id to read from</param>
+    /// <returns>The raw packet</returns>
     public byte[]? GetPacket(int peerId)
     {
         if(!_peers.TryGetValue(peerId, out WebSocketPeer? ws))
@@ -125,6 +160,11 @@ public partial class WebSocketServer : Node
         return ws.GetPacket();
     }
 
+    /// <summary>
+    /// Get a raw packet, or the error
+    /// </summary>
+    /// <param name="peerId">The id to read from</param>
+    /// <param name="packet">The raw packet</param>
     public Error TryGetPacket(int peerId, out byte[]? packet)
     {
         packet = null;
@@ -139,6 +179,11 @@ public partial class WebSocketServer : Node
         return ws.GetPacketError();
     }
 
+    /// <summary>
+    /// Check if id has packets waiting
+    /// </summary>
+    /// <param name="peerId">The id</param>
+    /// <returns>Whether there are waiting packets</returns>
     public bool HasPacket(int peerId)
     {
         if(!_peers.TryGetValue(peerId, out WebSocketPeer? ws))
@@ -149,12 +194,19 @@ public partial class WebSocketServer : Node
         return ws.GetAvailablePacketCount() > 0;
     }
 
+    /// <summary>
+    /// Create a new websocket
+    /// </summary>
+    /// <returns>The new websocket</returns>
     private WebSocketPeer CreatePeer() => new()
     {
         SupportedProtocols = SupportedProtocols,
         HandshakeHeaders = HandshakeHeaders
     };
 
+    /// <summary>
+    /// Update state and receive connections
+    /// </summary>
     public void Poll()
     {
         if(!_tcpServer.IsListening())
@@ -210,6 +262,11 @@ public partial class WebSocketServer : Node
         }
     }
 
+    /// <summary>
+    /// Check if peer has finished connecting (this includes failure)
+    /// </summary>
+    /// <param name="peer">The peer</param>
+    /// <returns>Whether the connection finished</returns>
     private bool ConnectPending(PendingPeer peer)
     {
         ArgumentNullException.ThrowIfNull(peer);

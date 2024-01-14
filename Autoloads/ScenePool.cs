@@ -5,9 +5,14 @@ using System.Collections.Generic;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// An object pool singleton.
+/// </summary>
 public partial class ScenePool : Node
 {
-    //how many new scenes to create if pool is empty
+    /// <summary>
+    /// How many new scenes to create if pool is empty
+    /// </summary>
     public const int SCENE_POOL_FACTOR = 3;
 
     private readonly Dictionary<PackedScene, Queue<Node>> _scenePoolDict = new();
@@ -23,6 +28,12 @@ public partial class ScenePool : Node
         EmptyReturnQueue();
     }
 
+    /// <summary>
+    /// Get a new instance of the scene. Returns null if type is not T
+    /// </summary>
+    /// <param name="scene">The scene</param>
+    /// <typeparam name="T">The desired return type</typeparam>
+    /// <returns>An instance of the scene, or null if its type is not T</returns>
     public T? GetSceneOrNull<T>(PackedScene scene) where T : Node
     {
         ArgumentNullException.ThrowIfNull(scene);
@@ -35,6 +46,13 @@ public partial class ScenePool : Node
 
         return t;
     }
+
+    /// <summary>
+    /// Get a new instance of the scene. Errors if type is not T.
+    /// </summary>
+    /// <param name="scene">The scene</param>
+    /// <typeparam name="T">The desired return type</typeparam>
+    /// <returns>An instance of the scene</returns>
     public T GetScene<T>(PackedScene scene) where T : Node
     {
         ArgumentNullException.ThrowIfNull(scene);
@@ -47,6 +65,11 @@ public partial class ScenePool : Node
         return sceneNode;
     }
 
+    /// <summary>
+    /// Get a new instance of the scene.
+    /// </summary>
+    /// <param name="scene">The scene</param>
+    /// <returns>An instance of the scene</returns>
     public Node GetScene(PackedScene scene)
     {
         ArgumentNullException.ThrowIfNull(scene);
@@ -60,6 +83,10 @@ public partial class ScenePool : Node
         return sceneQueue.Dequeue();
     }
 
+    /// <summary>
+    /// Dispose of scene instance, putting it back in the pool
+    /// </summary>
+    /// <param name="n">The scene instance</param>
     public void ReturnScene(Node n)
     {
         if(!n.IsInstanceValid())
@@ -74,13 +101,17 @@ public partial class ScenePool : Node
         }
         PackedScene scene = ResourceLoader.Load<PackedScene>(scenePath);
 
-        n.GetParent()?.CallDeferred(Node.MethodName.RemoveChild, n);
+        n.GetParent()?.RemoveChildDeferred(n);
 
         _scenePoolReturnQueue.TryAdd(scene, new());
         _scenePoolReturnQueue[scene].Enqueue(n);
     }
 
-    public void PoolNewScenes(PackedScene scene)
+    /// <summary>
+    /// Helper functin. Create new instances of the scene in the pool.
+    /// </summary>
+    /// <param name="scene"></param>
+    private void PoolNewScenes(PackedScene scene)
     {
         ArgumentNullException.ThrowIfNull(scene);
         _scenePoolDict.TryAdd(scene, new());
@@ -89,7 +120,10 @@ public partial class ScenePool : Node
             sceneQueue.Enqueue(scene.Instantiate());
     }
 
-    public void EmptyReturnQueue()
+    /// <summary>
+    /// Helper function. Move all disposed instances from the return queue into the pool.
+    /// </summary>
+    private void EmptyReturnQueue()
     {
         List<PackedScene> keys = _scenePoolReturnQueue.Keys.ToList();
         foreach(PackedScene key in keys)
@@ -109,11 +143,15 @@ public partial class ScenePool : Node
 
     public override void _Notification(int what)
     {
+        //when the scene pool is disposed, make sure to also dispose pooled nodes
         if(what == NotificationExitTree || what == NotificationCrash || what == NotificationWMCloseRequest)
             CleanPool();
     }
 
-    public void CleanPool()
+    /// <summary>
+    /// Dispose of all pooled nodes.
+    /// </summary>
+    private void CleanPool()
     {
         List<PackedScene> keys;
         

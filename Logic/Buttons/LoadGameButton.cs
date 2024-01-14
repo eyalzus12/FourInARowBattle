@@ -3,6 +3,9 @@ using System;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// A button that on press opens a menu to select a game state to load into.
+/// </summary>
 public partial class LoadGameButton : Button
 {
     [Signal]

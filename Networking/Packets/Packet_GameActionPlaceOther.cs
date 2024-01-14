@@ -4,12 +4,21 @@ using DequeNet;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// A packet used by the server to tell a player their opponent placed a token
+/// </summary>
 public partial class Packet_GameActionPlaceOther : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.GAME_ACTION_PLACE_OTHER;
 
+    /// <summary>
+    /// The column the token was placed
+    /// </summary>
     [Export]
     public byte Column{get; private set;}
+    /// <summary>
+    /// The path to the scene of the token
+    /// </summary>
     [Export]
     public string ScenePath{get; private set;} = null!;
 

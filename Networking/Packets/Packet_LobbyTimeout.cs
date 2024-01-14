@@ -3,6 +3,9 @@ using DequeNet;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// An unused packet. Theoretically used by the server to indicate a lobby timed out.
+/// </summary>
 public partial class Packet_LobbyTimeout : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.LOBBY_TIMEOUT;

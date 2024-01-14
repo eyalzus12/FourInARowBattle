@@ -3,6 +3,9 @@ using DequeNet;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// A packet used by the client to indicate they are refilling their tokens
+/// </summary>
 public partial class Packet_GameActionRefill : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.GAME_ACTION_REFILL;

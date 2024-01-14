@@ -3,6 +3,9 @@ using DequeNet;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// A dummy packet, used for testing
+/// </summary>
 public partial class Packet_Dummy : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.DUMMY;

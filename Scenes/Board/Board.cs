@@ -4,14 +4,34 @@ using System.Collections.Generic;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// Base class for the game board
+/// </summary>
 public partial class Board : Node2D
 {
+    /// <summary>
+    /// Score increased
+    /// </summary>
+    /// <param name="who">For which player</param>
+    /// <param name="amount">How much</param>
     [Signal]
     public delegate void ScoreIncreasedEventHandler(GameTurnEnum who, int amount);
+    /// <summary>
+    /// Token was placed
+    /// </summary>
+    /// <param name="who">Which token</param>
+    /// <param name="row">What row</param>
+    /// <param name="col">What column</param>
     [Signal]
     public delegate void TokenPlacedEventHandler(TokenBase who, int row, int col);
+    /// <summary>
+    /// Token started dropping
+    /// </summary>
     [Signal]
     public delegate void TokenStartedDropEventHandler();
+    /// <summary>
+    /// Token finished dropping
+    /// </summary>
     [Signal]
     public delegate void TokenFinishedDropEventHandler();
 
@@ -19,36 +39,77 @@ public partial class Board : Node2D
     [Export]
     private Control _boardBase = null!;
     [ExportCategory("")]
+    /// <summary>
+    /// The number of rows
+    /// </summary>
     [Export]
     public int Rows{get; set;} = 6;
+    /// <summary>
+    /// The number of columns
+    /// </summary>
     [Export]
     public int Columns{get; set;} = 7;
+    /// <summary>
+    /// Token streak needed for score
+    /// </summary>
     [Export]
     private int _winRequirement = 4;
+    /// <summary>
+    /// Left margin for holes
+    /// </summary>
     [Export]
     private float _leftMargin = 32;
+    /// <summary>
+    /// Right margin for holes
+    /// </summary>
     [Export]
     private float _rightMargin = 32;
+    /// <summary>
+    /// Top margin for holes
+    /// </summary>
     [Export]
     private float _topMargin = 32;
+    /// <summary>
+    /// Bottom margin for holes
+    /// </summary>
     [Export]
     private float _bottomMargin = 32;
+    /// <summary>
+    /// Hole radius
+    /// </summary>
     [Export]
     public float SlotRadius{get; set;} = 24;
+    /// <summary>
+    /// Token radius
+    /// </summary>
     [Export]
     private float _tokenRadius = 21;
+    /// <summary>
+    /// Position offset for droping tokens
+    /// </summary>
     [Export]
     private float _dropStartOffset = 500;
+    /// <summary>
+    /// Alpha of ghost token
+    /// </summary>
     [Export]
     private float _ghostTokenAlpha = 0.5f;
+    /// <summary>
+    /// Texture to use to mask-out the holes
+    /// </summary>
     [Export]
     private Texture2D _holeMaskTexture = null!;
 
     private Vector2 HoleScale => 2 * SlotRadius * Vector2.One / _holeMaskTexture.GetSize();
     private Vector2 TokenScale => 2 * _tokenRadius * Vector2.One / _holeMaskTexture.GetSize();
 
+    /// <summary>
+    /// The grid itself
+    /// </summary>
     private TokenBase?[,] _tokenGrid = null!;
-
+    /// <summary>
+    /// A node used to create the holes
+    /// </summary>
     private Node2D? _maskGroup = null;
 
     private Vector2 BoardPosition => _boardBase.GlobalPosition + new Vector2(_leftMargin,_topMargin);
@@ -62,17 +123,29 @@ public partial class Board : Node2D
     private GhostTokenRenderData? _ghostToken;
 
     private readonly HashSet<TokenBase> _droppingTokens = new();
-
+    
+    /// <summary>
+    /// Mark token as dropping
+    /// </summary>
+    /// <param name="token">The token</param>
     private void AddDroppingToken(TokenBase token)
     {
         if(_droppingTokens.Count == 0) EmitSignal(SignalName.TokenStartedDrop);
         _droppingTokens.Add(token);
-        token.TreeExiting += () => RemoveDroppingToken(token);
-        token.TokenFinishedDrop += () => RemoveDroppingToken(token);
+        Callable removeDroppingToken = Callable.From(() => RemoveDroppingToken(token));
+        token.ConnectIfNotConnected(Node.SignalName.TreeExiting, removeDroppingToken);
+        token.ConnectIfNotConnected(TokenBase.SignalName.TokenFinishedDrop, removeDroppingToken);
     }
 
+    /// <summary>
+    /// Mark token as no longer dropping
+    /// </summary>
+    /// <param name="token">The token</param>
     private void RemoveDroppingToken(TokenBase token)
     {
+        //this function may be called while the board is disposed. avoid that.
+        if(!this.IsInstanceValid() || !IsInsideTree()) return;
+
         _droppingTokens.Remove(token);
         if(_droppingTokens.Count == 0)
         {
@@ -94,6 +167,7 @@ public partial class Board : Node2D
 
     public override void _Draw()
     {
+        //draw ghost token
         if(_ghostToken is not null)
         {
             GhostTokenRenderData ghostToken = (GhostTokenRenderData)_ghostToken;
@@ -114,6 +188,9 @@ public partial class Board : Node2D
         }
     }
 
+    /// <summary>
+    /// Create holes
+    /// </summary>
     private void CreateHoleMasks()
     {
         _maskGroup?.QueueFree();
@@ -133,6 +210,12 @@ public partial class Board : Node2D
         }
     }
 
+    /// <summary>
+    /// Drop a token
+    /// </summary>
+    /// <param name="col">The column</param>
+    /// <param name="t">The token to drop</param>
+    /// <returns>Whether it was succesful</returns>
     public bool AddToken(int col, TokenBase t)
     {
         if(!t.IsInstanceValid()) return false;
@@ -159,6 +242,12 @@ public partial class Board : Node2D
         return true;
     }
 
+    /// <summary>
+    /// Render ghost token
+    /// </summary>
+    /// <param name="texture">The texture to use</param>
+    /// <param name="color">The token color</param>
+    /// <param name="col">The column</param>
     public void RenderGhostToken(Texture2D texture, Color color, int col)
     {
         ArgumentNullException.ThrowIfNull(texture);
@@ -166,12 +255,20 @@ public partial class Board : Node2D
         QueueRedraw();
     }
 
+    /// <summary>
+    /// Stop rendering ghost token
+    /// </summary>
     public void HideGhostToken()
     {
         _ghostToken = null;
         QueueRedraw();
     }
 
+    /// <summary>
+    /// Handle token streaks and return game result.
+    /// Because of the score system, the only real results are DRAW and NONE.
+    /// </summary>
+    /// <returns>The game result</returns>
     public GameResultEnum DecideResult()
     {
         List<(int,int)> toRemove = new();
@@ -231,6 +328,13 @@ public partial class Board : Node2D
         return GameResultEnum.NONE;
     }
 
+    /// <summary>
+    /// Handle token stream starting from position
+    /// </summary>
+    /// <param name="row">The row</param>
+    /// <param name="col">The column</param>
+    /// <param name="resultCounts">Dictionary to update with counts</param>
+    /// <param name="toRemove">List to update with removed tokens</param>
     private void CheckSpotWin(int row, int col, Dictionary<GameResultEnum, int> resultCounts, List<(int,int)> toRemove)
     {
         ArgumentNullException.ThrowIfNull(resultCounts);
@@ -239,7 +343,6 @@ public partial class Board : Node2D
         TokenBase? token = _tokenGrid[row,col];
         if(!token.IsInstanceValid()) _tokenGrid[row,col] = token = null;
         if(token is null || token.Result == GameResultEnum.NONE) return;
-        //if(!token.FinishedDrop) return;
 
         bool foundWin = false;
         List<(int,int)> currentTokenStreak = new(_winRequirement-1);
@@ -341,6 +444,11 @@ public partial class Board : Node2D
         if(foundWin) toRemove.Add((row,col));
     }
 
+    /// <summary>
+    /// Find topmost token in a column, or null if column is empty
+    /// </summary>
+    /// <param name="col">The column</param>
+    /// <returns>The token row</returns>
     public int? FindTopSpot(int col)
     {
         int row = 0;
@@ -353,6 +461,11 @@ public partial class Board : Node2D
         return row-1;
     }
 
+    /// <summary>
+    /// Find bottommost token in a column, or null if column is empty
+    /// </summary>
+    /// <param name="col">The column</param>
+    /// <returns>The token row</returns>
     public int? FindBottomSpot(int col)
     {
         int row = Rows-1;
@@ -365,12 +478,21 @@ public partial class Board : Node2D
         return row+1;
     }
 
+    /// <summary>
+    /// Apply gravity
+    /// </summary>
     public void ApplyGravity()
     {
         for(int col = 0; col < Columns; ++col) ApplyColGravity(col);
     }
 
+    //this hashset is used to prevent tokens that finish dropping from re-doing gravity
     private readonly HashSet<int> _colGravityLock = new();
+
+    /// <summary>
+    /// Apply gravity in a column
+    /// </summary>
+    /// <param name="col">The column</param>
     public void ApplyColGravity(int col)
     {
         if(_colGravityLock.Contains(col)) return;
@@ -401,6 +523,10 @@ public partial class Board : Node2D
         QueueRedraw();
     }
 
+    /// <summary>
+    /// Flip a column
+    /// </summary>
+    /// <param name="col">The column</param>
     public void FlipCol(int col)
     {
         TokenBase?[] newCol = new TokenBase?[Rows];
@@ -421,6 +547,10 @@ public partial class Board : Node2D
         }
     }
 
+    /// <summary>
+    /// Flip a row
+    /// </summary>
+    /// <param name="row">The row</param>
     public void FlipRow(int row)
     {
         TokenBase?[] newRow = new TokenBase?[Columns];
@@ -445,6 +575,11 @@ public partial class Board : Node2D
         }
     }
 
+    /// <summary>
+    /// Remove a token
+    /// </summary>
+    /// <param name="row">The row</param>
+    /// <param name="col">The column</param>
     public void RemoveToken(int row, int col)
     {
         TokenBase? t = _tokenGrid[row,col];
@@ -455,6 +590,10 @@ public partial class Board : Node2D
         }
     }
 
+    /// <summary>
+    /// Load board data
+    /// </summary>
+    /// <param name="data">The data</param>
     public virtual void DeserializeFrom(BoardData data)
     {
         ArgumentNullException.ThrowIfNull(data);
@@ -514,7 +653,11 @@ public partial class Board : Node2D
             }
         }
     }
-
+    
+    /// <summary>
+    /// Same current board state
+    /// </summary>
+    /// <returns>The board state</returns>
     public virtual BoardData SerializeTo()
     {
         BoardData data = new()

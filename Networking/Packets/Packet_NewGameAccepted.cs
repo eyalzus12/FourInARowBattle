@@ -4,10 +4,16 @@ using DequeNet;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// A packet used by the server to indicate the a player accepted a game request
+/// </summary>
 public partial class Packet_NewGameAccepted : AbstractPacket
 {
     public override PacketTypeEnum PacketType => PacketTypeEnum.NEW_GAME_ACCEPTED;
 
+    /// <summary>
+    /// The index of the accepting player
+    /// </summary>
     [Export]
     public int RequestTargetIndex{get; private set;}
 
