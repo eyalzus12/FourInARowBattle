@@ -106,8 +106,8 @@ layout_mode = 2
 size_flags_vertical = 3
 TokenButtons = [NodePath("HBoxContainer/HBoxContainer_Buttons/Button")]
 _tokenCountLabel = NodePath("HBoxContainer/CountLabel")
-_tokenMaxCount = 1
-TokenCount = 1
+_tokenMaxCount = 2
+TokenCount = 2
 
 [node name="Button" type="Button" parent="TokenCounterControl4/HBoxContainer/HBoxContainer_Buttons" index="0"]
 layout_mode = 2
