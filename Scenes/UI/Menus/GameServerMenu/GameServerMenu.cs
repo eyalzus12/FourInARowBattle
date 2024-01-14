@@ -64,10 +64,11 @@ public partial class GameServerMenu : Node
             Error err = _server.Listen(port);
             if(err != Error.Ok)
             {
-                DisplayError($"Error when trying to listen on port: {err}");
+                DisplayError($"Error when trying to listen on port {port}: {err}");
                 return;
             }
 
+            GD.Print($"Listening on port {port}");
             _startServerButton.Disabled = true;
             _stopServerButton.Disabled = false;
             _port.Editable = false;
@@ -76,6 +77,7 @@ public partial class GameServerMenu : Node
         }
         else
         {
+            GD.Print($"Error when trying to listen on port {_port.Text}: Invalid port");
             DisplayError("Invalid port");
         }
     }

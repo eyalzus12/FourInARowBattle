@@ -85,7 +85,11 @@ public partial class GameServer : Node
     public Error Listen(ushort port)
     {
         Error err = _server.Listen(port);
-        if(err != Error.Ok) return err;
+        if(err != Error.Ok)
+        {
+            GD.Print($"Listening on port {port} failed with error {err}");
+            return err;
+        }
         return Error.Ok;
     }
 
