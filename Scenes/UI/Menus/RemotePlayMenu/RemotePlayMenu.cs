@@ -5,13 +5,15 @@ namespace FourInARowBattle;
 
 public partial class RemotePlayMenu : Control
 {
-    public const string DISCONNECTING_STATUS = "Waiting for connection to close. This may take some time.";
-    public const string DISCONNECTED_STATUS = "";
+    public const string DISCONNECTING_STATUS = "Disconnecting...";
+    public const string DISCONNECTED_STATUS = "Not connected.";
     public const string CONNECTING_STATUS = "Connecting...";
-    public const string CONNECTED_STATUS = "";
+    public const string CONNECTED_STATUS = "Connected.";
 
     [Signal]
     public delegate void ServerConnectRequestedEventHandler(string ip, string port);
+    [Signal]
+    public delegate void ServerConnectCancelRequestedEventHandler();
     [Signal]
     public delegate void ServerDisconnectRequestedEventHandler();
     [Signal]
@@ -41,6 +43,8 @@ public partial class RemotePlayMenu : Control
     [Export]
     private Button _connectToServer = null!;
     [Export]
+    private Button _cancelConnect = null!;
+    [Export]
     private Button _disconnectFromServer = null!;
     [Export]
     private Label _connectingLabel = null!;
@@ -55,6 +59,7 @@ public partial class RemotePlayMenu : Control
         ArgumentNullException.ThrowIfNull(_serverIP);
         ArgumentNullException.ThrowIfNull(_serverPort);
         ArgumentNullException.ThrowIfNull(_connectToServer);
+        ArgumentNullException.ThrowIfNull(_cancelConnect);
         ArgumentNullException.ThrowIfNull(_disconnectFromServer);
         ArgumentNullException.ThrowIfNull(_connectingLabel);
     }
@@ -66,6 +71,7 @@ public partial class RemotePlayMenu : Control
         _joinLobbyButton.LobbyNumberWasInvalid += OnJoinLobbyButtonLobbyNumberWasInvalid;
         _goBackButton.ChangeSceneRequested += OnGoBackButtonChangeSceneRequested;
         _connectToServer.Pressed += OnConnectToServerPressed;
+        _cancelConnect.Pressed += OnCancelConnectPressed;
         _disconnectFromServer.Pressed += OnDisconnectFromServerPressed;
     }
 
@@ -104,6 +110,11 @@ public partial class RemotePlayMenu : Control
         EmitSignal(SignalName.ServerConnectRequested, _serverIP.Text, _serverPort.Text);
     }
 
+    private void OnCancelConnectPressed()
+    {
+        EmitSignal(SignalName.ServerConnectCancelRequested);
+    }
+
     private void OnDisconnectFromServerPressed()
     {
         EmitSignal(SignalName.ServerDisconnectRequested);
@@ -117,7 +128,9 @@ public partial class RemotePlayMenu : Control
         _serverPort.Editable = false;
         _connectToServer.Visible = false;
         _connectToServer.Disabled = true;
-        _disconnectFromServer.Visible = true;
+        _cancelConnect.Visible = true;
+        _cancelConnect.Disabled = false;
+        _disconnectFromServer.Visible = false;
         _disconnectFromServer.Disabled = true;
         _connectingLabel.Text = CONNECTING_STATUS;
         _lobbyControlsBase.Visible = false;
@@ -129,6 +142,8 @@ public partial class RemotePlayMenu : Control
         _serverPort.Editable = false;
         _connectToServer.Visible = false;
         _connectToServer.Disabled = true;
+        _cancelConnect.Visible = false;
+        _cancelConnect.Disabled = true;
         _disconnectFromServer.Visible = true;
         _disconnectFromServer.Disabled = false;
         _connectingLabel.Text = CONNECTED_STATUS;
@@ -141,6 +156,8 @@ public partial class RemotePlayMenu : Control
         _serverPort.Editable = false;
         _connectToServer.Visible = true;
         _connectToServer.Disabled = true;
+        _cancelConnect.Visible = false;
+        _cancelConnect.Disabled = true;
         _disconnectFromServer.Visible = false;
         _disconnectFromServer.Disabled = true;
         _connectingLabel.Text = DISCONNECTING_STATUS;
@@ -153,6 +170,8 @@ public partial class RemotePlayMenu : Control
         _serverPort.Editable = true;
         _connectToServer.Visible = true;
         _connectToServer.Disabled = false;
+        _cancelConnect.Visible = false;
+        _cancelConnect.Disabled = true;
         _disconnectFromServer.Visible = false;
         _disconnectFromServer.Disabled = true;
         _connectingLabel.Text = DISCONNECTED_STATUS;

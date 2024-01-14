@@ -126,7 +126,7 @@ public partial class GameClient : Node
         ConnectSignals();
     }
 
-    public void ConnectToServer(string ip, string _port)
+    public Error ConnectToServer(string ip, string _port)
     {
         ArgumentNullException.ThrowIfNull(ip);
         ArgumentNullException.ThrowIfNull(_port);
@@ -134,7 +134,7 @@ public partial class GameClient : Node
         if(!ushort.TryParse(_port, out ushort port))
         {
             DisplayError("Invalid port");
-            return;
+            return Error.InvalidParameter;
         }
 
         Error err = _client.ConnectToUrl($"ws://{ip}:{port}");
@@ -142,6 +142,7 @@ public partial class GameClient : Node
         {
             DisplayError($"Connecting to server failed with error: {err}");
         }
+        return err;
     }
 
     public override void _Notification(int what)

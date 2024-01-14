@@ -82,6 +82,7 @@ public partial class GameClientMenu : Node
         _client.GameActionRefillReceived += OnClientGameActionRefillReceived;
         _client.GameFinished += OnClientGameFinished;
         _remotePlayMenu.ServerConnectRequested += OnRemotePlayMenuServerConnectRequested;
+        _remotePlayMenu.ServerConnectCancelRequested += OnRemotePlayMenuServerConnectCancelRequested;
         _remotePlayMenu.ServerDisconnectRequested += OnRemotePlayMenuServerDisconnectRequested;
         _remotePlayMenu.CreateLobbyRequested += OnRemotePlayMenuCreateLobbyRequested;
         _remotePlayMenu.JoinLobbyRequested += OnRemotePlayMenuJoinLobbyRequested;
@@ -355,15 +356,23 @@ public partial class GameClientMenu : Node
     {
         ArgumentNullException.ThrowIfNull(ip);
         ArgumentNullException.ThrowIfNull(port);
-        _client.ConnectToServer(ip, port);
-        _remotePlayMenu.ShowAsConnecting();
+        Error err = _client.ConnectToServer(ip, port);
+        if(err == Error.Ok)
+            _remotePlayMenu.ShowAsConnecting();
+    }
+
+    private void OnRemotePlayMenuServerConnectCancelRequested()
+    {
+        _client.CloseConnection();
+        _remotePlayMenu.ShowAsDisconnecting();
+        _waitingToDisconnect = true;
     }
 
     private void OnRemotePlayMenuServerDisconnectRequested()
     {
-        _waitingToDisconnect = true;
         _client.DisconnectFromServer(DisconnectReasonEnum.DESIRE);
-        _remotePlayMenu.ShowAsDisconnected();
+        _remotePlayMenu.ShowAsDisconnecting();
+        _waitingToDisconnect = true;
     }
 
     private void OnRemotePlayMenuCreateLobbyRequested(string playerName)

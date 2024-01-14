@@ -38,6 +38,12 @@ public partial class MainMenu : Control
     {
         VerifyExports();
         ConnectSignals();
+
+        //simulate a press to move to the server hosting menu
+        if(Autoloads.Startup.UserCmdlineArgs.ContainsKey(Globals.CMD_LINE_SERVER_KEY))
+        {
+            _hostServerButton._Pressed();
+        }
     }
 
     private void OnLocalPlayButtonChangeSceneRequested(string path)

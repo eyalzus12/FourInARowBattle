@@ -14,7 +14,7 @@ outline_color = Color(0, 0, 0, 1)
 shadow_color = Color(0, 0, 0, 1)
 shadow_offset = Vector2(-10, 1)
 
-[node name="RemotePlayScene" type="Control" node_paths=PackedStringArray("_lobbyControlsBase", "_createLobbyButton", "_joinLobbyButton", "_goBackButton", "_playerNameField", "_serverIP", "_serverPort", "_connectToServer", "_disconnectFromServer", "_connectingLabel")]
+[node name="RemotePlayScene" type="Control" node_paths=PackedStringArray("_lobbyControlsBase", "_createLobbyButton", "_joinLobbyButton", "_goBackButton", "_playerNameField", "_serverIP", "_serverPort", "_connectToServer", "_cancelConnect", "_disconnectFromServer", "_connectingLabel")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -28,10 +28,11 @@ _createLobbyButton = NodePath("Control/ButtonsMarginContainer/ButtonsVBoxContain
 _joinLobbyButton = NodePath("Control/ButtonsMarginContainer/ButtonsVBoxContainer/JoinLobbyMarginContainer/JoinLobbyHBoxContainer/JoinLobbyButton")
 _goBackButton = NodePath("GoBack")
 _playerNameField = NodePath("Control/PlayerName")
-_serverIP = NodePath("MarginContainer/VBoxContainer/ServerIp")
-_serverPort = NodePath("MarginContainer/VBoxContainer/ServerPort")
-_connectToServer = NodePath("MarginContainer/VBoxContainer/ConnectToServer")
-_disconnectFromServer = NodePath("MarginContainer/VBoxContainer/DisconnectFromServer")
+_serverIP = NodePath("MarginContainer/VBoxContainer/VBoxContainer/ServerIp")
+_serverPort = NodePath("MarginContainer/VBoxContainer/VBoxContainer/ServerPort")
+_connectToServer = NodePath("MarginContainer/VBoxContainer/VBoxContainer/ConnectToServer")
+_cancelConnect = NodePath("MarginContainer/VBoxContainer/VBoxContainer/CancelConnect")
+_disconnectFromServer = NodePath("MarginContainer/VBoxContainer/VBoxContainer/DisconnectFromServer")
 _connectingLabel = NodePath("MarginContainer/VBoxContainer/ConnectingLabel")
 
 [node name="Control" type="Control" parent="."]
@@ -152,28 +153,41 @@ theme_override_constants/margin_left = 5
 theme_override_constants/margin_top = 5
 theme_override_constants/margin_right = 5
 theme_override_constants/margin_bottom = 5
-metadata/_edit_group_ = true
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
 layout_mode = 2
 
-[node name="ServerIp" type="LineEdit" parent="MarginContainer/VBoxContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 3
+
+[node name="ServerIp" type="LineEdit" parent="MarginContainer/VBoxContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
 placeholder_text = "Server IP"
 
-[node name="ServerPort" type="LineEdit" parent="MarginContainer/VBoxContainer"]
+[node name="ServerPort" type="LineEdit" parent="MarginContainer/VBoxContainer/VBoxContainer"]
 layout_mode = 2
+size_flags_vertical = 3
 placeholder_text = "Server Port"
 
-[node name="ConnectToServer" type="Button" parent="MarginContainer/VBoxContainer"]
+[node name="ConnectToServer" type="Button" parent="MarginContainer/VBoxContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 text = "Connect to server"
 
-[node name="DisconnectFromServer" type="Button" parent="MarginContainer/VBoxContainer"]
+[node name="CancelConnect" type="Button" parent="MarginContainer/VBoxContainer/VBoxContainer"]
+visible = false
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+text = "Cancel Connection"
+
+[node name="DisconnectFromServer" type="Button" parent="MarginContainer/VBoxContainer/VBoxContainer"]
 visible = false
 layout_mode = 2
 size_flags_vertical = 3
+theme_override_font_sizes/font_size = 12
 text = "Disconnect from server"
 
 [node name="ConnectingLabel" type="Label" parent="MarginContainer/VBoxContainer"]

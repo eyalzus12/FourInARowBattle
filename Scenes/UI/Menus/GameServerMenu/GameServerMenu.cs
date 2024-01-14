@@ -48,6 +48,13 @@ public partial class GameServerMenu : Node
     {
         VerifyExports();
         ConnectSignals();
+
+        //simulate a press to host the server
+        if(Autoloads.Startup.UserCmdlineArgs.TryGetValue(Globals.CMD_LINE_SERVER_KEY, out string? port))
+        {
+            _port.Text = port;
+            _startServerButton.EmitSignal(BaseButton.SignalName.Pressed);
+        }
     }
 
     private void OnStartServerPressed()

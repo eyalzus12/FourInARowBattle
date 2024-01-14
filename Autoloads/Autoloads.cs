@@ -31,6 +31,9 @@ public static class Autoloads
         _t = value;
     }
 
+    private static Startup? _startup = null;
+    public static Startup Startup{get => GetAutoload(_startup); set => SetAutoload(ref _startup, value);}
+
     private static EventBus? _eventBus = null;
     public static EventBus EventBus{get => GetAutoload(_eventBus); set => SetAutoload(ref _eventBus, value);}
     
