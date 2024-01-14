@@ -536,6 +536,8 @@ public partial class GameServer : Node
             Player1 = which ? target : source,
             Player2 = which ? source : target
         };
+        //make game invisible
+        match.Game.Visible = false;
         //add game to scene
         AddChild(match.Game);
         //set to initial state
