@@ -196,7 +196,7 @@ public partial class GameServer : Node
         }
     }
 
-    private void HandlePacket_Dummy(int peerId, Packet_Dummy packet)
+    private static void HandlePacket_Dummy(int peerId, Packet_Dummy packet)
     {
         ArgumentNullException.ThrowIfNull(packet);
         GD.Print($"Got dummy packet from {peerId}");

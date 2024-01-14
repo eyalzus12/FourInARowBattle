@@ -326,7 +326,7 @@ public partial class GameClient : Node
         }
     }
 
-    private void HandlePacket_Dummy(Packet_Dummy packet)
+    private static void HandlePacket_Dummy(Packet_Dummy packet)
     {
         ArgumentNullException.ThrowIfNull(packet);
         GD.Print("Got dummy packet");
@@ -1339,7 +1339,7 @@ public partial class GameClient : Node
         _quitPacket = null;
     }
 
-    private void ResetPlayerData(Player player)
+    private static void ResetPlayerData(Player player)
     {
         player.ISentRequest = false;
         player.IGotRequest = false;
