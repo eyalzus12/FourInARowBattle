@@ -889,6 +889,7 @@ public partial class GameClient : Node
 
         Player other = _lobby.Players[index];
         other.Busy = true;
+        ResetPlayerData(other);
         EmitSignal(SignalName.PlayerBecameBusy, index);
     }
 
@@ -1033,13 +1034,7 @@ public partial class GameClient : Node
         for(int i = 0; i < _lobby.Players.Count; ++i)
         {
             if(i == _lobby.Index || i == opponentIdx) continue;
-            Player another = _lobby.Players[i];
-            another.ISentRequest = false;
-            another.IGotRequest = false;
-            another.GameRequestPacket = null;
-            another.GameAcceptPacket = null;
-            another.GameRejectPacket = null;
-            another.GameCancelPacket = null;
+            ResetPlayerData(_lobby.Players[i]);
         }
 
         EmitSignal(SignalName.GameStarted, (int)packet.Turn, opponentIdx);
@@ -1341,6 +1336,16 @@ public partial class GameClient : Node
         _placePacket = null;
         _refillPacket = null;
         _quitPacket = null;
+    }
+
+    private void ResetPlayerData(Player player)
+    {
+        player.ISentRequest = false;
+        player.IGotRequest = false;
+        player.GameRequestPacket = null;
+        player.GameAcceptPacket = null;
+        player.GameRejectPacket = null;
+        player.GameCancelPacket = null;
     }
 
     private void DisplayError(string error)
