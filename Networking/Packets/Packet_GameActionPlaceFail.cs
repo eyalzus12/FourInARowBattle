@@ -1,4 +1,6 @@
 using Godot;
+using System.Diagnostics.CodeAnalysis;
+using DequeNet;
 
 namespace FourInARowBattle;
 
@@ -20,5 +22,14 @@ public partial class Packet_GameActionPlaceFail : AbstractPacket
         buffer.WriteBigEndian((byte)PacketType, 0, out int index);
         buffer.WriteBigEndian((byte)ErrorCode, index, out _);
         return buffer;
+    }
+
+    public static bool TryConstructPacket_GameActionPlaceFailFrom(Deque<byte> buffer, [NotNullWhen(true)] out AbstractPacket? packet)
+    {
+        packet = null;
+        if(buffer.Count < 2) return false;
+        buffer.PopLeft();
+        packet = new Packet_GameActionPlaceFail((ErrorCodeEnum)buffer.PopLeft());
+        return true;
     }
 }

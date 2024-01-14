@@ -1,4 +1,6 @@
 using Godot;
+using System.Diagnostics.CodeAnalysis;
+using DequeNet;
 
 namespace FourInARowBattle;
 
@@ -20,5 +22,14 @@ public partial class Packet_LobbyDisconnect : AbstractPacket
         buffer.WriteBigEndian((byte)PacketType, 0, out int index);
         buffer.WriteBigEndian((byte)Reason, index, out _);
         return buffer;
+    }
+
+    public static bool TryConstructPacket_LobbyDisconnectFrom(Deque<byte> buffer, [NotNullWhen(true)] out AbstractPacket? packet)
+    {
+        packet = null;
+        if(buffer.Count < 2) return false;
+        buffer.PopLeft();
+        packet = new Packet_LobbyDisconnect((DisconnectReasonEnum)buffer.PopLeft());
+        return true;
     }
 }

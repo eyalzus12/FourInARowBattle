@@ -1,4 +1,6 @@
 using Godot;
+using System.Diagnostics.CodeAnalysis;
+using DequeNet;
 
 namespace FourInARowBattle;
 
@@ -26,5 +28,18 @@ public partial class Packet_GameActionPlace : AbstractPacket
         buffer.WriteBigEndian((uint)stringBuffer.Length, index, out index);
         buffer.WriteBuffer(stringBuffer, index, out _);
         return buffer;
+    }
+
+    public static bool TryConstructPacket_GameActionPlaceFrom(Deque<byte> buffer, [NotNullWhen(true)] out AbstractPacket? packet)
+    {
+        packet = null;
+        if(buffer.Count < 6) return false;
+        uint size = new[]{buffer[2], buffer[3], buffer[4], buffer[5]}.ReadBigEndian<uint>();
+        if(buffer.Count < 6 + size) return false;
+        byte column = buffer[1];
+        for(int i = 0; i < 6; ++i) buffer.PopLeft();
+        byte[] path = new byte[size]; for(int i = 0; i < size; ++i) path[i] = buffer.PopLeft();
+        packet = new Packet_GameActionPlace(column, path.GetStringFromUtf8());
+        return true;
     }
 }

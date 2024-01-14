@@ -1,4 +1,6 @@
 using Godot;
+using System.Diagnostics.CodeAnalysis;
+using DequeNet;
 
 namespace FourInARowBattle;
 
@@ -20,5 +22,14 @@ public partial class Packet_InvalidPacketInform : AbstractPacket
         buffer.WriteBigEndian((byte)PacketType, 0, out int index);
         buffer.WriteBigEndian((byte)GivenPacketType, index, out _);
         return buffer;
+    }
+
+    public static bool TryConstructPacket_InvalidPacketInformFrom(Deque<byte> buffer, [NotNullWhen(true)] out AbstractPacket? packet)
+    {
+        packet = null;
+        if(buffer.Count < 2) return false;
+        buffer.PopLeft();
+        packet = new Packet_InvalidPacketInform((PacketTypeEnum)buffer.PopLeft());
+        return true;
     }
 }

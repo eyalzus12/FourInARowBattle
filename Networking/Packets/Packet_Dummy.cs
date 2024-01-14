@@ -1,3 +1,6 @@
+using System.Diagnostics.CodeAnalysis;
+using DequeNet;
+
 namespace FourInARowBattle;
 
 public partial class Packet_Dummy : AbstractPacket
@@ -14,5 +17,12 @@ public partial class Packet_Dummy : AbstractPacket
         byte[] buffer = new byte[sizeof(byte)];
         buffer.WriteBigEndian((byte)PacketType, 0, out _);
         return buffer;
+    }
+
+    public static bool TryConstructPacket_DummyFrom(Deque<byte> buffer, [NotNullWhen(true)] out AbstractPacket? packet)
+    {
+        buffer.PopLeft();
+        packet = new Packet_Dummy();
+        return true;
     }
 }

@@ -1,5 +1,7 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using DequeNet;
 using Godot;
 
 namespace FourInARowBattle;
@@ -33,5 +35,24 @@ public partial class Packet_ConnectLobbyRequest : AbstractPacket
         buffer.WriteBigEndian((byte)stringBuffer.Length, index, out index);
         buffer.WriteBuffer(stringBuffer, index, out _);
         return buffer;
+    }
+
+    public static bool TryConstructPacket_ConnectLobbyRequestFrom(Deque<byte> buffer, [NotNullWhen(true)] out AbstractPacket? packet)
+    {
+        packet = null;
+        if(buffer.Count < 6) return false;
+        byte size = buffer[5];
+        if(buffer.Count < 6 + size) return false;
+        uint lobbyId = new[]{buffer[1], buffer[2], buffer[3], buffer[4]}.ReadBigEndian<uint>();
+        for(int i = 0; i < 6; ++i) buffer.PopLeft();
+        byte[] nameBuffer = new byte[size]; for(int i = 0; i < size; ++i) nameBuffer[i] = buffer.PopLeft();
+        string name = nameBuffer.GetStringFromUtf8();
+        if(name.Length > Globals.NAME_LENGTH_LIMIT)
+        {
+            GD.Print($"Packet has name with invalid length {name.Length}. It will be trimmed.");
+            name = new(name.Take(Globals.NAME_LENGTH_LIMIT).ToArray());
+        }
+        packet = new Packet_ConnectLobbyRequest(lobbyId, name);
+        return true;
     }
 }
