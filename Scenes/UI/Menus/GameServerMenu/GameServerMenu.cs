@@ -3,6 +3,9 @@ using System;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// The menu for hosting a server. Mainly serves as a wrapper over GameServer.
+/// </summary>
 public partial class GameServerMenu : Node
 {
     [ExportCategory("Nodes")]
@@ -49,7 +52,7 @@ public partial class GameServerMenu : Node
         VerifyExports();
         ConnectSignals();
 
-        //simulate a press to host the server
+        //--server is specified. simulate a press to host the server
         if(Autoloads.Startup.UserCmdlineArgs.TryGetValue(Globals.CMD_LINE_SERVER_KEY, out string? port))
         {
             _port.Text = port;
@@ -57,6 +60,9 @@ public partial class GameServerMenu : Node
         }
     }
 
+    /// <summary>
+    /// Event: The start server button was pressed
+    /// </summary>
     private void OnStartServerPressed()
     {
         if(ushort.TryParse(_port.Text, out ushort port))
@@ -82,6 +88,9 @@ public partial class GameServerMenu : Node
         }
     }
 
+    /// <summary>
+    /// Event: The stop server button was pressed
+    /// </summary>
     private void OnStopServerPressed()
     {
         _server.Stop();
@@ -92,6 +101,9 @@ public partial class GameServerMenu : Node
         _refuseNewConnectionsCheckButton.SetPressedNoSignal(false);
     }
 
+    /// <summary>
+    /// Event: The refuse new connections toggle was toggled.
+    /// </summary>
     private void OnRefuseNewConnectionsCheckButtonPressed()
     {
         _server.RefuseNewConnections = _refuseNewConnectionsCheckButton.ButtonPressed;
@@ -99,6 +111,10 @@ public partial class GameServerMenu : Node
 
     private string? _goBackRequestPath;
 
+    /// <summary>
+    /// Event: The exit button was pressed. Show confirmation dialog.
+    /// </summary>
+    /// <param name="path">The path to the main menu scene</param>
     private void OnGoBackButtonChangeSceneRequested(string path)
     {
         ArgumentNullException.ThrowIfNull(path);
@@ -106,12 +122,19 @@ public partial class GameServerMenu : Node
         _goBackConfirmationDialog.PopupCentered();
     }
 
+    /// <summary>
+    /// Event: Going back to main menu was confirmed.
+    /// </summary>
     private void OnGoBackConfirmationDialogConfirmed()
     {
         _server.Stop();
         GetTree().CallDeferred(SceneTree.MethodName.ChangeSceneToFile, _goBackRequestPath!);
     }
 
+    /// <summary>
+    /// Display an error to the screen.
+    /// </summary>
+    /// <param name="error">The error to display</param>
     private void DisplayError(string error)
     {
         ArgumentNullException.ThrowIfNull(error);

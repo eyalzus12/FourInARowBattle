@@ -4,6 +4,9 @@ using System.Text;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// This class is an editable field that only allows numbers inside
+/// </summary>
 public partial class LobbyIdField : LineEdit
 {
     public override void _Ready()

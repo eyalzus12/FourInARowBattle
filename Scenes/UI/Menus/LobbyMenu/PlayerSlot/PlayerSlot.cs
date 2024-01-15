@@ -3,15 +3,31 @@ using System;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// This class represents a player slot inside the lobby menu.
+/// </summary>
 public partial class PlayerSlot : Control
 {
     #region Signals
+
+    /// <summary>
+    /// Challenge button was pressed
+    /// </summary>
     [Signal]
     public delegate void ChallengeSentEventHandler();
+    /// <summary>
+    /// Challenge cancel button was pressed
+    /// </summary>
     [Signal]
     public delegate void ChallengeCanceledEventHandler();
+    /// <summary>
+    /// Challenge accept button was pressed
+    /// </summary>
     [Signal]
     public delegate void ChallengeAcceptedEventHandler();
+    /// <summary>
+    /// Challenge reject button was pressed
+    /// </summary>
     [Signal]
     public delegate void ChallengeRejectedEventHandler();
     #endregion
@@ -31,6 +47,9 @@ public partial class PlayerSlot : Control
     private Color? _oldModulate;
 
     private bool _marked = false;
+    /// <summary>
+    /// When true, highlights the player name
+    /// </summary>
     public bool Marked
     {
         get => _marked;
@@ -83,49 +102,71 @@ public partial class PlayerSlot : Control
     }
 
     #region Signal Handling
+
+    /// <summary>
+    /// Event: Challenge button pressed
+    /// </summary>
     private void OnSendChallengeButtonPressed()
     {
         EmitSignal(SignalName.ChallengeSent);
     }
 
+    /// <summary>
+    /// Event: Cancel challenge button pressed
+    /// </summary>
     private void OnCancelChallengeButtonPressed()
     {
         EmitSignal(SignalName.ChallengeCanceled);
     }
 
+    /// <summary>
+    /// Event: Accept challenge button pressed
+    /// </summary>
     private void OnAcceptChallengeButtonPressed()
     {
         EmitSignal(SignalName.ChallengeAccepted);
     }
 
+    /// <summary>
+    /// Event: Reject challenge button pressed
+    /// </summary>
     private void OnRejectChallengeButtonPressed()
     {
         EmitSignal(SignalName.ChallengeRejected);
     }
+
     #endregion
 
+    /// <summary>
+    /// Set current challenge state
+    /// </summary>
+    /// <param name="state">The state to change to</param>
     public void SetState(ChallengeStateEnum state)
     {
         switch(state)
         {
+            //No challenge. Show challenge button.
             case ChallengeStateEnum.NONE:
                 _sendChallengeButton.Visible = true;
                 _cancelChallengeButton.Visible = false;
                 _acceptChallengeButton.Visible = false;
                 _rejectChallengeButton.Visible = false;
                 break;
+            //Cannot challenge. Show nothing.
             case ChallengeStateEnum.CANNOT:
                 _sendChallengeButton.Visible = false;
                 _cancelChallengeButton.Visible = false;
                 _acceptChallengeButton.Visible = false;
                 _rejectChallengeButton.Visible = false;
                 break;
+            //Sent a challenge. Show cancel button.
             case ChallengeStateEnum.SENT:
                 _sendChallengeButton.Visible = false;
                 _cancelChallengeButton.Visible = true;
                 _acceptChallengeButton.Visible = false;
                 _rejectChallengeButton.Visible = false;
                 break;
+            //Got a challenge. Show accept and reject buttons.
             case ChallengeStateEnum.GOT:
                 _sendChallengeButton.Visible = false;
                 _cancelChallengeButton.Visible = false;

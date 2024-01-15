@@ -120,6 +120,7 @@ public partial class WebSocketClient : Node
         }
         
         List<byte> batchedPackets = new();
+        //Open and has packets
         while(_socket.GetReadyState() == WebSocketPeer.State.Open && _socket.GetAvailablePacketCount() > 0)
         {
             Error err = TryGetPacket(out byte[]? packet);

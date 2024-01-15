@@ -3,6 +3,10 @@ using Godot;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// A local version of GameMenu that does not rely on server verification.
+/// Instead, the signals are directly connected to local methods.
+/// </summary>
 public partial class GameMenuLocal : GameMenu
 {
     private void ConnectSignals()

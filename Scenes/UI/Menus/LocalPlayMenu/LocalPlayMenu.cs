@@ -3,6 +3,9 @@ using System;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// This is the UI class for the local play menu.
+/// </summary>
 public partial class LocalPlayMenu : Control
 {
     [Signal]

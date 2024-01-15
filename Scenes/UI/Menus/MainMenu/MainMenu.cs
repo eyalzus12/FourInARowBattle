@@ -3,6 +3,9 @@ using System;
 
 namespace FourInARowBattle;
 
+/// <summary>
+/// This is the UI class for the main menu
+/// </summary>
 public partial class MainMenu : Control
 {
     [Signal]
@@ -39,7 +42,7 @@ public partial class MainMenu : Control
         VerifyExports();
         ConnectSignals();
 
-        //simulate a press to move to the server hosting menu
+        //--server is specified. simulate a press to move to the server hosting menu
         if(Autoloads.Startup.UserCmdlineArgs.ContainsKey(Globals.CMD_LINE_SERVER_KEY))
         {
             _hostServerButton._Pressed();
