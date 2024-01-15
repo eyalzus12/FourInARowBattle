@@ -19,7 +19,7 @@ public partial class WebSocketServer : Node
     private sealed class PendingPeer
     {
         /// <summary>
-        /// The time that connection started
+        /// The time that connection started in msec
         /// </summary>
         public ulong ConnectTime{get; set;}
         /// <summary>
@@ -52,11 +52,11 @@ public partial class WebSocketServer : Node
     public delegate void PacketReceivedEventHandler(int peerId, byte[] packet);
 
     [Export]
-    public string[] HandshakeHeaders{get; set;} = Array.Empty<string>();
+    private string[] _handshakeHeaders = Array.Empty<string>();
     [Export]
-    public string[] SupportedProtocols{get; set;} = Array.Empty<string>();
+    private string[] _supportedProtocols = Array.Empty<string>();
     [Export]
-    public ulong HandshakeTimeout{get; set;} = 3000;
+    private ulong _handshakeTimeout = 3000;
 
     private bool _refuseNewConnections = false;
     [Export]
@@ -200,8 +200,8 @@ public partial class WebSocketServer : Node
     /// <returns>The new websocket</returns>
     private WebSocketPeer CreatePeer() => new()
     {
-        SupportedProtocols = SupportedProtocols,
-        HandshakeHeaders = HandshakeHeaders
+        SupportedProtocols = _supportedProtocols,
+        HandshakeHeaders = _handshakeHeaders
     };
 
     /// <summary>
@@ -228,7 +228,7 @@ public partial class WebSocketServer : Node
         List<PendingPeer> pendingPeersCopy = _pendingPeers.ToList();
         foreach(PendingPeer peer in pendingPeersCopy)
         {
-            if(ConnectPending(peer) || peer.ConnectTime + HandshakeTimeout < Time.GetTicksMsec())
+            if(ConnectPending(peer) || peer.ConnectTime + _handshakeTimeout < Time.GetTicksMsec())
             {
                 _pendingPeers.Remove(peer);
             }
